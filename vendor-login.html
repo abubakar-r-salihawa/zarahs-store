@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vendor Portal — Zarah's Store</title>
+  <meta name="description" content="Zarah's Store Vendor Login — manage your store and products.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body {
+      background: #F1F3F6;
+      font-family: 'Inter', sans-serif;
+    }
+    .vendor-login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      background: linear-gradient(180deg, #251D17 0%, #100C09 100%);
+    }
+    .vl-card {
+      width: 100%;
+      max-width: 450px;
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 40px 32px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.15);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .vl-logo {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .vl-logo .shop-logo {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #8B5A2B;
+      margin-bottom: 4px;
+    }
+    .vl-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 4px;
+      background: #F1F3F6;
+      border: 1px solid #D0D4DC;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #555555;
+    }
+    .vl-title {
+      text-align: center;
+      margin-bottom: 6px;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #212121;
+    }
+    .vl-sub {
+      text-align: center;
+      color: #666666;
+      font-size: 0.85rem;
+      margin-bottom: 28px;
+    }
+    .vendor-select-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .vendor-select-btn {
+      padding: 12px 6px;
+      border-radius: 6px;
+      border: 1.5px solid #D0D4DC;
+      background: #FFFFFF;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .vendor-select-btn .vs-emoji {
+      font-size: 1.6rem;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .vendor-select-btn .vs-name {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #444444;
+      line-height: 1.25;
+      display: block;
+    }
+    .vendor-select-btn:hover {
+      border-color: #8B5A2B;
+      background: #FAF5F0;
+      transform: translateY(-1px);
+    }
+    .vendor-select-btn.selected-perfume { border-color: #8B5A2B; background: #FAF5F0; }
+    .vendor-select-btn.selected-kitchen { border-color: #27AE60; background: #F1FBF4; }
+    .vendor-select-btn.selected-variety { border-color: #2563EB; background: #F0F5FF; }
+
+    .vendor-select-btn.selected-perfume .vs-name { color: #8B5A2B; }
+    .vendor-select-btn.selected-kitchen .vs-name { color: #27AE60; }
+    .vendor-select-btn.selected-variety .vs-name { color: #2563EB; }
+
+    .hint-box {
+      background: #F4F7FB;
+      border: 1px solid #D0D8E8;
+      border-radius: 6px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+    }
+    .hint-cred {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      padding: 3px 0;
+    }
+    .hint-cred span {
+      font-weight: 600;
+      color: #555555;
+    }
+    .hint-cred code {
+      color: #8B5A2B;
+      background: #FAF5F0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-family: monospace;
+      font-weight: 700;
+    }
+    
+    .vl-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #555555;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-input-light {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1.5px solid #D0D4DC;
+      border-radius: 4px;
+      background: #FFFFFF;
+      font-size: 0.88rem;
+      color: #212121;
+      outline: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    .form-input-light:focus {
+      border-color: #8B5A2B;
+      box-shadow: 0 0 0 3px rgba(139,90,43,0.12);
+    }
+
+    .vl-submit {
+      padding: 13px;
+      border-radius: 4px;
+      background: #B58E4C;
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 0.95rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 8px;
+    }
+    .vl-submit:hover {
+      background: #9E773B;
+    }
+    .error-message {
+      background: #FFF1F1;
+      border: 1px solid #FFCDD2;
+      color: #C62828;
+      padding: 10px 12px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: none;
+    }
+    .error-message.show {
+      display: block;
+    }
+    .back-link {
+      text-align: center;
+      margin-top: 24px;
+    }
+    .back-link a {
+      color: #8B5A2B;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .back-link a:hover {
+      text-decoration: underline;
+    }
+    @media (max-width: 480px) {
+      .vl-card { padding: 32px 20px; }
+      .vendor-select-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="vendor-login-page">
+  <div class="vl-card">
+    <div class="vl-logo">
+      <div class="shop-logo">🛍️ Zarah's Store</div>
+      <div class="vl-badge">🏪 Vendor Portal</div>
+    </div>
+    <h1 class="vl-title">Vendor Sign In</h1>
+    <p class="vl-sub">Manage your store, products & inventory</p>
+
+    <!-- Quick vendor select -->
+    <div style="font-size:0.75rem;font-weight:700;color:#555555;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Select Your Store</div>
+    <div class="vendor-select-grid">
+      <div class="vendor-select-btn" id="vs-perfume" onclick="autofill('perfume')">
+        <span class="vs-emoji">🌸</span>
+        <span class="vs-name">Zarah's Perfume</span>
+      </div>
+      <div class="vendor-select-btn" id="vs-kitchen" onclick="autofill('kitchen')">
+        <span class="vs-emoji">🍳</span>
+        <span class="vs-name">Zarah's Kitchen</span>
+      </div>
+      <div class="vendor-select-btn" id="vs-variety" onclick="autofill('variety')">
+        <span class="vs-emoji">💎</span>
+        <span class="vs-name">Teemerh Collection</span>
+      </div>
+    </div>
+
+    <!-- Credentials hint -->
+    <div class="hint-box" id="hintBox" style="display:none">
+      <div class="hint-cred"><span>Email:</span><code id="hintEmail"></code></div>
+      <div class="hint-cred"><span>Password:</span><code id="hintPwd"></code></div>
+    </div>
+
+    <div class="error-message" id="errorMsg"></div>
+
+    <div class="vl-form">
+      <div class="form-group">
+        <label class="form-label">Vendor Email</label>
+        <input type="email" class="form-input-light" id="vendorEmail" placeholder="vendor@yourstore.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input-light" id="vendorPassword" placeholder="••••••••" onkeypress="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="vl-submit" onclick="doLogin()">Sign In to Dashboard</button>
+    </div>
+
+    <div class="back-link">
+      <a href="index.html">← Back to Marketplace</a>
+    </div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/vendor-store.js"></script>
+<script>
+  // Redirect if already logged in
+  if (VendorAuth.isLoggedIn()) {
+    window.location.href = 'vendor-dashboard.html';
+  }
+
+  const CREDS_MAP = {
+    perfume: { email: 'vendor@aura.com',   password: 'Aura2026!' },
+    kitchen: { email: 'vendor@hearth.com', password: 'Hearth2026!' },
+    variety: { email: 'vendor@globe.com',  password: 'Globe2026!' }
+  };
+
+  let selectedVendor = null;
+
+  function autofill(vendorId) {
+    selectedVendor = vendorId;
+    // Update button styles
+    document.querySelectorAll('.vendor-select-btn').forEach(b => {
+      b.className = 'vendor-select-btn';
+    });
+    document.getElementById('vs-' + vendorId).classList.add('selected-' + vendorId);
+
+    // Autofill credentials
+    const creds = CREDS_MAP[vendorId];
+    document.getElementById('vendorEmail').value = creds.email;
+    document.getElementById('vendorPassword').value = creds.password;
+
+    // Show hint
+    document.getElementById('hintBox').style.display = 'block';
+    document.getElementById('hintEmail').textContent = creds.email;
+    document.getElementById('hintPwd').textContent = creds.password;
+  }
+
+  function doLogin() {
+    const email = document.getElementById('vendorEmail').value.trim();
+    const password = document.getElementById('vendorPassword').value;
+    const errEl = document.getElementById('errorMsg');
+
+    if (!email || !password) {
+      errEl.textContent = '⚠️ Please enter your email and password.';
+      errEl.classList.add('show'); return;
+    }
+
+    const result = VendorAuth.login(email, password);
+    if (result.success) {
+      errEl.classList.remove('show');
+      window.location.href = 'vendor-dashboard.html';
+    } else {
+      errEl.textContent = '❌ ' + result.error;
+      errEl.classList.add('show');
+    }
+  }
+</script>
+</body>
+</html>

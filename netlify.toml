@@ -1,0 +1,44 @@
+[[redirects]]
+  from = "/store-perfume"
+  to = "/store-perfume.html"
+  status = 200
+
+[[redirects]]
+  from = "/store-kitchen"
+  to = "/store-kitchen.html"
+  status = 200
+
+[[redirects]]
+  from = "/store-variety"
+  to = "/store-variety.html"
+  status = 200
+
+[[redirects]]
+  from = "/product"
+  to = "/product.html"
+  status = 200
+
+[[redirects]]
+  from = "/cart"
+  to = "/cart.html"
+  status = 200
+
+[[redirects]]
+  from = "/checkout"
+  to = "/checkout.html"
+  status = 200
+
+[[redirects]]
+  from = "/auth"
+  to = "/auth.html"
+  status = 200
+
+[[redirects]]
+  from = "/vendor-login"
+  to = "/vendor-login.html"
+  status = 200
+
+[[redirects]]
+  from = "/vendor-dashboard"
+  to = "/vendor-dashboard.html"
+  status = 200

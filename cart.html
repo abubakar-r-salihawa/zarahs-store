@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopping Cart — Zarah's Store</title>
+  <meta name="description" content="Review your cart and checkout securely.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <div class="nav-top">
+    <a href="index.html" class="nav-logo">Zarah's Store<span class="nav-logo-sub">Premium Marketplace</span></a>
+    <div class="nav-search">
+      <input type="text" placeholder="Search for products..." onkeydown="if(event.key==='Enter')window.location.href='index.html'">
+      <button class="nav-search-btn">🔍</button>
+    </div>
+    <div class="nav-right">
+      <div class="auth-logged-out" style="display:flex"><a href="auth.html" class="nav-btn login">Login</a></div>
+      <div class="auth-logged-in" style="display:none;align-items:center;gap:8px">
+        <div class="user-avatar-nav"><span class="user-avatar"></span></div>
+        <span class="user-greeting">Hi, <span class="user-name"></span></span>
+        <button class="nav-btn" onclick="Auth.logout()" style="font-size:0.75rem">Logout</button>
+      </div>
+      <a href="cart.html" class="nav-btn cart" style="background:rgba(255,255,255,0.15)">🛒 Cart<span class="nav-cart-count cart-count">0</span></a>
+    </div>
+  </div>
+  <div class="nav-sub">
+    <div class="nav-sub-inner">
+      <a href="index.html" class="nav-sub-link">🏠 Home</a>
+      <a href="store-perfume.html" class="nav-sub-link">🌸 Zarah's Perfume</a>
+      <a href="store-kitchen.html" class="nav-sub-link">🍳 Zarah's Kitchen</a>
+      <a href="store-variety.html" class="nav-sub-link">💎 Teemerh Collection</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="container">
+    <!-- Breadcrumb -->
+    <div class="fk-breadcrumb section-card" style="border-radius:8px;margin-bottom:12px">
+      <a href="index.html">Home</a> › <span>Cart</span>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div id="emptyState" style="display:none" class="section-card">
+      <div class="empty-fk">
+        <div style="font-size:4rem;margin-bottom:16px">🛒</div>
+        <h3>Your cart is empty</h3>
+        <p style="margin-bottom:20px">Add products from our vendors to get started</p>
+        <a href="index.html" style="display:inline-block;padding:12px 28px;background:var(--fk-yellow);color:#333;font-weight:700;border-radius:4px">Continue Shopping</a>
+      </div>
+    </div>
+
+    <!-- CART CONTENT -->
+    <div id="cartContent" style="display:none">
+      <div class="cart-layout-fk">
+        <!-- LEFT: ITEMS -->
+        <div>
+          <div class="section-card">
+            <div class="cart-header">
+              <span>Shopping Cart (<span id="cartCountLabel">0</span>)</span>
+              <span style="color:var(--fk-green);font-weight:600">✓ Delivery available across all 36 states</span>
+            </div>
+            <div id="cartItemsContainer"></div>
+          </div>
+
+          <!-- PROMO -->
+          <div class="section-card" style="margin-top:12px;padding:16px">
+            <div style="font-size:0.88rem;font-weight:600;margin-bottom:10px">🎟️ Apply Promo Code</div>
+            <div style="display:flex;gap:10px">
+              <input type="text" id="promoCode" class="search-fk" style="flex:1;padding:10px 14px" placeholder="Enter promo code (try SAVE10)">
+              <button onclick="applyPromo()" style="padding:10px 20px;background:var(--fk-blue);color:#fff;border:none;border-radius:4px;font-weight:700;font-size:0.85rem;cursor:pointer">Apply</button>
+            </div>
+            <div id="promoMsg" style="margin-top:8px;font-size:0.78rem;display:none"></div>
+          </div>
+        </div>
+
+        <!-- RIGHT: SUMMARY -->
+        <div class="cart-summary-fk">
+          <div class="cart-summary-hd">Price Details</div>
+          <div class="summary-row-fk">
+            <span>Price (<span id="itemCountText">0 items</span>)</span>
+            <span id="subtotal">₦0</span>
+          </div>
+          <div class="summary-row-fk">
+            <span>Delivery Charges</span>
+            <span id="shipping" style="color:var(--fk-green)">₦2,500</span>
+          </div>
+          <div class="summary-row-fk total">
+            <span>Total Amount</span>
+            <span id="total">₦0</span>
+          </div>
+          <div style="padding:12px 16px;background:#F1FBF4;border-top:1px solid var(--border)">
+            <span style="font-size:0.8rem;font-weight:600;color:var(--fk-green)">🎉 <span id="savingsText"></span></span>
+          </div>
+          <div id="shippingProgress" style="padding:10px 16px;font-size:0.78rem;color:var(--fk-orange);border-top:1px solid var(--border)"></div>
+          <button class="cart-checkout-btn" onclick="goCheckout()">Proceed to Checkout →</button>
+          <div style="padding:12px 16px;border-top:1px solid var(--border)">
+            <p style="font-size:0.75rem;color:var(--text-3);text-align:center">🔒 SSL Secure · 30-day Returns · Verified Vendors</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="fk-footer">
+  <div class="fk-footer-bottom" style="border-top:none">
+    <p>© 2026 Zarah's Store</p>
+    <p>Orders: WhatsApp Direct · Payment: Bank Transfer</p>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script>
+  let promoApplied = false;
+
+  function renderCart() {
+    const items = Cart.getItems();
+    const count = Cart.getCount();
+    document.getElementById('cartCountLabel').textContent = `${count} item${count !== 1 ? 's' : ''}`;
+    document.getElementById('itemCountText').textContent = `${count} item${count !== 1 ? 's' : ''}`;
+
+    if (items.length === 0) {
+      document.getElementById('emptyState').style.display = 'block';
+      document.getElementById('cartContent').style.display = 'none';
+      return;
+    }
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('cartContent').style.display = 'block';
+
+    const container = document.getElementById('cartItemsContainer');
+    container.innerHTML = items.map(item => {
+      const vendor = VENDORS[item.vendor];
+      const discPct = item.originalPrice ? Math.round((1 - item.price / item.originalPrice) * 100) : 0;
+      return `
+        <div class="cart-item-fk">
+          <img class="cart-item-img-fk" src="${item.image}" alt="${item.name}" onerror="this.src='https://picsum.photos/100/100'">
+          <div class="cart-item-info-fk">
+            <div class="cart-item-name-fk">${item.name}</div>
+            <div class="cart-item-vendor-fk">${vendor.logo} ${vendor.name} · ${item.category}</div>
+            <div class="cart-item-price-fk">${formatNaira(item.price * item.qty)}</div>
+            ${item.originalPrice ? `
+              <div style="display:flex;align-items:center;gap:8px">
+                <span class="cart-item-orig-fk">${formatNaira(item.originalPrice)}</span>
+                <span class="cart-item-disc-fk">${discPct}% off</span>
+              </div>` : ''}
+            <div style="display:flex;align-items:center;gap:0;margin-top:10px">
+              <div class="qty-controls-fk">
+                <button class="qty-btn-fk" onclick="updateQty('${item.id}', ${item.qty - 1})">−</button>
+                <span class="qty-num-fk">${item.qty}</span>
+                <button class="qty-btn-fk" onclick="updateQty('${item.id}', ${item.qty + 1})">+</button>
+              </div>
+              <button class="remove-fk" onclick="removeItem('${item.id}')">🗑️ Remove</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    updateSummary(items);
+  }
+
+  function updateSummary(items) {
+    const subtotal = Cart.getTotal();
+    const total = subtotal;
+    const savings = items.reduce((s, i) => s + ((i.originalPrice || i.price) - i.price) * i.qty, 0);
+
+    document.getElementById('subtotal').textContent = formatNaira(subtotal);
+    document.getElementById('shipping').textContent = 'Discuss on WhatsApp';
+    document.getElementById('shipping').style.color = 'var(--text-2)';
+    document.getElementById('shipping').style.fontWeight = '500';
+    document.getElementById('total').textContent = formatNaira(total);
+    document.getElementById('itemCountText').textContent = items.reduce((s, i) => s + i.qty, 0) + ' items';
+
+    document.getElementById('savingsText').textContent = savings > 0 ? `You save ${formatNaira(savings)} on this order!` : 'Secure direct-to-seller ordering';
+    document.getElementById('shippingProgress').innerHTML = '💬 Delivery fee will be agreed with the seller on WhatsApp.';
+    document.getElementById('shippingProgress').style.color = '#2E7D32';
+  }
+
+  function updateQty(id, qty) { Cart.updateQty(id, qty); renderCart(); }
+  function removeItem(id) { Cart.removeItem(id); renderCart(); }
+
+  function applyPromo() {
+    const code = document.getElementById('promoCode').value.trim().toUpperCase();
+    const msg = document.getElementById('promoMsg');
+    msg.style.display = 'block';
+    if (code === 'SAVE10') {
+      promoApplied = true;
+      msg.style.color = 'var(--fk-green)';
+      msg.textContent = '✅ Promo applied! 10% discount added.';
+      updateSummary(Cart.getItems());
+    } else {
+      msg.style.color = 'var(--fk-red)';
+      msg.textContent = '❌ Invalid promo code. Try SAVE10!';
+    }
+  }
+
+  function goCheckout() {
+    if (Cart.getItems().length === 0) return;
+    window.location.href = 'checkout.html';
+  }
+
+  renderCart();
+</script>
+</body>
+</html>

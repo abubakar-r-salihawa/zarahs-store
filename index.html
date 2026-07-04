@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zarah's Store — Shop Perfumes, Kitchen, Fashion, Jewelry & More</title>
+  <meta name="description" content="Zarah's Store — Nigeria's trusted multi-vendor marketplace. Shop from Zarah's Perfume, Zarah's Kitchen, and Teemerh Collection. Fast delivery across all 36 states.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ==================== NAVBAR ==================== -->
+<nav class="navbar" id="navbar">
+  <div class="nav-top">
+    <a href="index.html" class="nav-logo">
+      Zarah's Store
+      <span class="nav-logo-sub">Premium Marketplace</span>
+    </a>
+    <div class="nav-search">
+      <input type="text" id="globalSearch" placeholder="Search for products, brands and more" onkeydown="if(event.key==='Enter')doSearch()">
+      <button class="nav-search-btn" onclick="doSearch()">🔍</button>
+    </div>
+    <div class="nav-right">
+      <div class="auth-logged-out" style="display:flex">
+        <a href="auth.html" class="nav-btn login">Login</a>
+      </div>
+      <div class="auth-logged-in" style="display:none;align-items:center;gap:8px">
+        <div class="user-avatar-nav"><span class="user-avatar"></span></div>
+        <span class="user-greeting">Hi, <span class="user-name"></span></span>
+        <button class="nav-btn" onclick="Auth.logout()" style="font-size:0.75rem;opacity:0.8">Logout</button>
+      </div>
+      <a href="cart.html" class="nav-btn cart">
+        🛒 Cart
+        <span class="nav-cart-count cart-count">0</span>
+      </a>
+    </div>
+    <div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+  </div>
+  <div class="nav-sub">
+    <div class="nav-sub-inner">
+      <a href="index.html" class="nav-sub-link active">🏠 Home</a>
+      <a href="store-perfume.html" class="nav-sub-link">🌸 Zarah's Perfume</a>
+      <a href="store-kitchen.html" class="nav-sub-link">🍳 Zarah's Kitchen</a>
+      <a href="store-variety.html" class="nav-sub-link">💎 Teemerh Collection</a>
+      <a href="vendor-login.html" class="nav-sub-link">🏪 Vendor Portal</a>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html" class="mobile-link">🏠 Home</a>
+    <a href="store-perfume.html" class="mobile-link">🌸 Zarah's Perfume</a>
+    <a href="store-kitchen.html" class="mobile-link">🍳 Zarah's Kitchen</a>
+    <a href="store-variety.html" class="mobile-link">💎 Teemerh Collection</a>
+    <a href="cart.html" class="mobile-link">🛒 Cart</a>
+    <a href="auth.html" class="mobile-link">👤 Login / Sign Up</a>
+    <a href="vendor-login.html" class="mobile-link">🏪 Vendor Portal</a>
+  </div>
+</nav>
+
+<!-- ==================== PAGE ==================== -->
+<div class="page">
+  <div class="container">
+
+    <!-- CATEGORY STRIP -->
+    <div class="cat-strip-wrap">
+      <div class="cat-strip">
+        <div class="cat-item" onclick="window.location.href='store-perfume.html'">
+          <div class="cat-icon">🌸</div>
+          <div class="cat-label">Perfumes</div>
+        </div>
+        <div class="cat-item" onclick="window.location.href='store-kitchen.html'">
+          <div class="cat-icon">🍳</div>
+          <div class="cat-label">Cookware</div>
+        </div>
+        <div class="cat-item" onclick="window.location.href='store-kitchen.html'">
+          <div class="cat-icon">👗</div>
+          <div class="cat-label">Dresses</div>
+        </div>
+        <div class="cat-item" onclick="window.location.href='store-variety.html'">
+          <div class="cat-icon">💎</div>
+          <div class="cat-label">Jewelry</div>
+        </div>
+        <div class="cat-item" onclick="window.location.href='store-variety.html'">
+          <div class="cat-icon">🌶️</div>
+          <div class="cat-label">Spices</div>
+        </div>
+        <div class="cat-item" onclick="window.location.href='store-variety.html'">
+          <div class="cat-icon">📦</div>
+          <div class="cat-label">Plastics</div>
+        </div>
+        <div class="cat-item" onclick="window.location.href='store-kitchen.html'">
+          <div class="cat-icon">🔪</div>
+          <div class="cat-label">Knives</div>
+        </div>
+        <div class="cat-item" onclick="window.location.href='store-perfume.html'">
+          <div class="cat-icon">🪷</div>
+          <div class="cat-label">Floral</div>
+        </div>
+        <div class="cat-item" onclick="window.location.href='store-perfume.html'">
+          <div class="cat-icon">🌿</div>
+          <div class="cat-label">Oriental</div>
+        </div>
+        <div class="cat-item" onclick="window.location.href='store-variety.html'">
+          <div class="cat-icon">💍</div>
+          <div class="cat-label">Rings</div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <!-- VENDOR STORES SECTION -->
+    <div class="section-card">
+      <div class="section-hd">
+        <div>
+          <h2>Shop Our Stores</h2>
+          <div class="section-hd-sub">3 trusted vendors · Fast delivery across Nigeria</div>
+        </div>
+      </div>
+      <div class="vendor-cards-row">
+        <div class="vendor-card-fk" onclick="window.location.href='store-perfume.html'">
+          <div class="vendor-card-fk-banner">
+            <img src="https://picsum.photos/seed/zarah-banner/600/200" alt="Zarah's Perfume" onerror="this.style.background='linear-gradient(135deg,#3E2715,#1A120B)'">
+          </div>
+          <div class="vendor-card-fk-body">
+            <div class="vendor-card-fk-logo">🌸</div>
+            <div class="vendor-card-fk-name">Zarah's Perfume</div>
+            <div class="vendor-card-fk-tag">Signature scents for every occasion</div>
+            <div class="vendor-card-fk-footer">
+              <span class="vendor-rating-badge">4.8 ★</span>
+              <span class="vendor-shop-btn">Shop Now →</span>
+            </div>
+          </div>
+        </div>
+        <div class="vendor-card-fk" onclick="window.location.href='store-kitchen.html'">
+          <div class="vendor-card-fk-banner">
+            <img src="https://picsum.photos/seed/kitchen-ng/600/200" alt="Zarah's Kitchen" onerror="this.style.background='linear-gradient(135deg,#388E3C,#1B5E20)'">
+          </div>
+          <div class="vendor-card-fk-body">
+            <div class="vendor-card-fk-logo">🍳</div>
+            <div class="vendor-card-fk-name">Zarah's Kitchen</div>
+            <div class="vendor-card-fk-tag">Cookware · Dresses · Kitchen Accessories</div>
+            <div class="vendor-card-fk-footer">
+              <span class="vendor-rating-badge">4.6 ★</span>
+              <span class="vendor-shop-btn">Shop Now →</span>
+            </div>
+          </div>
+        </div>
+        <div class="vendor-card-fk" onclick="window.location.href='store-variety.html'">
+          <div class="vendor-card-fk-banner">
+            <img src="https://picsum.photos/seed/globe-ng/600/200" alt="Teemerh Collection" onerror="this.style.background='linear-gradient(135deg,#7B1FA2,#4A148C)'">
+          </div>
+          <div class="vendor-card-fk-body">
+            <div class="vendor-card-fk-logo">💎</div>
+            <div class="vendor-card-fk-name">Teemerh Collection</div>
+            <div class="vendor-card-fk-tag">Spices · Jewelry · Plastics & Organizers</div>
+            <div class="vendor-card-fk-footer">
+              <span class="vendor-rating-badge">4.7 ★</span>
+              <span class="vendor-shop-btn">Shop Now →</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FEATURED PRODUCTS -->
+    <div class="section-card">
+      <div class="section-hd">
+        <div>
+          <h2>🔥 Best Sellers</h2>
+          <div class="section-hd-sub">Most loved products across all stores</div>
+        </div>
+        <a href="store-perfume.html" class="view-all">View All</a>
+      </div>
+      <div class="products-grid products-grid-padded" id="featuredGrid"></div>
+    </div>
+
+    <!-- SECOND BANNER -->
+    <div class="deal-banner" style="background:linear-gradient(135deg,#1A5C3A 0%,#0A3320 100%);margin:0 0 12px">
+      <div class="deal-text">
+        <div class="deal-badge" style="background:#FFE500">🍳 ZARAH'S KITCHEN</div>
+        <div class="deal-title">Cook Better.<br>Dress Smarter.</div>
+        <div class="deal-sub">Zarah's Kitchen · Premium cookware & fashion for Nigerians</div>
+        <button class="deal-cta" onclick="window.location.href='store-kitchen.html'" style="background:#FFE500">Explore Store →</button>
+      </div>
+      <div class="deal-emojis">🍳👗✨</div>
+    </div>
+
+    <!-- PERFUME PRODUCTS -->
+    <div class="section-card">
+      <div class="section-hd">
+        <div>
+          <h2>🌸 Zarah's Perfume</h2>
+          <div class="section-hd-sub">Bestselling fragrances · Delivered nationwide</div>
+        </div>
+        <a href="store-perfume.html" class="view-all">View All</a>
+      </div>
+      <div class="products-grid products-grid-padded" id="perfumeGrid"></div>
+    </div>
+
+    <!-- KITCHEN PRODUCTS -->
+    <div class="section-card">
+      <div class="section-hd">
+        <div>
+          <h2>🍳 Zarah's Kitchen</h2>
+          <div class="section-hd-sub">Cookware · Fashion · Knives</div>
+        </div>
+        <a href="store-kitchen.html" class="view-all">View All</a>
+      </div>
+      <div class="products-grid products-grid-padded" id="kitchenGrid"></div>
+    </div>
+
+    <!-- THIRD BANNER -->
+    <div class="deal-banner" style="background:linear-gradient(135deg,#4A148C 0%,#1A237E 100%);margin:0 0 12px">
+      <div class="deal-text">
+        <div class="deal-badge" style="background:#FFE500;color:#333">💎 TEEMERH COLLECTION</div>
+        <div class="deal-title">Spices. Jewelry.<br>Everyday Essentials.</div>
+        <div class="deal-sub">Teemerh Collection · Authentic Nigerian & world spices, handcrafted jewelry</div>
+        <button class="deal-cta" onclick="window.location.href='store-variety.html'" style="background:#FFE500;color:#333">Shop Bazaar →</button>
+      </div>
+      <div class="deal-emojis">💎🌶️✨</div>
+    </div>
+
+    <!-- VARIETY PRODUCTS -->
+    <div class="section-card">
+      <div class="section-hd">
+        <div>
+          <h2>💎 Teemerh Collection</h2>
+          <div class="section-hd-sub">Spices · Jewelry · Plastics & Organizers</div>
+        </div>
+        <a href="store-variety.html" class="view-all">View All</a>
+      </div>
+      <div class="products-grid products-grid-padded" id="varietyGrid"></div>
+    </div>
+
+    <!-- WHY ZARAH'S STORE -->
+    <div class="section-card" style="margin-bottom:0">
+      <div class="section-hd"><div><h2>Why Shop on Zarah's Store?</h2></div></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0">
+        <div style="padding:20px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:2rem;margin-bottom:8px">🚚</div>
+          <div style="font-weight:700;font-size:0.88rem;margin-bottom:4px">Fast Delivery</div>
+          <div style="font-size:0.75rem;color:var(--text-3)">2-5 days across all 36 states</div>
+        </div>
+        <div style="padding:20px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:2rem;margin-bottom:8px">✅</div>
+          <div style="font-weight:700;font-size:0.88rem;margin-bottom:4px">Verified Products</div>
+          <div style="font-size:0.75rem;color:var(--text-3)">All products quality-checked</div>
+        </div>
+        <div style="padding:20px;text-align:center;border-right:1px solid var(--border)">
+          <div style="font-size:2rem;margin-bottom:8px">💬</div>
+          <div style="font-weight:700;font-size:0.88rem;margin-bottom:4px">WhatsApp Order</div>
+          <div style="font-size:0.75rem;color:var(--text-3)">Order via WhatsApp & Pay via Transfer</div>
+        </div>
+        <div style="padding:20px;text-align:center">
+          <div style="font-size:2rem;margin-bottom:8px">🔄</div>
+          <div style="font-weight:700;font-size:0.88rem;margin-bottom:4px">Easy Returns</div>
+          <div style="font-size:0.75rem;color:var(--text-3)">30-day return policy</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="fk-footer">
+  <div class="fk-footer-top">
+    <div>
+    <div>
+      <div class="fk-logo-footer" style="margin-bottom:12px">🛍️ Zarah's Store</div>
+      <p style="font-size:0.8rem;line-height:1.7">Zarah's Store — Nigeria's trusted multi-vendor marketplace. Shop from verified vendors and get fast delivery to all 36 states.</p>
+    </div>
+    </div>
+    <div>
+      <h4>Our Stores</h4>
+      <a href="store-perfume.html">🌸 Zarah's Perfume</a>
+      <a href="store-kitchen.html">🍳 Zarah's Kitchen</a>
+      <a href="store-variety.html">💎 Teemerh Collection</a>
+      <a href="vendor-login.html" style="color:rgba(255,185,0,0.7);margin-top:10px">🏪 Vendor Portal</a>
+    </div>
+    <div>
+      <h4>Help</h4>
+      <a href="#">Help Center</a>
+    </div>
+    <div>
+      <h4>Payments & Orders</h4>
+      <a href="#">Order via WhatsApp</a>
+    </div>
+  </div>
+  <div class="fk-footer-bottom">
+    <p>© 2026 Zarah's Store. All rights reserved.</p>
+    <p>Delivery: Katsina · Kano · Abuja · Lagos · Nationwide</p>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script src="js/vendor-store.js"></script>
+<script>
+  initVendorProducts();
+  function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
+  function doSearch() {
+    const q = document.getElementById('globalSearch').value.trim();
+    if (q) window.location.href = 'store-perfume.html?search=' + encodeURIComponent(q);
+  }
+
+  // Flipkart-style product card renderer
+  function renderFkCard(p) {
+    const v = VENDORS[p.vendor];
+    const inWish = Wishlist.has(p.id);
+    const ratingClass = p.rating >= 4.5 ? 'high' : p.rating >= 3.5 ? 'mid' : 'low';
+    const discPct = p.originalPrice ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
+    return `
+    <div class="product-card-fk" onclick="window.location.href='product.html?id=${p.id}'">
+      <div class="product-img-fk">
+        <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/300/300'">
+        ${p.badge ? `<span class="product-badge-fk badge-${p.badge.toLowerCase().replace(' ','-')}">${p.badge}</span>` : ''}
+        <button class="wishlist-fk ${inWish?'active':''}" onclick="event.stopPropagation();toggleWishlist('${p.id}',this)">${inWish?'❤️':'🤍'}</button>
+        ${!p.inStock ? '<div class="oos-overlay"><span>Out of Stock</span></div>' : ''}
+      </div>
+      <div class="product-info-fk">
+        <div class="product-name-fk">${p.name}</div>
+        <div class="product-rating-fk">
+          <span class="rating-pill ${ratingClass}">${p.rating} ★</span>
+          <span class="rating-count-fk">(${p.reviewCount.toLocaleString()})</span>
+          <span class="assured-badge">✔ Zarah's Store</span>
+        </div>
+        <div class="product-price-fk">${formatNaira(p.price)}</div>
+        <div class="product-price-row-fk">
+          ${p.originalPrice ? `<span class="product-orig-fk">${formatNaira(p.originalPrice)}</span><span class="product-discount-fk">${discPct}% off</span>` : ''}
+          <span class="free-delivery">Free Delivery</span>
+        </div>
+        <div class="product-btns" onclick="event.stopPropagation()">
+          <button class="btn-addcart-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`addToCart('${p.id}')`:''}" ${!p.inStock?'disabled':''}>🛒 Add to Cart</button>
+          <button class="btn-buynow-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`window.location.href='checkout.html'`:''}" ${!p.inStock?'disabled':''}>Buy Now</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Render all sections
+  const featured = getFeaturedProducts(8);
+  document.getElementById('featuredGrid').innerHTML = featured.map(renderFkCard).join('');
+
+  const perfumes = getProductsByVendor('perfume').slice(0, 4);
+  document.getElementById('perfumeGrid').innerHTML = perfumes.map(renderFkCard).join('');
+
+  const kitchen = getProductsByVendor('kitchen').slice(0, 4);
+  document.getElementById('kitchenGrid').innerHTML = kitchen.map(renderFkCard).join('');
+
+  const variety = getProductsByVendor('variety').slice(0, 4);
+  document.getElementById('varietyGrid').innerHTML = variety.map(renderFkCard).join('');
+</script>
+</body>
+</html>

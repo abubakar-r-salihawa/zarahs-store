@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login / Sign Up — Zarah's Store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body style="background:var(--bg)">
+
+<div class="auth-page-fk">
+  <div class="auth-split">
+    <!-- LEFT PANEL -->
+    <div class="auth-left">
+      <div>
+        <div style="font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:6px">🛍️ Zarah's Store</div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);margin-bottom:24px">Nigeria's Premium Marketplace</div>
+        <h2>Millions of products.<br>Three trusted vendors.</h2>
+        <p style="margin-top:12px">Join thousands of Nigerians shopping smart from Zarah's Perfume, Zarah's Kitchen, and Teemerh Collection.</p>
+      </div>
+      <div>
+        <div class="auth-left-img">🛍️</div>
+        <div style="margin-top:20px">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:0.82rem;color:rgba(255,255,255,0.75);display:flex;align-items:center;gap:8px"><span>🚚</span> Fast delivery to all 36 states</div>
+            <div style="font-size:0.82rem;color:rgba(255,255,255,0.75);display:flex;align-items:center;gap:8px"><span>💬</span> Order via WhatsApp and Pay via Transfer</div>
+            <div style="font-size:0.82rem;color:rgba(255,255,255,0.75);display:flex;align-items:center;gap:8px"><span>🔄</span> Easy 30-day returns</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="auth-right">
+      <h3>Welcome to Zarah's Store</h3>
+      <p>Login or create your free account</p>
+
+      <div class="auth-tabs-fk">
+        <div class="auth-tab-fk active" id="tab-login" onclick="switchTab('login')">Login</div>
+        <div class="auth-tab-fk" id="tab-register" onclick="switchTab('register')">New User? Sign Up</div>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div id="loginForm">
+        <div class="form-group-fk">
+          <label class="form-label-fk">Email Address</label>
+          <input type="email" class="form-input-fk" id="loginEmail" placeholder="your@email.com">
+        </div>
+        <div class="form-group-fk">
+          <label class="form-label-fk">Password</label>
+          <input type="password" class="form-input-fk" id="loginPassword" placeholder="Enter your password">
+        </div>
+        <div id="loginErr" class="form-err-fk"></div>
+        <button class="form-submit-fk" onclick="doLogin()">Login →</button>
+        <div class="form-alt-fk">
+          Don't have an account? <a href="#" onclick="switchTab('register')">Sign Up Free</a>
+        </div>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div id="registerForm" style="display:none">
+        <div class="form-group-fk">
+          <label class="form-label-fk">Full Name</label>
+          <input type="text" class="form-input-fk" id="regName" placeholder="e.g. Chidinma Okafor">
+        </div>
+        <div class="form-group-fk">
+          <label class="form-label-fk">Email Address</label>
+          <input type="email" class="form-input-fk" id="regEmail" placeholder="your@email.com">
+        </div>
+        <div class="form-group-fk">
+          <label class="form-label-fk">Password</label>
+          <input type="password" class="form-input-fk" id="regPassword" placeholder="Create a password (min. 6 chars)">
+        </div>
+        <div id="regErr" class="form-err-fk"></div>
+        <div id="regOk" class="form-ok-fk"></div>
+        <button class="form-submit-fk" onclick="doRegister()">Create Account →</button>
+        <div class="form-alt-fk">
+          Already have an account? <a href="#" onclick="switchTab('login')">Login</a>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+        <p style="font-size:0.72rem;color:var(--text-3);text-align:center">By continuing, you agree to Zarah's Store's Terms of Use and Privacy Policy.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script>
+  // Redirect if already logged in
+  if (Auth.isLoggedIn()) window.location.href = 'index.html';
+
+  function switchTab(tab) {
+    document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+    document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+    document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  }
+
+  function doLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const err = document.getElementById('loginErr');
+    if (!email || !password) { err.textContent = '⚠️ Please fill in all fields.'; err.classList.add('show'); return; }
+    const result = Auth.login(email, password);
+    if (result.success) {
+      window.location.href = 'index.html';
+    } else {
+      err.textContent = '❌ ' + result.error;
+      err.classList.add('show');
+    }
+  }
+
+  function doRegister() {
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const err = document.getElementById('regErr');
+    const ok = document.getElementById('regOk');
+    err.classList.remove('show'); ok.classList.remove('show');
+    if (!name || !email || !password) { err.textContent = '⚠️ Please fill in all fields.'; err.classList.add('show'); return; }
+    if (password.length < 6) { err.textContent = '⚠️ Password must be at least 6 characters.'; err.classList.add('show'); return; }
+    const result = Auth.register(name, email, password);
+    if (result.success) {
+      ok.textContent = `✅ Welcome, ${name.split(' ')[0]}! Redirecting...`;
+      ok.classList.add('show');
+      setTimeout(() => window.location.href = 'index.html', 1200);
+    } else {
+      err.textContent = '❌ ' + result.error;
+      err.classList.add('show');
+    }
+  }
+
+  document.querySelectorAll('.form-input-fk').forEach(input => {
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { const form = input.closest('#loginForm, #registerForm'); if (form?.id === 'loginForm') doLogin(); else doRegister(); } });
+  });
+</script>
+</body>
+</html>

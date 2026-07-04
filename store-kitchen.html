@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zarah's Kitchen — Zarah's Store</title>
+  <meta name="description" content="Shop premium cookware, kitchen accessories and fashion dresses at Zarah's Kitchen. Fast delivery across Nigeria.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .store-banner { background: linear-gradient(90deg, #1A5C3A 0%, #0A3320 100%); }
+  </style>
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <div class="nav-top">
+    <a href="index.html" class="nav-logo">Zarah's Store<span class="nav-logo-sub">Premium Marketplace</span></a>
+    <div class="nav-search">
+      <input type="text" id="searchInput" placeholder="Search cookware, dresses, knives..." oninput="filterAndRender()">
+      <button class="nav-search-btn" onclick="filterAndRender()">🔍</button>
+    </div>
+    <div class="nav-right">
+      <div class="auth-logged-out" style="display:flex"><a href="auth.html" class="nav-btn login">Login</a></div>
+      <div class="auth-logged-in" style="display:none;align-items:center;gap:8px">
+        <div class="user-avatar-nav"><span class="user-avatar"></span></div>
+        <span class="user-greeting">Hi, <span class="user-name"></span></span>
+        <button class="nav-btn" onclick="Auth.logout()" style="font-size:0.75rem">Logout</button>
+      </div>
+      <a href="cart.html" class="nav-btn cart">🛒 Cart<span class="nav-cart-count cart-count">0</span></a>
+    </div>
+    <div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+  </div>
+  <div class="nav-sub">
+    <div class="nav-sub-inner">
+      <a href="index.html" class="nav-sub-link">← Marketplace</a>
+      <a href="store-perfume.html" class="nav-sub-link">🌸 Zarah's Perfume</a>
+      <a href="store-kitchen.html" class="nav-sub-link active">🍳 Zarah's Kitchen</a>
+      <a href="store-variety.html" class="nav-sub-link">💎 Teemerh Collection</a>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html" class="mobile-link">← Marketplace</a>
+    <a href="store-perfume.html" class="mobile-link">🌸 Zarah's Perfume</a>
+    <a href="store-kitchen.html" class="mobile-link">🍳 Zarah's Kitchen</a>
+    <a href="store-variety.html" class="mobile-link">💎 Teemerh Collection</a>
+    <a href="cart.html" class="mobile-link">🛒 Cart</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="store-banner">
+    <div class="store-banner-inner">
+      <div class="store-logo-fk">🍳</div>
+      <div>
+        <div class="store-banner-name">Zarah's Kitchen</div>
+        <div class="store-banner-tag">Cook with passion · Dress with confidence</div>
+        <div class="store-banner-meta">
+          <span class="store-badge">⭐ 4.6 Rating</span>
+          <span class="store-badge">👥 893 Reviews</span>
+          <span class="store-badge">🚚 Delivery: Discuss on WhatsApp</span>
+          <span class="store-badge">🇳🇬 Nigerian Designs Available</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="fk-breadcrumb section-card" style="border-radius:8px;margin-bottom:12px">
+      <a href="index.html">Home</a> › <a href="store-kitchen.html">Zarah's Kitchen</a> › <span>All Products</span>
+    </div>
+
+    <div class="store-layout">
+      <aside class="filter-panel">
+        <div class="filter-hd">Filters <span class="filter-clear" onclick="clearFilters()">Clear All</span></div>
+        <div class="filter-section">
+          <h4>Search</h4>
+          <input type="text" class="search-fk" id="sideSearch" placeholder="Search products..." oninput="syncSearch(this.value)">
+        </div>
+        <div class="filter-section">
+          <h4>Category</h4>
+          <label class="filter-option"><input type="checkbox" value="Cookware" onchange="filterAndRender()"><label>Cookware</label></label>
+          <label class="filter-option"><input type="checkbox" value="Knives" onchange="filterAndRender()"><label>Knives</label></label>
+          <label class="filter-option"><input type="checkbox" value="Dresses" onchange="filterAndRender()"><label>Dresses</label></label>
+          <label class="filter-option"><input type="checkbox" value="Bakeware" onchange="filterAndRender()"><label>Bakeware</label></label>
+          <label class="filter-option"><input type="checkbox" value="Accessories" onchange="filterAndRender()"><label>Accessories</label></label>
+        </div>
+        <div class="filter-section">
+          <h4>Max Price</h4>
+          <div class="price-range-fk">
+            <input type="range" class="price-range-input" id="priceSlider" min="0" max="100000" value="100000" step="5000" oninput="updatePrice(this.value)">
+            <div class="price-range-labels"><span>₦0</span><span id="priceVal" style="color:var(--fk-blue);font-weight:600">₦100,000</span></div>
+          </div>
+        </div>
+        <div class="filter-section">
+          <h4>Availability</h4>
+          <label class="filter-option"><input type="checkbox" id="inStockOnly" onchange="filterAndRender()"><label>In Stock Only</label></label>
+        </div>
+        <div class="filter-section">
+          <h4>Rating</h4>
+          <label class="filter-option"><input type="checkbox" value="4" onchange="filterAndRender()"><label>4★ & above</label></label>
+          <label class="filter-option"><input type="checkbox" value="3" onchange="filterAndRender()"><label>3★ & above</label></label>
+        </div>
+      </aside>
+
+      <div>
+        <div class="products-panel">
+          <div class="sort-bar">
+            <span class="sort-label">Sort By</span>
+            <button class="sort-btn active" onclick="setSort('default',this)">Relevance</button>
+            <button class="sort-btn" onclick="setSort('popular',this)">Popularity</button>
+            <button class="sort-btn" onclick="setSort('price-asc',this)">Price: Low–High</button>
+            <button class="sort-btn" onclick="setSort('price-desc',this)">Price: High–Low</button>
+            <button class="sort-btn" onclick="setSort('rating',this)">Rating</button>
+            <span class="results-count" id="resultsCount">Loading...</span>
+          </div>
+          <div class="products-grid" id="productsGrid"></div>
+          <div class="empty-fk" id="emptyState" style="display:none">
+            <div style="font-size:3rem;margin-bottom:12px">😔</div>
+            <h3>No products found</h3>
+            <p>Try adjusting your filters</p>
+          </div>
+        </div>
+
+        <div class="section-card" style="margin-top:12px">
+          <div class="section-hd"><div><h2>Customer Reviews</h2></div></div>
+          <div style="padding:0 20px" id="reviewsContainer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="fk-footer">
+  <div class="fk-footer-top">
+    <div><div class="fk-logo-footer" style="margin-bottom:12px">🛍️ Zarah's Store</div><p style="font-size:0.8rem;line-height:1.7;color:rgba(255,255,255,0.5)">Zarah's Store — Nigeria's trusted marketplace.</p></div>
+    <div><h4>Zarah's Kitchen</h4><a href="#" onclick="filterCat('Cookware')">Cookware</a><a href="#" onclick="filterCat('Dresses')">Dresses</a><a href="#" onclick="filterCat('Knives')">Knives</a></div>
+    <div><h4>Other Stores</h4><a href="store-perfume.html">🌸 Zarah's Perfume</a><a href="store-variety.html">💎 Teemerh Collection</a><a href="index.html">🏠 Home</a></div>
+    <div><h4>Help</h4><a href="#">Help Center</a></div>
+  </div>
+  <div class="fk-footer-bottom"><p>© 2026 Zarah's Store</p><p>Orders: WhatsApp Direct · Payment: Bank Transfer</p></div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script src="js/vendor-store.js"></script>
+<script>
+  initVendorProducts();
+  function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
+  let currentSort = 'default'; let maxPrice = 100000;
+  function setSort(s,btn) { currentSort=s; document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); filterAndRender(); }
+  function updatePrice(val) { maxPrice=parseInt(val); document.getElementById('priceVal').textContent=formatNaira(val); filterAndRender(); }
+  function syncSearch(val) { document.getElementById('searchInput').value=val; filterAndRender(); }
+  function filterCat(cat) { document.querySelectorAll('.filter-section input[type=checkbox]').forEach(cb=>{ if(cb.value===cat)cb.checked=true; }); filterAndRender(); }
+  function clearFilters() { document.querySelectorAll('.filter-section input').forEach(i=>{i.checked=false;}); document.getElementById('priceSlider').value=100000; document.getElementById('priceVal').textContent='₦100,000'; document.getElementById('searchInput').value=''; document.getElementById('sideSearch').value=''; maxPrice=100000; filterAndRender(); }
+  function filterAndRender() {
+    const search=document.getElementById('searchInput').value.toLowerCase();
+    if(document.getElementById('sideSearch').value!==search) document.getElementById('sideSearch').value=search;
+    const inStockOnly=document.getElementById('inStockOnly').checked;
+    const checkedCats=[...document.querySelectorAll('.filter-section input[type=checkbox][value]:checked')].map(c=>c.value).filter(v=>!['4','3'].includes(v));
+    const minRating=document.querySelector('.filter-section input[value="4"]:checked')?4:document.querySelector('.filter-section input[value="3"]:checked')?3:0;
+    let products=getProductsByVendor('kitchen');
+    if(search) products=products.filter(p=>p.name.toLowerCase().includes(search)||p.description.toLowerCase().includes(search)||p.category.toLowerCase().includes(search));
+    if(checkedCats.length) products=products.filter(p=>checkedCats.includes(p.category));
+    if(inStockOnly) products=products.filter(p=>p.inStock);
+    if(minRating) products=products.filter(p=>p.rating>=minRating);
+    products=products.filter(p=>p.price<=maxPrice);
+    if(currentSort==='price-asc') products.sort((a,b)=>a.price-b.price);
+    else if(currentSort==='price-desc') products.sort((a,b)=>b.price-a.price);
+    else if(currentSort==='rating') products.sort((a,b)=>b.rating-a.rating);
+    else if(currentSort==='popular') products.sort((a,b)=>b.reviewCount-a.reviewCount);
+    const grid=document.getElementById('productsGrid');
+    const empty=document.getElementById('emptyState');
+    document.getElementById('resultsCount').textContent=`${products.length} result${products.length!==1?'s':''}`;
+    if(products.length===0){grid.innerHTML='';empty.style.display='block';}
+    else{empty.style.display='none';grid.innerHTML=products.map(p=>renderFkCard(p)).join('');}
+  }
+  function renderFkCard(p) {
+    const inWish=Wishlist.has(p.id); const ratingClass=p.rating>=4.5?'high':p.rating>=3.5?'mid':'low';
+    const discPct=p.originalPrice?Math.round((1-p.price/p.originalPrice)*100):0;
+    return `<div class="product-card-fk" onclick="window.location.href='product.html?id=${p.id}'">
+      <div class="product-img-fk">
+        <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/300/300'">
+        ${p.badge?`<span class="product-badge-fk badge-${p.badge.toLowerCase().replace(' ','-')}">${p.badge}</span>`:''}
+        <button class="wishlist-fk ${inWish?'active':''}" onclick="event.stopPropagation();toggleWishlist('${p.id}',this)">${inWish?'❤️':'🤍'}</button>
+        ${!p.inStock?'<div class="oos-overlay"><span>Out of Stock</span></div>':''}
+      </div>
+      <div class="product-info-fk">
+        <div class="product-name-fk">${p.name}</div>
+        <div class="product-rating-fk"><span class="rating-pill ${ratingClass}">${p.rating} ★</span><span class="rating-count-fk">(${p.reviewCount.toLocaleString()})</span><span class="assured-badge">✔ Hearth</span></div>
+        <div class="product-price-fk">${formatNaira(p.price)}</div>
+        <div class="product-price-row-fk">${p.originalPrice?`<span class="product-orig-fk">${formatNaira(p.originalPrice)}</span><span class="product-discount-fk">${discPct}% off</span>`:''}<span class="free-delivery">Free Delivery</span></div>
+        <div class="product-btns" onclick="event.stopPropagation()">
+          <button class="btn-addcart-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`addToCart('${p.id}')`:''}" ${!p.inStock?'disabled':''}>🛒 Add to Cart</button>
+          <button class="btn-buynow-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`window.location.href='product.html?id=${p.id}'`:''}" ${!p.inStock?'disabled':''}>Buy Now</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  const reviews=getReviewsByVendor('kitchen');
+  document.getElementById('reviewsContainer').innerHTML=reviews.map(r=>`<div class="review-card-fk"><div class="review-top"><div class="reviewer-avatar-fk">${r.avatar}</div><div><div class="reviewer-name-fk">${r.user}</div><div style="margin-top:3px"><span class="rating-pill ${r.rating>=4?'high':'mid'}" style="font-size:0.65rem;padding:1px 5px">${r.rating} ★</span></div></div><span class="review-date-fk">${new Date(r.date).toLocaleDateString('en-NG',{year:'numeric',month:'short'})}</span></div><div class="review-text-fk">${r.comment}</div></div>`).join('');
+  filterAndRender();
+</script>
+</body>
+</html>

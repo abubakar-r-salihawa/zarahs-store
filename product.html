@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details — MarketHub Nigeria</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <div class="nav-top">
+    <a href="index.html" class="nav-logo">Zarah's Store<span class="nav-logo-sub">Premium Marketplace</span></a>
+    <div class="nav-search">
+      <input type="text" id="navSearch" placeholder="Search for products..." onkeydown="if(event.key==='Enter')doSearch()">
+      <button class="nav-search-btn" onclick="doSearch()">🔍</button>
+    </div>
+    <div class="nav-right">
+      <div class="auth-logged-out" style="display:flex"><a href="auth.html" class="nav-btn login">Login</a></div>
+      <div class="auth-logged-in" style="display:none;align-items:center;gap:8px">
+        <div class="user-avatar-nav"><span class="user-avatar"></span></div>
+        <span class="user-greeting">Hi, <span class="user-name"></span></span>
+        <button class="nav-btn" onclick="Auth.logout()" style="font-size:0.75rem">Logout</button>
+      </div>
+      <a href="cart.html" class="nav-btn cart">🛒 Cart<span class="nav-cart-count cart-count">0</span></a>
+    </div>
+    <div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+  </div>
+  <div class="nav-sub">
+    <div class="nav-sub-inner">
+      <a href="index.html" class="nav-sub-link">🏠 Home</a>
+      <a href="store-perfume.html" class="nav-sub-link">🌸 Zarah's Perfume</a>
+      <a href="store-kitchen.html" class="nav-sub-link">🍳 Zarah's Kitchen</a>
+      <a href="store-variety.html" class="nav-sub-link">💎 Teemerh Collection</a>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html" class="mobile-link">🏠 Home</a>
+    <a href="store-perfume.html" class="mobile-link">🌸 Zarah's Perfume</a>
+    <a href="store-kitchen.html" class="mobile-link">🍳 Zarah's Kitchen</a>
+    <a href="store-variety.html" class="mobile-link">💎 Teemerh Collection</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="container">
+    <!-- Breadcrumb -->
+    <div class="fk-breadcrumb section-card" style="border-radius:8px;margin-bottom:12px" id="breadcrumb">
+      <a href="index.html">Home</a> › Loading...
+    </div>
+
+    <!-- DETAIL CONTENT -->
+    <div id="detailContent"></div>
+
+    <!-- REVIEWS -->
+    <div class="section-card" style="margin-top:12px" id="reviewsSection" style="display:none">
+      <div class="section-hd"><div><h2>Customer Reviews & Ratings</h2></div></div>
+      <div style="padding:0 20px;padding-bottom:8px" id="reviewsList"></div>
+    </div>
+
+    <!-- RELATED PRODUCTS -->
+    <div class="section-card" style="margin-top:12px" id="relatedSection">
+      <div class="section-hd">
+        <div><h2>Similar Products</h2></div>
+      </div>
+      <div class="products-grid products-grid-padded" id="relatedGrid"></div>
+    </div>
+  </div>
+</div>
+
+<footer class="fk-footer">
+  <div class="fk-footer-bottom" style="border-top:none">
+    <p>© 2026 Zarah's Store</p>
+    <p>Orders: WhatsApp Direct · Payment: Bank Transfer</p>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script src="js/vendor-store.js"></script>
+<script>
+  initVendorProducts();
+  function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
+  function doSearch() { const q = document.getElementById('navSearch').value.trim(); if (q) window.location.href = 'store-perfume.html?search=' + encodeURIComponent(q); }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const productId = urlParams.get('id');
+  let currentQty = 1;
+  let selectedSize = null;
+
+  function renderDetail() {
+    const product = getProductById(productId);
+    if (!product) { window.location.href = 'index.html'; return; }
+
+    const vendor = VENDORS[product.vendor];
+    document.title = `${product.name} — Zarah's Store`;
+
+    // Breadcrumb
+    document.getElementById('breadcrumb').innerHTML = `
+      <a href="index.html">Home</a> ›
+      <a href="${vendor.page}">${vendor.logo} ${vendor.name}</a> ›
+      <span>${product.name}</span>`;
+
+    const savingsPct = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0;
+    const savings = product.originalPrice ? product.originalPrice - product.price : 0;
+
+    const sizesHtml = product.sizes ? `
+      <div style="margin-bottom:16px">
+        <div style="font-size:0.82rem;font-weight:600;margin-bottom:8px">Select Size:</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          ${product.sizes.map(s => `<button class="sort-btn ${s === selectedSize ? 'active' : ''}" onclick="selectSize('${s}',this)">${s}</button>`).join('')}
+        </div>
+      </div>` : '';
+
+    const notesHtml = product.notes ? `
+      <div style="margin-bottom:16px">
+        <div style="font-size:0.82rem;font-weight:700;margin-bottom:8px;color:var(--text)">Fragrance Notes</div>
+        <div class="detail-notes">
+          <div class="detail-note"><div class="detail-note-key">Top Notes</div><div class="detail-note-val">${product.notes.top}</div></div>
+          <div class="detail-note"><div class="detail-note-key">Heart Notes</div><div class="detail-note-val">${product.notes.heart}</div></div>
+          <div class="detail-note"><div class="detail-note-key">Base Notes</div><div class="detail-note-val">${product.notes.base}</div></div>
+        </div>
+      </div>` : '';
+
+    const ratingClass = product.rating >= 4.5 ? 'high' : product.rating >= 3.5 ? 'mid' : 'low';
+    const inWish = Wishlist.has(product.id);
+
+    document.getElementById('detailContent').innerHTML = `
+      <div class="detail-layout">
+        <!-- IMAGE PANEL -->
+        <div class="detail-img-panel">
+          <img src="${product.image}" alt="${product.name}" onerror="this.src='https://picsum.photos/400/400'">
+          <div class="detail-img-panel-btns">
+            <button class="btn-addcart-lg" onclick="addToCartWithQty('${product.id}')" ${!product.inStock ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
+              🛒 ${product.inStock ? 'Add to Cart' : 'Out of Stock'}
+            </button>
+            <button class="btn-buynow-lg" onclick="${product.inStock ? "window.location.href='checkout.html'" : ''}" ${!product.inStock ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
+              ⚡ Buy Now
+            </button>
+          </div>
+          <div style="margin-top:12px;text-align:center">
+            <button id="wishBtn" onclick="toggleWishlist('${product.id}', this)" style="background:none;border:1px solid var(--border);border-radius:4px;padding:8px 16px;cursor:pointer;font-size:0.82rem;width:100%;transition:var(--t)" data-wish-id="${product.id}">
+              ${inWish ? '❤️ Wishlisted' : '🤍 Add to Wishlist'}
+            </button>
+          </div>
+        </div>
+
+        <!-- DETAIL PANEL -->
+        <div class="detail-main">
+          <div class="detail-vendor-chip">
+            ${vendor.logo} <a href="${vendor.page}" style="color:var(--fk-blue)">${vendor.name}</a>
+            <span class="assured-badge" style="margin-left:6px">✔ Zarah's Store Assured</span>
+          </div>
+          <h1 class="detail-title">${product.name}</h1>
+
+          <div class="detail-rating-row">
+            <span class="rating-pill ${ratingClass}" style="font-size:0.88rem;padding:4px 10px">${product.rating} ★</span>
+            <span style="font-size:0.85rem;color:var(--text-3)">${product.reviewCount.toLocaleString()} ratings</span>
+            <span style="font-size:0.85rem;color:var(--fk-green);margin-left:4px">· Verified Reviews</span>
+          </div>
+
+          <div class="detail-price-block">
+            ${product.inStock ? '<div style="font-size:0.78rem;color:var(--fk-green);font-weight:600;margin-bottom:6px">✓ In Stock</div>' : '<div style="font-size:0.78rem;color:var(--fk-red);font-weight:600;margin-bottom:6px">✗ Currently Out of Stock</div>'}
+            <div class="detail-price">${formatNaira(product.price)}</div>
+            <div class="detail-price-sub">
+              ${product.originalPrice ? `<span class="detail-orig">${formatNaira(product.originalPrice)}</span><span class="detail-disc">${savingsPct}% off</span><span style="font-size:0.82rem;font-weight:600;color:var(--fk-green)">You save ${formatNaira(savings)}</span>` : ''}
+            </div>
+
+
+          ${sizesHtml}
+          ${notesHtml}
+
+          <!-- QTY -->
+          ${product.inStock ? `
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+            <span style="font-size:0.85rem;font-weight:600">Quantity:</span>
+            <div class="qty-controls-fk">
+              <button class="qty-btn-fk" onclick="changeQty(-1)">−</button>
+              <span class="qty-num-fk" id="qtyDisplay">1</span>
+              <button class="qty-btn-fk" onclick="changeQty(1)">+</button>
+            </div>
+          </div>` : ''}
+
+          <!-- ACTIONS -->
+          <div class="detail-actions">
+            <button class="btn-addcart-lg" onclick="addToCartWithQty('${product.id}')" ${!product.inStock ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
+              🛒 ${product.inStock ? 'Add to Cart' : 'Out of Stock'}
+            </button>
+            <button class="btn-buynow-lg" onclick="buyNowWithQty('${product.id}')" ${!product.inStock ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
+              ⚡ Buy Now
+            </button>
+          </div>
+
+          <!-- SPECS -->
+          <div style="border-top:1px solid var(--border);padding-top:14px">
+            <div style="font-size:0.88rem;font-weight:700;margin-bottom:10px">Product Details</div>
+            ${product.size ? `<div class="detail-spec-row"><span class="detail-spec-key">Size</span><span class="detail-spec-val">${product.size}</span></div>` : ''}
+            ${product.material ? `<div class="detail-spec-row"><span class="detail-spec-key">Material</span><span class="detail-spec-val">${product.material}</span></div>` : ''}
+            ${product.origin ? `<div class="detail-spec-row"><span class="detail-spec-key">Origin</span><span class="detail-spec-val">${product.origin}</span></div>` : ''}
+            <div class="detail-spec-row"><span class="detail-spec-key">Category</span><span class="detail-spec-val">${product.category}</span></div>
+            <div class="detail-spec-row"><span class="detail-spec-key">Vendor</span><span class="detail-spec-val">${vendor.logo} <a href="${vendor.page}" style="color:var(--fk-blue)">${vendor.name}</a></span></div>
+
+            <div class="detail-spec-row"><span class="detail-spec-key">Warranty</span><span class="detail-spec-val">Seller warranty applicable</span></div>
+          </div>
+
+          <!-- DESCRIPTION -->
+          <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
+            <div style="font-size:0.88rem;font-weight:700;margin-bottom:8px">Description</div>
+            <p class="detail-desc">${product.description}</p>
+          </div>
+
+          <!-- VENDOR STRIP -->
+          <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px">
+            <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--fk-blue-light);border-radius:6px;cursor:pointer" onclick="window.location.href='${vendor.page}'">
+              <div style="font-size:2rem">${vendor.logo}</div>
+              <div style="flex:1">
+                <div style="font-weight:700;font-size:0.88rem">${vendor.name}</div>
+                <div style="font-size:0.75rem;color:var(--text-3);margin-top:2px">⭐ ${vendor.rating} · ${vendor.reviewCount.toLocaleString()} reviews · ${vendor.tagline}</div>
+              </div>
+              <div style="color:var(--fk-blue);font-size:0.82rem;font-weight:600">Visit Store →</div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function changeQty(delta) {
+    currentQty = Math.max(1, Math.min(10, currentQty + delta));
+    const el = document.getElementById('qtyDisplay');
+    if (el) el.textContent = currentQty;
+  }
+
+  function selectSize(size, btn) {
+    selectedSize = size;
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function addToCartWithQty(productId) {
+    const product = getProductById(productId);
+    if (product) Cart.addItem(product, currentQty);
+  }
+
+  function buyNowWithQty(productId) {
+    const product = getProductById(productId);
+    if (product) {
+      Cart.addItem(product, currentQty);
+      window.location.href = 'checkout.html';
+    }
+  }
+
+  function renderFkCard(p) {
+    const ratingClass = p.rating >= 4.5 ? 'high' : p.rating >= 3.5 ? 'mid' : 'low';
+    const discPct = p.originalPrice ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
+    return `
+    <div class="product-card-fk" onclick="window.location.href='product.html?id=${p.id}'">
+      <div class="product-img-fk">
+        <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/300/300'">
+        ${p.badge ? `<span class="product-badge-fk badge-${p.badge.toLowerCase().replace(' ','-')}">${p.badge}</span>` : ''}
+        ${!p.inStock ? '<div class="oos-overlay"><span>Out of Stock</span></div>' : ''}
+      </div>
+      <div class="product-info-fk">
+        <div class="product-name-fk">${p.name}</div>
+        <div class="product-rating-fk"><span class="rating-pill ${ratingClass}">${p.rating} ★</span><span class="rating-count-fk">(${p.reviewCount.toLocaleString()})</span></div>
+        <div class="product-price-fk">${formatNaira(p.price)}</div>
+        <div class="product-price-row-fk">${p.originalPrice ? `<span class="product-orig-fk">${formatNaira(p.originalPrice)}</span><span class="product-discount-fk">${discPct}% off</span>` : ''}</div>
+        <div class="product-btns" onclick="event.stopPropagation()">
+          <button class="btn-addcart-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`addToCart('${p.id}')`:''}" ${!p.inStock?'disabled':''}>🛒 Add to Cart</button>
+          <button class="btn-buynow-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`window.location.href='product.html?id=${p.id}'`:''}" ${!p.inStock?'disabled':''}>Buy Now</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  if (productId) {
+    renderDetail();
+
+    // Reviews
+    const reviews = getReviewsByProduct(productId);
+    if (reviews.length > 0) {
+      document.getElementById('reviewsSection').style.display = 'block';
+      document.getElementById('reviewsList').innerHTML = reviews.map(r => `
+        <div class="review-card-fk">
+          <div class="review-top">
+            <div class="reviewer-avatar-fk">${r.avatar}</div>
+            <div>
+              <div class="reviewer-name-fk">${r.user}</div>
+              <div style="margin-top:3px;display:flex;align-items:center;gap:6px">
+                <span class="rating-pill ${r.rating >= 4 ? 'high' : 'mid'}" style="font-size:0.65rem;padding:1px 5px">${r.rating} ★</span>
+                <span style="font-size:0.72rem;color:var(--fk-green);font-weight:600">✓ Verified Purchase</span>
+              </div>
+            </div>
+            <span class="review-date-fk">${new Date(r.date).toLocaleDateString('en-NG',{year:'numeric',month:'short',day:'numeric'})}</span>
+          </div>
+          <div class="review-text-fk">${r.comment}</div>
+        </div>`).join('');
+    }
+
+    // Related
+    const product = getProductById(productId);
+    if (product) {
+      const related = getProductsByVendor(product.vendor).filter(p => p.id !== productId).slice(0, 6);
+      document.getElementById('relatedGrid').innerHTML = related.map(renderFkCard).join('');
+    }
+  } else {
+    window.location.href = 'index.html';
+  }
+</script>
+</body>
+</html>

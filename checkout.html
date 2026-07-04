@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — Zarah's Store</title>
+  <meta name="description" content="Complete your purchase securely at Zarah's Store.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ---- STEP TRACKER ---- */
+    .fk-steps {
+      display: flex; align-items: center;
+      background: var(--bg-card); padding: 16px 20px;
+      margin-bottom: 12px; border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+    .fk-step { display: flex; align-items: center; gap: 8px; flex: 1; }
+    .fk-step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 2px solid var(--border); background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.78rem; font-weight: 700; color: var(--text-3); flex-shrink: 0; transition: var(--t);
+    }
+    .fk-step.active .fk-step-num { border-color: var(--fk-blue); background: var(--fk-blue); color: #fff; }
+    .fk-step.done .fk-step-num { border-color: var(--fk-green); background: var(--fk-green); color: #fff; }
+    .fk-step-label { font-size: 0.82rem; font-weight: 600; color: var(--text-3); transition: var(--t); }
+    .fk-step.active .fk-step-label { color: var(--fk-blue); }
+    .fk-step.done .fk-step-label { color: var(--fk-green); }
+    .fk-step-line { flex: 1; height: 2px; background: var(--border); margin: 0 8px; transition: background 0.3s ease; }
+    .fk-step-line.done { background: var(--fk-green); }
+
+    /* ---- FORM ---- */
+    .form-section { background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); margin-bottom: 12px; overflow: hidden; }
+    .form-section-hd { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .form-section-hd h3 { font-size: 0.88rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text); }
+    .form-section-hd .num-chip { width: 24px; height: 24px; border-radius: 50%; background: var(--fk-blue); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
+    .form-body { padding: 20px; }
+    .fk-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .fk-form-grid .full { grid-column: 1 / -1; }
+    .fk-label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--text-3); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .fk-input {
+      width: 100%; padding: 10px 12px; border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm); background: var(--bg); font-size: 0.88rem;
+      color: var(--text); outline: none; transition: var(--t); font-family: inherit; box-sizing: border-box;
+    }
+    .fk-input:focus { border-color: var(--fk-blue); background: #fff; box-shadow: 0 0 0 3px rgba(40,116,240,0.1); }
+    select.fk-input { cursor: pointer; }
+
+    /* ---- BUTTONS ---- */
+    .step-actions { display: flex; gap: 10px; margin-top: 16px; }
+    .btn-back-fk {
+      padding: 12px 20px; border-radius: var(--radius-sm); border: 1.5px solid var(--border);
+      background: #fff; font-size: 0.88rem; font-weight: 600; color: var(--text-2); cursor: pointer; transition: var(--t);
+    }
+    .btn-back-fk:hover { border-color: var(--fk-blue); color: var(--fk-blue); }
+    .btn-continue-fk {
+      flex: 1; padding: 14px; border-radius: var(--radius-sm); background: var(--fk-yellow);
+      border: none; font-size: 0.95rem; font-weight: 700; color: #333; cursor: pointer; transition: var(--t);
+    }
+    .btn-continue-fk:hover { background: #9E773B; }
+    .btn-whatsapp {
+      flex: 1; padding: 14px; border-radius: var(--radius-sm);
+      background: #25D366; border: none; font-size: 0.95rem; font-weight: 700; color: #fff; cursor: pointer; transition: var(--t);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-whatsapp:hover { background: #1DAB54; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(37,211,102,0.35); }
+
+    /* ---- ORDER REVIEW ---- */
+    .order-item-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .order-item-row:last-child { border-bottom: none; }
+    .order-item-img { width: 56px; height: 56px; object-fit: cover; background: var(--bg); border-radius: var(--radius-sm); padding: 4px; flex-shrink: 0; }
+    .order-item-name { flex: 1; font-size: 0.85rem; font-weight: 500; color: var(--text); }
+    .order-item-price { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+
+    /* ---- WHATSAPP NOTE ---- */
+    .wa-note { background: #E8FFF1; border: 1.5px solid #A5D6A7; border-radius: 8px; padding: 14px 16px; margin-top: 14px; }
+    .wa-note-title { font-size: 0.85rem; font-weight: 700; color: #2E7D32; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .wa-note p { font-size: 0.8rem; color: #388E3C; line-height: 1.7; }
+
+    /* ---- SUCCESS PAGE ---- */
+    .success-page { min-height: 75vh; display: flex; align-items: center; justify-content: center; }
+    .success-card { background: #fff; border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); padding: 48px 36px; max-width: 480px; width: 100%; text-align: center; }
+    .success-check { width: 72px; height: 72px; border-radius: 50%; background: #25D366; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; }
+    .success-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; color: var(--text); }
+    .success-orderno { display: inline-block; padding: 4px 14px; border-radius: 2px; background: var(--fk-blue-light); color: var(--fk-blue); font-size: 0.82rem; font-weight: 700; margin-bottom: 16px; }
+    .success-msg { font-size: 0.85rem; color: var(--text-3); line-height: 1.8; margin-bottom: 24px; }
+    .success-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
+    .success-step { background: var(--bg); border-radius: var(--radius-sm); padding: 12px 8px; text-align: center; }
+    .success-step-icon { font-size: 1.4rem; margin-bottom: 4px; }
+    .success-step-label { font-size: 0.68rem; color: var(--text-3); line-height: 1.4; }
+
+    @media (max-width: 640px) {
+      .fk-form-grid { grid-template-columns: 1fr; }
+      .fk-form-grid .full { grid-column: 1; }
+      .fk-step-label { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <div class="nav-top">
+    <a href="index.html" class="nav-logo">Zarah's Store<span class="nav-logo-sub">Premium Marketplace</span></a>
+    <div class="nav-right" style="margin-left:auto">
+      <div class="auth-logged-out" style="display:flex"><a href="auth.html" class="nav-btn login">Login</a></div>
+      <div class="auth-logged-in" style="display:none;align-items:center;gap:8px">
+        <span class="user-greeting">Hi, <span class="user-name"></span></span>
+      </div>
+      <a href="cart.html" class="nav-btn cart">🛒 Cart<span class="nav-cart-count cart-count">0</span></a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ CHECKOUT PAGE ============ -->
+<div class="page" id="checkoutPage">
+  <div class="container">
+
+    <!-- BREADCRUMB -->
+    <div class="fk-breadcrumb section-card" style="border-radius:8px;margin-bottom:12px">
+      <a href="index.html">Home</a> › <a href="cart.html">Cart</a> › <span>Checkout</span>
+    </div>
+
+    <!-- STEP TRACKER -->
+    <div class="fk-steps">
+      <div class="fk-step active" id="step1">
+        <div class="fk-step-num" id="stepNum1">1</div>
+        <div class="fk-step-label">📦 Delivery</div>
+      </div>
+      <div class="fk-step-line" id="line1"></div>
+      <div class="fk-step" id="step2">
+        <div class="fk-step-num" id="stepNum2">2</div>
+        <div class="fk-step-label">✅ Review & Order</div>
+      </div>
+    </div>
+
+    <div class="checkout-layout-fk">
+      <!-- LEFT: FORM -->
+      <div>
+
+        <!-- STEP 1: DELIVERY -->
+        <div id="formStep1">
+          <div class="form-section">
+            <div class="form-section-hd">
+              <div class="num-chip">1</div>
+              <h3>Your Delivery Details</h3>
+            </div>
+            <div class="form-body">
+              <div class="fk-form-grid">
+                <div>
+                  <label class="fk-label">First Name *</label>
+                  <input type="text" class="fk-input" id="firstName" placeholder="e.g. Chidinma">
+                </div>
+                <div>
+                  <label class="fk-label">Last Name *</label>
+                  <input type="text" class="fk-input" id="lastName" placeholder="e.g. Okafor">
+                </div>
+                <div class="full">
+                  <label class="fk-label">WhatsApp / Phone Number *</label>
+                  <input type="tel" class="fk-input" id="phone" placeholder="e.g. 08012345678">
+                </div>
+                <div class="full">
+                  <label class="fk-label">Email Address</label>
+                  <input type="email" class="fk-input" id="email" placeholder="your@email.com">
+                </div>
+                <div class="full">
+                  <label class="fk-label">Delivery Address *</label>
+                  <input type="text" class="fk-input" id="address" placeholder="e.g. 12 Adeola Odeku Street, Victoria Island">
+                </div>
+                <div>
+                  <label class="fk-label">City *</label>
+                  <input type="text" class="fk-input" id="city" placeholder="e.g. Lagos">
+                </div>
+                <div>
+                  <label class="fk-label">State *</label>
+                  <select class="fk-input" id="state">
+                    <option value="">Select State</option>
+                    <option>Abia</option><option>Adamawa</option><option>Akwa Ibom</option>
+                    <option>Anambra</option><option>Bauchi</option><option>Bayelsa</option>
+                    <option>Benue</option><option>Borno</option><option>Cross River</option>
+                    <option>Delta</option><option>Ebonyi</option><option>Edo</option>
+                    <option>Ekiti</option><option>Enugu</option><option>Gombe</option>
+                    <option>Imo</option><option>Jigawa</option><option>Kaduna</option>
+                    <option>Kano</option><option>Katsina</option><option>Kebbi</option>
+                    <option>Kogi</option><option>Kwara</option><option>Lagos</option>
+                    <option>Nasarawa</option><option>Niger</option><option>Ogun</option>
+                    <option>Ondo</option><option>Osun</option><option>Oyo</option>
+                    <option>Plateau</option><option>Rivers</option><option>Sokoto</option>
+                    <option>Taraba</option><option>Yobe</option><option>Zamfara</option>
+                    <option>FCT Abuja</option>
+                  </select>
+                </div>
+                <div class="full">
+                  <label class="fk-label">Nearest Landmark (optional)</label>
+                  <input type="text" class="fk-input" id="landmark" placeholder="e.g. Close to GTBank branch">
+                </div>
+              </div>
+
+              <div class="wa-note">
+                <div class="wa-note-title">📱 How payment works</div>
+                <p>After reviewing your order, you'll be sent directly to WhatsApp to confirm. The seller will send you the bank account number to transfer payment. Simple and safe!</p>
+              </div>
+
+              <div class="step-actions">
+                <button class="btn-continue-fk" onclick="goToStep2()">Review My Order →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: REVIEW & ORDER -->
+        <div id="formStep2" style="display:none">
+          <div class="form-section">
+            <div class="form-section-hd">
+              <div class="num-chip">2</div>
+              <h3>Review & Confirm Your Order</h3>
+            </div>
+            <div class="form-body">
+              <div id="orderReviewItems"></div>
+
+              <div style="margin-top:14px;background:var(--fk-blue-light);border:1px solid #B3CFFF;border-radius:6px;padding:14px">
+                <div style="font-size:0.78rem;font-weight:700;color:var(--fk-blue);margin-bottom:6px">📍 Delivering to:</div>
+                <div style="font-size:0.85rem;color:var(--text-2);line-height:1.6" id="deliveryAddr"></div>
+              </div>
+
+              <div class="wa-note" style="margin-top:12px">
+                <div class="wa-note-title">📱 Clicking "Order via WhatsApp" will:</div>
+                <p>• Open WhatsApp with your full order details pre-filled<br>
+                • The seller will receive your order and contact you<br>
+                • They'll send you a bank account number to transfer payment<br>
+                • After payment confirmation, your order will be shipped!</p>
+              </div>
+
+              <div class="step-actions">
+                <button class="btn-back-fk" onclick="goToStep1()">← Back</button>
+                <button class="btn-whatsapp" onclick="placeOrder()">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.985-1.414A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18c-1.74 0-3.358-.473-4.742-1.297l-.34-.202-3.527.999.945-3.643-.22-.353A7.955 7.955 0 014 12c0-4.418 3.582-8 8-8s8 3.582 8 8-3.582 8-8 8z"/></svg>
+                  Order via WhatsApp
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: ORDER SUMMARY -->
+      <div>
+        <div class="cart-summary-fk" style="position:sticky;top:120px">
+          <div class="cart-summary-hd">Price Details</div>
+          <div id="summaryItems"></div>
+          <div class="summary-row-fk"><span>Subtotal</span><span id="sumSubtotal">₦0</span></div>
+          <div class="summary-row-fk"><span>Delivery</span><span id="sumShipping" style="color:var(--fk-green)">₦2,500</span></div>
+          <div class="summary-row-fk total"><span>Total Amount</span><span id="sumTotal">₦0</span></div>
+          <div style="padding:10px 16px;background:#E8FFF1;border-top:1px solid var(--border)">
+            <span style="font-size:0.78rem;font-weight:600;color:#2E7D32">📱 Pay via bank transfer after WhatsApp confirmation</span>
+          </div>
+          <div style="padding:10px 16px;border-top:1px solid var(--border)">
+            <div style="font-size:0.74rem;color:var(--text-3);line-height:1.8">
+              🚚 Delivery across Nigeria<br>
+              🔄 Easy returns & exchange<br>
+              📞 Call/WhatsApp: 08014792572<br>
+              📍 Katsina · Kano · Abuja
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ ORDER SUCCESS ============ -->
+<div id="orderSuccess" style="display:none" class="page">
+  <div class="container">
+    <div class="success-page">
+      <div class="success-card">
+        <div class="success-check">✓</div>
+        <div class="success-title">Order Sent to WhatsApp!</div>
+        <div class="success-orderno" id="orderNum">Order #000000</div>
+        <p class="success-msg">
+          Thank you for shopping with Zarah's Store! 🎉<br>
+          Your order details have been sent to Zahra's Perfume on WhatsApp.<br>
+          The seller will contact you shortly with the bank account number for payment.<br>
+          <strong>Check your WhatsApp now!</strong>
+        </p>
+        <div class="success-steps">
+          <div class="success-step">
+            <div class="success-step-icon">✅</div>
+            <div class="success-step-label">Order Sent to Seller</div>
+          </div>
+          <div class="success-step">
+            <div class="success-step-icon">💳</div>
+            <div class="success-step-label">Seller Sends Bank Details</div>
+          </div>
+          <div class="success-step">
+            <div class="success-step-icon">🚚</div>
+            <div class="success-step-label">Shipped After Payment</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <a href="store-perfume.html" style="display:block;padding:13px;background:var(--fk-yellow);color:#333;font-weight:700;border-radius:4px;text-align:center;font-size:0.88rem">Continue Shopping →</a>
+          <a href="index.html" style="display:block;padding:11px;border:1.5px solid var(--border);color:var(--text-2);font-weight:600;border-radius:4px;text-align:center;font-size:0.84rem">Back to Home</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script>
+  function setStep(n) {
+    [1, 2].forEach(i => {
+      const step = document.getElementById('step' + i);
+      const num = document.getElementById('stepNum' + i);
+      const line = document.getElementById('line' + i);
+      step.classList.remove('active', 'done');
+      if (i < n) {
+        step.classList.add('done');
+        num.textContent = '✓';
+        if (line) line.classList.add('done');
+      } else if (i === n) {
+        step.classList.add('active');
+        num.textContent = i;
+        if (line) line.classList.remove('done');
+      } else {
+        num.textContent = i;
+        if (line) line.classList.remove('done');
+      }
+    });
+  }
+
+  function goToStep1() {
+    setStep(1);
+    document.getElementById('formStep1').style.display = 'block';
+    document.getElementById('formStep2').style.display = 'none';
+  }
+
+  function goToStep2() {
+    const fn = document.getElementById('firstName').value.trim();
+    const ln = document.getElementById('lastName').value.trim();
+    const ph = document.getElementById('phone').value.trim();
+    const ad = document.getElementById('address').value.trim();
+    const ct = document.getElementById('city').value.trim();
+    const st = document.getElementById('state').value;
+    if (!fn || !ln || !ph || !ad || !ct || !st) {
+      alert('⚠️ Please fill in all required fields (Name, Phone, Address, City, State).');
+      return;
+    }
+
+    setStep(2);
+    document.getElementById('formStep1').style.display = 'none';
+    document.getElementById('formStep2').style.display = 'block';
+
+    // Populate review items
+    const items = Cart.getItems();
+    document.getElementById('orderReviewItems').innerHTML = items.length ? items.map(i => `
+      <div class="order-item-row">
+        <img class="order-item-img" src="${i.image}" alt="${i.name}" onerror="this.src='https://picsum.photos/60/60'">
+        <span class="order-item-name">${i.name} <span style="color:var(--text-3)">× ${i.qty}</span></span>
+        <span class="order-item-price">${formatNaira(i.price * i.qty)}</span>
+      </div>`).join('') : '<p style="color:var(--text-3);font-size:0.85rem">No items in cart.</p>';
+
+    const lm = document.getElementById('landmark').value.trim();
+    const addr = `${fn} ${ln}\n📞 ${ph}${document.getElementById('email').value.trim() ? '\n✉️ ' + document.getElementById('email').value.trim() : ''}\n📍 ${ad}, ${ct}, ${st}, Nigeria${lm ? '\nLandmark: ' + lm : ''}`;
+    document.getElementById('deliveryAddr').innerHTML = addr.replace(/\n/g, '<br>');
+  }
+
+  function placeOrder() {
+    const items = Cart.getItems();
+    if (!items.length) { alert('Your cart is empty!'); return; }
+
+    const fn = document.getElementById('firstName').value.trim();
+    const ln = document.getElementById('lastName').value.trim();
+    const ph = document.getElementById('phone').value.trim();
+    const em = document.getElementById('email').value.trim();
+    const ad = document.getElementById('address').value.trim();
+    const ct = document.getElementById('city').value.trim();
+    const st = document.getElementById('state').value;
+    const lm = document.getElementById('landmark').value.trim();
+
+    const subtotal = Cart.getTotal();
+
+    const customerInfo = {
+      name: `${fn} ${ln}`,
+      phone: ph,
+      email: em || 'Not provided',
+      address: `${ad}, ${ct}, ${st}, Nigeria${lm ? ' (Landmark: ' + lm + ')' : ''}`
+    };
+
+    const orderId = 'ZS-' + Math.floor(100000 + Math.random() * 900000);
+
+    // Open WhatsApp
+    redirectToWhatsApp(items, subtotal, customerInfo);
+
+    // Clear cart and show success
+    Cart.clearCart();
+    document.getElementById('checkoutPage').style.display = 'none';
+    document.getElementById('orderSuccess').style.display = 'block';
+    document.getElementById('orderNum').textContent = 'Order ' + orderId;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function initSummary() {
+    const items = Cart.getItems();
+    const subtotal = Cart.getTotal();
+    const total = subtotal;
+
+    document.getElementById('sumSubtotal').textContent = formatNaira(subtotal);
+    document.getElementById('sumShipping').textContent = 'Discuss on WhatsApp';
+    document.getElementById('sumShipping').style.color = 'var(--text-2)';
+    document.getElementById('sumShipping').style.fontWeight = '500';
+    document.getElementById('sumTotal').textContent = formatNaira(total);
+    document.getElementById('summaryItems').innerHTML = items.map(i => `
+      <div style="display:flex;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);font-size:0.82rem">
+        <span style="color:var(--text-2);flex:1;margin-right:8px">${i.name} × ${i.qty}</span>
+        <span style="font-weight:600">${formatNaira(i.price * i.qty)}</span>
+      </div>`).join('');
+  }
+
+  // Pre-fill if logged in
+  const user = Auth.getUser();
+  if (user) {
+    document.getElementById('email').value = user.email || '';
+    const parts = (user.name || '').split(' ');
+    document.getElementById('firstName').value = parts[0] || '';
+    document.getElementById('lastName').value = parts.slice(1).join(' ') || '';
+  }
+
+  initSummary();
+</script>
+</body>
+</html>
