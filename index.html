@@ -63,6 +63,21 @@
 <div class="page">
   <div class="container">
 
+    <!-- LUXURY HERO -->
+    <div class="luxury-hero">
+      <div class="luxury-hero-text">
+        <span class="luxury-hero-tag">Zarah's Store</span>
+        <h1 class="luxury-hero-title">Experience the<br><span>Era of Elegance</span></h1>
+        <p class="luxury-hero-sub">Explore Zarah's curated boutiques. Discover signature fragrances, chef-grade cookware, and premium fashion handpicked for your lifestyle.</p>
+        <button class="luxury-hero-btn" onclick="document.getElementById('stores-section').scrollIntoView({behavior: 'smooth'})">Explore Boutiques →</button>
+      </div>
+      <div class="luxury-hero-collage">
+        <img class="collage-img collage-img-1" src="images/perfume/zahra-white-square-bottles.jpg" alt="White Cream Perfume Oil" onerror="this.src='https://picsum.photos/seed/zarah1/300/400'">
+        <img class="collage-img collage-img-2" src="images/perfume/zahra-apy-collection.jpg" alt="Apy Collection Red Frosted Bottle" onerror="this.src='https://picsum.photos/seed/zarah2/300/400'">
+        <img class="collage-img collage-img-3" src="images/perfume/zahra-amber-spray.jpg" alt="Amber Spray Bottle" onerror="this.src='https://picsum.photos/seed/zarah3/200/300'">
+      </div>
+    </div>
+
     <!-- CATEGORY STRIP -->
     <div class="cat-strip-wrap">
       <div class="cat-strip">
@@ -112,53 +127,52 @@
 
 
     <!-- VENDOR STORES SECTION -->
-    <div class="section-card">
-      <div class="section-hd">
-        <div>
-          <h2>Shop Our Stores</h2>
-          <div class="section-hd-sub">3 trusted vendors · Fast delivery across Nigeria</div>
+    <div class="editorial-header" id="stores-section" style="margin-top:20px">
+      <p>Curated Flagship Boutiques</p>
+      <h2>Shop Our Stores</h2>
+    </div>
+    <div class="boutique-showcase">
+      <!-- Zarah's Perfume -->
+      <div class="boutique-card" onclick="window.location.href='store-perfume.html'">
+        <img src="images/perfume/zahra-collection-oils.jpg" alt="Zarah's Perfume Collection" onerror="this.src='https://picsum.photos/seed/perfumebg/600/400'">
+        <div class="boutique-overlay">
+          <div class="boutique-glass-plate">
+            <span class="boutique-emoji">🌸</span>
+            <h3 class="boutique-title">Zarah's Perfume</h3>
+            <p class="boutique-tagline">Signature scents for every occasion</p>
+            <div class="boutique-meta">
+              <span>⭐ 4.8 Rating</span>
+              <span class="boutique-shop-link">Enter Boutique →</span>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="vendor-cards-row">
-        <div class="vendor-card-fk" onclick="window.location.href='store-perfume.html'">
-          <div class="vendor-card-fk-banner">
-            <img src="https://picsum.photos/seed/zarah-banner/600/200" alt="Zarah's Perfume" onerror="this.style.background='linear-gradient(135deg,#3E2715,#1A120B)'">
-          </div>
-          <div class="vendor-card-fk-body">
-            <div class="vendor-card-fk-logo">🌸</div>
-            <div class="vendor-card-fk-name">Zarah's Perfume</div>
-            <div class="vendor-card-fk-tag">Signature scents for every occasion</div>
-            <div class="vendor-card-fk-footer">
-              <span class="vendor-rating-badge">4.8 ★</span>
-              <span class="vendor-shop-btn">Shop Now →</span>
+      <!-- Zarah's Kitchen -->
+      <div class="boutique-card" onclick="window.location.href='store-kitchen.html'">
+        <img src="https://picsum.photos/seed/kitchen-ng/600/400" alt="Zarah's Kitchen" onerror="this.style.background='#1A5C3A'">
+        <div class="boutique-overlay">
+          <div class="boutique-glass-plate">
+            <span class="boutique-emoji">🍳</span>
+            <h3 class="boutique-title">Zarah's Kitchen</h3>
+            <p class="boutique-tagline">Cookware, Dresses & Accessories</p>
+            <div class="boutique-meta">
+              <span>⭐ 4.6 Rating</span>
+              <span class="boutique-shop-link">Enter Boutique →</span>
             </div>
           </div>
         </div>
-        <div class="vendor-card-fk" onclick="window.location.href='store-kitchen.html'">
-          <div class="vendor-card-fk-banner">
-            <img src="https://picsum.photos/seed/kitchen-ng/600/200" alt="Zarah's Kitchen" onerror="this.style.background='linear-gradient(135deg,#388E3C,#1B5E20)'">
-          </div>
-          <div class="vendor-card-fk-body">
-            <div class="vendor-card-fk-logo">🍳</div>
-            <div class="vendor-card-fk-name">Zarah's Kitchen</div>
-            <div class="vendor-card-fk-tag">Cookware · Dresses · Kitchen Accessories</div>
-            <div class="vendor-card-fk-footer">
-              <span class="vendor-rating-badge">4.6 ★</span>
-              <span class="vendor-shop-btn">Shop Now →</span>
-            </div>
-          </div>
-        </div>
-        <div class="vendor-card-fk" onclick="window.location.href='store-variety.html'">
-          <div class="vendor-card-fk-banner">
-            <img src="https://picsum.photos/seed/globe-ng/600/200" alt="Teemerh Collection" onerror="this.style.background='linear-gradient(135deg,#7B1FA2,#4A148C)'">
-          </div>
-          <div class="vendor-card-fk-body">
-            <div class="vendor-card-fk-logo">💎</div>
-            <div class="vendor-card-fk-name">Teemerh Collection</div>
-            <div class="vendor-card-fk-tag">Spices · Jewelry · Plastics & Organizers</div>
-            <div class="vendor-card-fk-footer">
-              <span class="vendor-rating-badge">4.7 ★</span>
-              <span class="vendor-shop-btn">Shop Now →</span>
+      </div>
+      <!-- Teemerh Collection -->
+      <div class="boutique-card" onclick="window.location.href='store-variety.html'">
+        <img src="https://picsum.photos/seed/globe-ng/600/400" alt="Teemerh Collection" onerror="this.style.background='#1A3A6B'">
+        <div class="boutique-overlay">
+          <div class="boutique-glass-plate">
+            <span class="boutique-emoji">💎</span>
+            <h3 class="boutique-title">Teemerh Collection</h3>
+            <p class="boutique-tagline">Spices, Jewelry & Organizers</p>
+            <div class="boutique-meta">
+              <span>⭐ 4.7 Rating</span>
+              <span class="boutique-shop-link">Enter Boutique →</span>
             </div>
           </div>
         </div>
@@ -166,98 +180,62 @@
     </div>
 
     <!-- FEATURED PRODUCTS -->
-    <div class="section-card">
-      <div class="section-hd">
-        <div>
-          <h2>🔥 Best Sellers</h2>
-          <div class="section-hd-sub">Most loved products across all stores</div>
-        </div>
-        <a href="store-perfume.html" class="view-all">View All</a>
+    <div style="margin-top: 40px; margin-bottom: 40px">
+      <div class="editorial-header">
+        <p>Curated Selection</p>
+        <h2>Best Sellers</h2>
       </div>
-      <div class="products-grid products-grid-padded" id="featuredGrid"></div>
-    </div>
-
-    <!-- SECOND BANNER -->
-    <div class="deal-banner" style="background:linear-gradient(135deg,#1A5C3A 0%,#0A3320 100%);margin:0 0 12px">
-      <div class="deal-text">
-        <div class="deal-badge" style="background:#FFE500">🍳 ZARAH'S KITCHEN</div>
-        <div class="deal-title">Cook Better.<br>Dress Smarter.</div>
-        <div class="deal-sub">Zarah's Kitchen · Premium cookware & fashion for Nigerians</div>
-        <button class="deal-cta" onclick="window.location.href='store-kitchen.html'" style="background:#FFE500">Explore Store →</button>
-      </div>
-      <div class="deal-emojis">🍳👗✨</div>
+      <div class="products-grid" id="featuredGrid"></div>
     </div>
 
     <!-- PERFUME PRODUCTS -->
-    <div class="section-card">
-      <div class="section-hd">
-        <div>
-          <h2>🌸 Zarah's Perfume</h2>
-          <div class="section-hd-sub">Bestselling fragrances · Delivered nationwide</div>
-        </div>
-        <a href="store-perfume.html" class="view-all">View All</a>
+    <div style="margin-bottom: 40px">
+      <div class="editorial-header">
+        <p>Zarah's Perfume</p>
+        <h2>Signature Fragrances</h2>
       </div>
-      <div class="products-grid products-grid-padded" id="perfumeGrid"></div>
+      <div class="products-grid" id="perfumeGrid"></div>
     </div>
 
     <!-- KITCHEN PRODUCTS -->
-    <div class="section-card">
-      <div class="section-hd">
-        <div>
-          <h2>🍳 Zarah's Kitchen</h2>
-          <div class="section-hd-sub">Cookware · Fashion · Knives</div>
-        </div>
-        <a href="store-kitchen.html" class="view-all">View All</a>
+    <div style="margin-bottom: 40px">
+      <div class="editorial-header">
+        <p>Zarah's Kitchen</p>
+        <h2>Cookware & Essentials</h2>
       </div>
-      <div class="products-grid products-grid-padded" id="kitchenGrid"></div>
-    </div>
-
-    <!-- THIRD BANNER -->
-    <div class="deal-banner" style="background:linear-gradient(135deg,#4A148C 0%,#1A237E 100%);margin:0 0 12px">
-      <div class="deal-text">
-        <div class="deal-badge" style="background:#FFE500;color:#333">💎 TEEMERH COLLECTION</div>
-        <div class="deal-title">Spices. Jewelry.<br>Everyday Essentials.</div>
-        <div class="deal-sub">Teemerh Collection · Authentic Nigerian & world spices, handcrafted jewelry</div>
-        <button class="deal-cta" onclick="window.location.href='store-variety.html'" style="background:#FFE500;color:#333">Shop Bazaar →</button>
-      </div>
-      <div class="deal-emojis">💎🌶️✨</div>
+      <div class="products-grid" id="kitchenGrid"></div>
     </div>
 
     <!-- VARIETY PRODUCTS -->
-    <div class="section-card">
-      <div class="section-hd">
-        <div>
-          <h2>💎 Teemerh Collection</h2>
-          <div class="section-hd-sub">Spices · Jewelry · Plastics & Organizers</div>
-        </div>
-        <a href="store-variety.html" class="view-all">View All</a>
+    <div style="margin-bottom: 40px">
+      <div class="editorial-header">
+        <p>Teemerh Collection</p>
+        <h2>Bazaar Favorites</h2>
       </div>
-      <div class="products-grid products-grid-padded" id="varietyGrid"></div>
+      <div class="products-grid" id="varietyGrid"></div>
     </div>
 
     <!-- WHY ZARAH'S STORE -->
-    <div class="section-card" style="margin-bottom:0">
-      <div class="section-hd"><div><h2>Why Shop on Zarah's Store?</h2></div></div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0">
-        <div style="padding:20px;text-align:center;border-right:1px solid var(--border)">
-          <div style="font-size:2rem;margin-bottom:8px">🚚</div>
-          <div style="font-weight:700;font-size:0.88rem;margin-bottom:4px">Fast Delivery</div>
-          <div style="font-size:0.75rem;color:var(--text-3)">2-5 days across all 36 states</div>
+    <div class="luxury-why">
+      <div class="editorial-header" style="margin-bottom: 24px">
+        <p>The Zarah Standard</p>
+        <h2>Why Shop With Us</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;text-align:center">
+        <div style="padding:16px">
+          <div style="font-size:2.2rem;margin-bottom:12px;color:var(--fk-yellow)">🚚</div>
+          <div style="font-weight:700;font-size:0.95rem;margin-bottom:8px;color:var(--text)">Swift Delivery</div>
+          <div style="font-size:0.8rem;color:var(--text-3);line-height:1.5">2-5 business days delivery across all 36 states in Nigeria.</div>
         </div>
-        <div style="padding:20px;text-align:center;border-right:1px solid var(--border)">
-          <div style="font-size:2rem;margin-bottom:8px">✅</div>
-          <div style="font-weight:700;font-size:0.88rem;margin-bottom:4px">Verified Products</div>
-          <div style="font-size:0.75rem;color:var(--text-3)">All products quality-checked</div>
+        <div style="padding:16px">
+          <div style="font-size:2.2rem;margin-bottom:12px;color:var(--fk-yellow)">✨</div>
+          <div style="font-weight:700;font-size:0.95rem;margin-bottom:8px;color:var(--text)">Verified Quality</div>
+          <div style="font-size:0.8rem;color:var(--text-3);line-height:1.5">Every single product is strictly checked for quality before packing.</div>
         </div>
-        <div style="padding:20px;text-align:center;border-right:1px solid var(--border)">
-          <div style="font-size:2rem;margin-bottom:8px">💬</div>
-          <div style="font-weight:700;font-size:0.88rem;margin-bottom:4px">WhatsApp Order</div>
-          <div style="font-size:0.75rem;color:var(--text-3)">Order via WhatsApp & Pay via Transfer</div>
-        </div>
-        <div style="padding:20px;text-align:center">
-          <div style="font-size:2rem;margin-bottom:8px">🔄</div>
-          <div style="font-weight:700;font-size:0.88rem;margin-bottom:4px">Easy Returns</div>
-          <div style="font-size:0.75rem;color:var(--text-3)">30-day return policy</div>
+        <div style="padding:16px">
+          <div style="font-size:2.2rem;margin-bottom:12px;color:var(--fk-yellow)">💬</div>
+          <div style="font-weight:700;font-size:0.95rem;margin-bottom:8px;color:var(--text)">Direct WhatsApp Order</div>
+          <div style="font-size:0.8rem;color:var(--text-3);line-height:1.5">Review, add to cart, check out directly to the seller via WhatsApp.</div>
         </div>
       </div>
     </div>
@@ -307,35 +285,49 @@
     if (q) window.location.href = 'store-perfume.html?search=' + encodeURIComponent(q);
   }
 
-  // Flipkart-style product card renderer
+  // Buy Now direct from homepage
+  function buyNowDirect(productId) {
+    const product = getProductById(productId);
+    if (product) {
+      Cart.addItem(product, 1);
+      window.location.href = 'checkout.html';
+    }
+  }
+
+  // Luxury minimalist product card renderer
   function renderFkCard(p) {
     const v = VENDORS[p.vendor];
     const inWish = Wishlist.has(p.id);
-    const ratingClass = p.rating >= 4.5 ? 'high' : p.rating >= 3.5 ? 'mid' : 'low';
     const discPct = p.originalPrice ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
+    
+    let starsHtml = '';
+    const fullStars = Math.floor(p.rating);
+    for (let i = 0; i < 5; i++) {
+      starsHtml += i < fullStars ? '★' : '☆';
+    }
+
     return `
-    <div class="product-card-fk" onclick="window.location.href='product.html?id=${p.id}'">
-      <div class="product-img-fk">
+    <div class="minimal-card" onclick="window.location.href='product.html?id=${p.id}'">
+      <div class="minimal-card-img-wrap">
         <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/300/300'">
-        ${p.badge ? `<span class="product-badge-fk badge-${p.badge.toLowerCase().replace(' ','-')}">${p.badge}</span>` : ''}
-        <button class="wishlist-fk ${inWish?'active':''}" onclick="event.stopPropagation();toggleWishlist('${p.id}',this)">${inWish?'❤️':'🤍'}</button>
+        ${p.badge ? `<span class="minimal-card-badge">${p.badge}</span>` : ''}
+        <button class="minimal-card-wishlist" onclick="event.stopPropagation();toggleWishlist('${p.id}',this)">${inWish ? '❤️' : '🤍'}</button>
         ${!p.inStock ? '<div class="oos-overlay"><span>Out of Stock</span></div>' : ''}
       </div>
-      <div class="product-info-fk">
-        <div class="product-name-fk">${p.name}</div>
-        <div class="product-rating-fk">
-          <span class="rating-pill ${ratingClass}">${p.rating} ★</span>
-          <span class="rating-count-fk">(${p.reviewCount.toLocaleString()})</span>
-          <span class="assured-badge">✔ Zarah's Store</span>
+      <div class="minimal-card-body">
+        <div class="minimal-card-brand">${v.name}</div>
+        <div class="minimal-card-title">${p.name}</div>
+        <div class="minimal-card-rating">
+          <span class="minimal-rating-star">${starsHtml}</span>
+          <span class="minimal-rating-count">(${p.reviewCount})</span>
         </div>
-        <div class="product-price-fk">${formatNaira(p.price)}</div>
-        <div class="product-price-row-fk">
-          ${p.originalPrice ? `<span class="product-orig-fk">${formatNaira(p.originalPrice)}</span><span class="product-discount-fk">${discPct}% off</span>` : ''}
-          <span class="free-delivery">Free Delivery</span>
+        <div class="minimal-card-price-row">
+          <span class="minimal-price-current">${formatNaira(p.price)}</span>
+          ${p.originalPrice ? `<span class="minimal-price-old">${formatNaira(p.originalPrice)}</span><span class="minimal-price-disc">${discPct}% off</span>` : ''}
         </div>
-        <div class="product-btns" onclick="event.stopPropagation()">
-          <button class="btn-addcart-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`addToCart('${p.id}')`:''}" ${!p.inStock?'disabled':''}>🛒 Add to Cart</button>
-          <button class="btn-buynow-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`window.location.href='checkout.html'`:''}" ${!p.inStock?'disabled':''}>Buy Now</button>
+        <div class="minimal-card-actions" onclick="event.stopPropagation()">
+          <button class="minimal-btn-cart" onclick="${p.inStock ? `addToCart('${p.id}')` : ''}" ${!p.inStock ? 'disabled' : ''}>🛒 Add</button>
+          <button class="minimal-btn-buy" onclick="${p.inStock ? `buyNowDirect('${p.id}')` : ''}" ${!p.inStock ? 'disabled' : ''}>Buy Now</button>
         </div>
       </div>
     </div>`;
