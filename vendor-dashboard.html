@@ -197,8 +197,6 @@
       <div class="sidebar-logo">🛍️ Zarah's Store</div>
       <div class="sidebar-vendor-name" id="sidebarVendorName">Loading...</div>
       <div class="sidebar-vendor-badge" id="sidebarBadge" style="background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.25);color:#C4B5FD;">🏪 Vendor Portal</div>
-    </div>
-
     <nav class="sidebar-nav">
       <div class="sidebar-section-label">Overview</div>
       <div class="sidebar-link active" id="nav-dashboard" onclick="showTab('dashboard')">
@@ -211,11 +209,6 @@
       </div>
       <div class="sidebar-link" id="nav-settings" onclick="showTab('settings')">
         <span class="link-icon">⚙️</span> Store Settings
-      </div>
-
-      <div class="sidebar-section-label">View</div>
-      <div class="sidebar-link" id="nav-reviews" onclick="showTab('reviews')">
-        <span class="link-icon">⭐</span> Reviews
       </div>
     </nav>
 
@@ -240,14 +233,10 @@
     <!-- ========== TAB: DASHBOARD ========== -->
     <div class="tab-panel active" id="panel-dashboard">
       <div class="stat-cards" id="statCards"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px">
+      <div style="margin-bottom:32px">
         <div class="settings-card">
           <h3>📦 Recent Products</h3>
           <div id="recentProductsList"></div>
-        </div>
-        <div class="settings-card">
-          <h3>⭐ Latest Reviews</h3>
-          <div id="latestReviewsList"></div>
         </div>
       </div>
       <div class="settings-card" style="background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(236,72,153,0.08))">
@@ -287,7 +276,6 @@
               <th>Product</th>
               <th>Category</th>
               <th>Price</th>
-              <th>Rating</th>
               <th>Stock</th>
               <th>Actions</th>
             </tr>
@@ -337,20 +325,7 @@
       </div>
     </div>
 
-    <!-- ========== TAB: REVIEWS ========== -->
-    <div class="tab-panel" id="panel-reviews">
-      <div class="section-header-row" style="margin-bottom:24px">
-        <h2>Customer Reviews</h2>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:2rem;font-weight:800" id="avgRatingDisplay">—</span>
-          <div>
-            <div id="starsDisplay"></div>
-            <div style="font-size:0.8rem;color:var(--text-muted)" id="reviewCountDisplay"></div>
-          </div>
-        </div>
-      </div>
-      <div class="reviews-grid" id="vendorReviewsGrid"></div>
-    </div>
+
 
   </main>
 </div>
@@ -456,12 +431,11 @@
     document.getElementById('panel-' + tab).classList.add('active');
     document.getElementById('nav-' + tab).classList.add('active');
 
-    const titles = { dashboard: 'Dashboard', products: 'My Products', settings: 'Store Settings', reviews: 'Reviews' };
+    const titles = { dashboard: 'Dashboard', products: 'My Products', settings: 'Store Settings' };
     document.getElementById('pageTitle').textContent = titles[tab] || tab;
 
     if (tab === 'products') renderProductTable();
     if (tab === 'settings') populateSettings();
-    if (tab === 'reviews') renderReviews();
     if (tab === 'dashboard') renderDashboard();
   }
 
@@ -471,34 +445,25 @@
   function renderDashboard() {
     const products = VendorProducts.getAll(vendorId);
     const inStock = products.filter(p => p.inStock).length;
-    const reviews = getReviewsByVendor(vendorId);
-    const avgRating = vendor.rating;
-    const revenue = (products.reduce((s, p) => s + p.price, 0) * 12.4).toFixed(0);
 
     document.getElementById('statCards').innerHTML = `
       <div class="stat-card">
         <div class="stat-card-icon">📦</div>
         <div class="stat-card-label">Total Products</div>
         <div class="stat-card-value" style="color:${vendor.primaryColor}">${products.length}</div>
-        <div class="stat-card-change positive">↑ ${inStock} in stock</div>
+        <div class="stat-card-change positive">All items registered</div>
       </div>
       <div class="stat-card">
-        <div class="stat-card-icon">⭐</div>
-        <div class="stat-card-label">Store Rating</div>
-        <div class="stat-card-value" style="color:#F59E0B">${avgRating}</div>
-        <div class="stat-card-change positive">↑ ${vendor.reviewCount.toLocaleString()} reviews</div>
+        <div class="stat-card-icon">✅</div>
+        <div class="stat-card-label">Active / In Stock</div>
+        <div class="stat-card-value" style="color:#10B981">${inStock}</div>
+        <div class="stat-card-change positive">Available for ordering</div>
       </div>
       <div class="stat-card">
-        <div class="stat-card-icon">💬</div>
-        <div class="stat-card-label">Reviews</div>
-        <div class="stat-card-value" style="color:#10B981">${reviews.length}</div>
-        <div class="stat-card-change positive">↑ Recent activity</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card-icon">💰</div>
-        <div class="stat-card-label">Est. Revenue</div>
-        <div class="stat-card-value" style="color:#EC4899">$${parseInt(revenue).toLocaleString()}</div>
-        <div class="stat-card-change positive">↑ 12% this month</div>
+        <div class="stat-card-icon">⚠️</div>
+        <div class="stat-card-label">Out of Stock</div>
+        <div class="stat-card-value" style="color:#EF4444">${products.length - inStock}</div>
+        <div class="stat-card-change positive">Requires restocking</div>
       </div>`;
 
     // Recent products
@@ -507,7 +472,7 @@
         <img src="${p.image}" style="width:42px;height:42px;object-fit:cover;border-radius:8px" onerror="this.src='https://picsum.photos/50/50'">
         <div style="flex:1;min-width:0">
           <div style="font-size:0.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
-          <div style="font-size:0.78rem;color:var(--text-muted)">$${p.price.toFixed(2)} · ${p.category}</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">₦${p.price.toLocaleString()} · ${p.category}</div>
         </div>
         <span class="stock-badge ${p.inStock ? 'stock-in' : 'stock-out'}">${p.inStock ? '✓' : '✗'}</span>
       </div>`).join('');
@@ -550,10 +515,9 @@
         </td>
         <td style="color:var(--text-muted)">${p.category}</td>
         <td class="table-price">
-          $${p.price.toFixed(2)}
-          ${p.originalPrice ? `<div style="font-size:0.78rem;color:var(--text-muted);text-decoration:line-through">$${p.originalPrice.toFixed(2)}</div>` : ''}
+          ₦${p.price.toLocaleString()}
+          ${p.originalPrice ? `<div style="font-size:0.78rem;color:var(--text-muted);text-decoration:line-through">₦${p.originalPrice.toLocaleString()}</div>` : ''}
         </td>
-        <td><span style="color:#F59E0B">★</span> ${p.rating} <span style="color:var(--text-muted);font-size:0.78rem">(${p.reviewCount})</span></td>
         <td><span class="stock-badge ${p.inStock ? 'stock-in' : 'stock-out'}">${p.inStock ? '✓ In Stock' : '✗ Out'}</span></td>
         <td>
           <div class="table-actions">
@@ -681,8 +645,8 @@
 
     const data = {
       name,
-      price,
-      originalPrice: document.getElementById('mOriginalPrice').value || null,
+      price: parseFloat(price),
+      originalPrice: document.getElementById('mOriginalPrice').value ? parseFloat(document.getElementById('mOriginalPrice').value) : null,
       category,
       badge: document.getElementById('mBadge').value || null,
       description: desc,
@@ -736,17 +700,7 @@
     }
   }
 
-  // ---- REVIEWS ----
-  function renderReviews() {
-    const reviews = getReviewsByVendor(vendorId);
-    const avg = vendor.rating;
-    document.getElementById('avgRatingDisplay').textContent = avg + '★';
-    document.getElementById('starsDisplay').innerHTML = renderStars(avg, 16);
-    document.getElementById('reviewCountDisplay').textContent = vendor.reviewCount.toLocaleString() + ' total reviews';
-    document.getElementById('vendorReviewsGrid').innerHTML = reviews.length > 0
-      ? reviews.map(r => renderReviewCard(r)).join('')
-      : '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">💬</div><h3>No reviews yet</h3></div>';
-  }
+
 
   // ---- INIT ----
   renderDashboard();
