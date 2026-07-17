@@ -1,16 +1,29 @@
-// ---- SEED & INITIALIZE REGISTRIES ----
-// Seed defaults if not present
+// Seed vendors_registry if not present
 if (!localStorage.getItem('vendors_registry')) {
   localStorage.setItem('vendors_registry', JSON.stringify(VENDORS));
 }
-if (!localStorage.getItem('vendor_credentials_registry')) {
-  const DEFAULT_VENDOR_CREDENTIALS = {
-    perfume: { email: 'vendor@aura.com',   password: 'Aura2026!',   name: "Zarah's Perfume" },
-    kitchen: { email: 'vendor@hearth.com', password: 'Hearth2026!', name: "Zarah's Kitchen" },
-    variety: { email: 'vendor@globe.com',  password: 'Globe2026!',  name: 'Teemerh Collection' }
-  };
-  localStorage.setItem('vendor_credentials_registry', JSON.stringify(DEFAULT_VENDOR_CREDENTIALS));
-}
+
+// Seed vendor_credentials_registry — merge missing entries rather than skipping
+const DEFAULT_VENDOR_CREDENTIALS = {
+  perfume: { email: 'vendor@aura.com',   password: 'Aura2026!',   name: "Zarah's Perfume" },
+  kitchen: { email: 'vendor@hearth.com', password: 'Hearth2026!', name: "Zarah's Kitchen" },
+  variety: { email: 'vendor@globe.com',  password: 'Globe2026!',  name: 'Teemerh Collection' }
+};
+(function() {
+  const stored = JSON.parse(localStorage.getItem('vendor_credentials_registry') || '{}');
+  let changed = false;
+  Object.keys(DEFAULT_VENDOR_CREDENTIALS).forEach(id => {
+    if (!stored[id]) {
+      stored[id] = DEFAULT_VENDOR_CREDENTIALS[id];
+      changed = true;
+    }
+  });
+  if (changed || !localStorage.getItem('vendor_credentials_registry')) {
+    localStorage.setItem('vendor_credentials_registry', JSON.stringify(stored));
+  }
+})();
+
+// Seed admin_credentials if not present
 if (!localStorage.getItem('admin_credentials')) {
   localStorage.setItem('admin_credentials', JSON.stringify({
     email: 'admin@zarahsstore.com',
