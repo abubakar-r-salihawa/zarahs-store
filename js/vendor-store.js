@@ -119,7 +119,11 @@ const VendorAuth = {
     const credsMap = JSON.parse(localStorage.getItem('vendor_credentials_registry') || '{}');
     
     // Check Admin Credentials
-    if (email.trim() === 'admin@zarahsstore.com' && password === 'AdminPassword2026!') {
+    const adminCreds = JSON.parse(localStorage.getItem('admin_credentials') || JSON.stringify({
+      email: 'admin@zarahsstore.com',
+      password: 'AdminPassword2026!'
+    }));
+    if (email.trim() === adminCreds.email && password === adminCreds.password) {
       const session = { isAdmin: true, name: 'Store Admin', email: email.trim(), loginTime: Date.now() };
       localStorage.setItem('adminSession', JSON.stringify(session));
       return { success: true, isAdmin: true, session };

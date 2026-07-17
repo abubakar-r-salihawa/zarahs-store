@@ -355,43 +355,66 @@
       </div>
     </div>
 
-    <!-- RIGHT: REGISTER NEW VENDOR -->
-    <div class="admin-card">
-      <h2 class="card-title">Register New Boutique</h2>
-      <div class="error-banner" id="addError"></div>
-      <form class="admin-form" id="addVendorForm" onsubmit="event.preventDefault(); handleAddVendor();">
-        <div class="form-group">
-          <label class="form-label">Unique Vendor ID (URL friendly)</label>
-          <input type="text" class="form-input" id="addVendorId" placeholder="e.g. fashion" required pattern="^[a-zA-Z0-9\-]+$">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Boutique Name</label>
-          <input type="text" class="form-input" id="addVendorName" placeholder="e.g. Zarah's Fashion" required>
-        </div>
-        <div class="form-row">
+    <!-- RIGHT: REGISTER & SETTINGS PANEL -->
+    <div style="display:flex;flex-direction:column;gap:40px">
+      <!-- REGISTER NEW VENDOR -->
+      <div class="admin-card">
+        <h2 class="card-title">Register New Boutique</h2>
+        <div class="error-banner" id="addError"></div>
+        <form class="admin-form" id="addVendorForm" onsubmit="event.preventDefault(); handleAddVendor();">
           <div class="form-group">
-            <label class="form-label">Emoji Icon</label>
-            <input type="text" class="form-input" id="addVendorEmoji" placeholder="e.g. 👗" required maxlength="4">
+            <label class="form-label">Unique Vendor ID (URL friendly)</label>
+            <input type="text" class="form-input" id="addVendorId" placeholder="e.g. fashion" required pattern="^[a-zA-Z0-9\-]+$">
           </div>
           <div class="form-group">
-            <label class="form-label">Primary Color Theme (Hex)</label>
-            <input type="text" class="form-input" id="addVendorColor" placeholder="e.g. #8B5A2B" required>
+            <label class="form-label">Boutique Name</label>
+            <input type="text" class="form-input" id="addVendorName" placeholder="e.g. Zarah's Fashion" required>
           </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Tagline Description</label>
-          <input type="text" class="form-input" id="addVendorTagline" placeholder="e.g. Premium dresses and accessories" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Login Email</label>
-          <input type="email" class="form-input" id="addVendorEmail" placeholder="e.g. vendor@fashion.com" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Password</label>
-          <input type="text" class="form-input" id="addVendorPassword" placeholder="e.g. Fashion2026!" required minlength="6">
-        </div>
-        <button type="submit" class="btn-form-submit">Register Boutique</button>
-      </form>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Emoji Icon</label>
+              <input type="text" class="form-input" id="addVendorEmoji" placeholder="e.g. 👗" required maxlength="4">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Primary Color Theme (Hex)</label>
+              <input type="text" class="form-input" id="addVendorColor" placeholder="e.g. #8B5A2B" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tagline Description</label>
+            <input type="text" class="form-input" id="addVendorTagline" placeholder="e.g. Premium dresses and accessories" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Login Email</label>
+            <input type="email" class="form-input" id="addVendorEmail" placeholder="e.g. vendor@fashion.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="text" class="form-input" id="addVendorPassword" placeholder="e.g. Fashion2026!" required minlength="6">
+          </div>
+          <button type="submit" class="btn-form-submit">Register Boutique</button>
+        </form>
+      </div>
+
+      <!-- ADMIN SETTINGS -->
+      <div class="admin-card">
+        <h2 class="card-title">Admin Account Settings</h2>
+        <div class="error-banner" id="adminSettingsError"></div>
+        <form class="admin-form" id="adminSettingsForm" onsubmit="event.preventDefault(); handleUpdateAdminCreds();">
+          <div class="form-group">
+            <label class="form-label">Admin Email</label>
+            <input type="email" class="form-input" id="adminEmail" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Admin Password</label>
+            <input type="text" class="form-input" id="adminPassword" placeholder="Enter new password" required minlength="6">
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;margin-top:12px">
+            <button type="submit" class="btn-form-submit" style="margin:0">Update Credentials</button>
+            <span id="adminSettingsSuccess" style="color:var(--gold);font-size:0.85rem;display:none">✅ Updated successfully!</span>
+          </div>
+        </form>
+      </div>
     </div>
 
   </div>
@@ -585,8 +608,47 @@
     }
   }
 
+  // Admin Settings Operations
+  function populateAdminSettings() {
+    const adminCreds = JSON.parse(localStorage.getItem('admin_credentials') || JSON.stringify({
+      email: 'admin@zarahsstore.com',
+      password: 'AdminPassword2026!'
+    }));
+    document.getElementById('adminEmail').value = adminCreds.email;
+    document.getElementById('adminPassword').value = adminCreds.password;
+  }
+
+  function handleUpdateAdminCreds() {
+    const email = document.getElementById('adminEmail').value.trim();
+    const password = document.getElementById('adminPassword').value;
+    const errEl = document.getElementById('adminSettingsError');
+    const sucEl = document.getElementById('adminSettingsSuccess');
+
+    if (!email || !password) {
+      errEl.textContent = '⚠️ Please fill in all fields.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    localStorage.setItem('admin_credentials', JSON.stringify({ email, password }));
+    
+    // Update active admin session as well
+    const session = AdminAuth.getSession();
+    if (session) {
+      session.email = email;
+      localStorage.setItem('adminSession', JSON.stringify(session));
+    }
+
+    errEl.style.display = 'none';
+    sucEl.style.display = 'inline';
+    setTimeout(() => {
+      sucEl.style.display = 'none';
+    }, 3000);
+  }
+
   // Initial load
   renderVendors();
+  populateAdminSettings();
 </script>
 </body>
 </html>
