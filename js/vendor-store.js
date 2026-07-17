@@ -11,6 +11,12 @@ if (!localStorage.getItem('vendor_credentials_registry')) {
   };
   localStorage.setItem('vendor_credentials_registry', JSON.stringify(DEFAULT_VENDOR_CREDENTIALS));
 }
+if (!localStorage.getItem('admin_credentials')) {
+  localStorage.setItem('admin_credentials', JSON.stringify({
+    email: 'admin@zarahsstore.com',
+    password: 'AdminPassword2026!'
+  }));
+}
 
 // Sync global VENDORS registry
 window.VENDORS = JSON.parse(localStorage.getItem('vendors_registry'));

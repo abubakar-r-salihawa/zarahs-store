@@ -399,18 +399,27 @@
       <!-- ADMIN SETTINGS -->
       <div class="admin-card">
         <h2 class="card-title">Admin Account Settings</h2>
+
+        <!-- Current saved credentials display -->
+        <div style="background:rgba(181,142,76,0.1);border:1px solid rgba(181,142,76,0.3);border-radius:6px;padding:14px;margin-bottom:18px">
+          <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:8px;font-weight:700">📋 Current Saved Credentials</div>
+          <div style="font-size:0.82rem;color:var(--text-light);margin-bottom:4px">Email: <span id="currentAdminEmail" style="color:var(--gold);font-weight:600"></span></div>
+          <div style="font-size:0.82rem;color:var(--text-light)">Password: <span id="currentAdminPassword" style="color:var(--gold);font-weight:600"></span></div>
+        </div>
+
         <div class="error-banner" id="adminSettingsError"></div>
         <form class="admin-form" id="adminSettingsForm" onsubmit="event.preventDefault(); handleUpdateAdminCreds();">
           <div class="form-group">
-            <label class="form-label">Admin Email</label>
+            <label class="form-label">New Admin Email</label>
             <input type="email" class="form-input" id="adminEmail" required>
           </div>
           <div class="form-group">
-            <label class="form-label">Admin Password</label>
+            <label class="form-label">New Admin Password</label>
             <input type="text" class="form-input" id="adminPassword" placeholder="Enter new password" required minlength="6">
           </div>
-          <div style="display:flex;align-items:center;gap:12px;margin-top:12px">
+          <div style="display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap">
             <button type="submit" class="btn-form-submit" style="margin:0">Update Credentials</button>
+            <button type="button" onclick="resetAdminToDefault()" style="background:transparent;border:1px solid rgba(217,83,79,0.5);color:#ff6b6b;border-radius:4px;padding:8px 14px;font-size:0.8rem;cursor:pointer">Reset to Default</button>
             <span id="adminSettingsSuccess" style="color:var(--gold);font-size:0.85rem;display:none">✅ Updated successfully!</span>
           </div>
         </form>
@@ -624,6 +633,9 @@
     }));
     document.getElementById('adminEmail').value = adminCreds.email;
     document.getElementById('adminPassword').value = adminCreds.password;
+    // Show current credentials in the display panel
+    document.getElementById('currentAdminEmail').textContent = adminCreds.email;
+    document.getElementById('currentAdminPassword').textContent = adminCreds.password;
   }
 
   function handleUpdateAdminCreds() {
@@ -647,11 +659,28 @@
       localStorage.setItem('adminSession', JSON.stringify(session));
     }
 
+    // Refresh current credentials display
+    document.getElementById('currentAdminEmail').textContent = email;
+    document.getElementById('currentAdminPassword').textContent = password;
+
     errEl.style.display = 'none';
     sucEl.style.display = 'inline';
     setTimeout(() => {
       sucEl.style.display = 'none';
     }, 3000);
+  }
+
+  function resetAdminToDefault() {
+    if (!confirm('⚠️ This will reset the admin login to the default credentials:\n\nEmail: admin@zarahsstore.com\nPassword: AdminPassword2026!\n\nAre you sure?')) return;
+    const defaults = { email: 'admin@zarahsstore.com', password: 'AdminPassword2026!' };
+    localStorage.setItem('admin_credentials', JSON.stringify(defaults));
+    document.getElementById('adminEmail').value = defaults.email;
+    document.getElementById('adminPassword').value = defaults.password;
+    document.getElementById('currentAdminEmail').textContent = defaults.email;
+    document.getElementById('currentAdminPassword').textContent = defaults.password;
+    document.getElementById('adminSettingsSuccess').textContent = '✅ Reset to default!';
+    document.getElementById('adminSettingsSuccess').style.display = 'inline';
+    setTimeout(() => { document.getElementById('adminSettingsSuccess').style.display = 'none'; }, 3000);
   }
 
   // Initial load
