@@ -1,36 +1,113 @@
-// ============================================================
-// VENDOR STORE — Vendor Auth, Product CRUD, Data Init
-// ============================================================
+// ---- SEED & INITIALIZE REGISTRIES ----
+// Seed defaults if not present
+if (!localStorage.getItem('vendors_registry')) {
+  localStorage.setItem('vendors_registry', JSON.stringify(VENDORS));
+}
+if (!localStorage.getItem('vendor_credentials_registry')) {
+  const DEFAULT_VENDOR_CREDENTIALS = {
+    perfume: { email: 'vendor@aura.com',   password: 'Aura2026!',   name: "Zarah's Perfume" },
+    kitchen: { email: 'vendor@hearth.com', password: 'Hearth2026!', name: "Zarah's Kitchen" },
+    variety: { email: 'vendor@globe.com',  password: 'Globe2026!',  name: 'Teemerh Collection' }
+  };
+  localStorage.setItem('vendor_credentials_registry', JSON.stringify(DEFAULT_VENDOR_CREDENTIALS));
+}
 
-// ---- VENDOR CREDENTIALS ----
-const VENDOR_CREDENTIALS = {
-  perfume: { email: 'vendor@aura.com',   password: 'Aura2026!',   name: "Zarah's Perfume" },
-  kitchen: { email: 'vendor@hearth.com', password: 'Hearth2026!', name: "Zarah's Kitchen" },
-  variety: { email: 'vendor@globe.com',  password: 'Globe2026!',  name: 'Teemerh Collection' }
-};
+// Sync global VENDORS registry
+window.VENDORS = JSON.parse(localStorage.getItem('vendors_registry'));
 
 // ---- SEED: init localStorage from default data on first run ----
 function initVendorProducts() {
-  Object.keys(PRODUCTS).forEach(vendorId => {
-    const key = 'vendor_products_' + vendorId;
-    if (!localStorage.getItem(key)) {
-      localStorage.setItem(key, JSON.stringify(PRODUCTS[vendorId]));
-    }
-    // Override in-memory PRODUCTS with localStorage (vendor-editable) data
-    PRODUCTS[vendorId] = JSON.parse(localStorage.getItem(key));
-  });
-  // Also load vendor store info overrides
+  // Sync in-memory VENDORS with any localStorage info overrides
   Object.keys(VENDORS).forEach(vendorId => {
     const key = 'vendor_info_' + vendorId;
     let saved = localStorage.getItem(key);
     if (saved) {
       let info = JSON.parse(saved);
-      if (info.name === 'Hearth & Style') info.name = "Zarah's Kitchen";
-      if (info.name === 'Globe Bazaar') info.name = "Teemerh Collection";
       localStorage.setItem(key, JSON.stringify(info));
       Object.assign(VENDORS[vendorId], info);
     }
   });
+
+  // Load products dynamically based on current VENDORS list
+  Object.keys(VENDORS).forEach(vendorId => {
+    const key = 'vendor_products_' + vendorId;
+    if (!localStorage.getItem(key)) {
+      const defaultProducts = PRODUCTS[vendorId] || [];
+      localStorage.setItem(key, JSON.stringify(defaultProducts));
+    }
+    PRODUCTS[vendorId] = JSON.parse(localStorage.getItem(key));
+  });
+
+  // Run dynamic navigation rendering across all pages on load
+  setTimeout(() => {
+    let currentActiveVendorId = null;
+    const path = window.location.pathname;
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryVendor = urlParams.get('vendor');
+    
+    if (queryVendor && VENDORS[queryVendor]) {
+      currentActiveVendorId = queryVendor;
+    } else if (path.includes('store-perfume.html')) {
+      currentActiveVendorId = 'perfume';
+    } else if (path.includes('store-kitchen.html')) {
+      currentActiveVendorId = 'kitchen';
+    } else if (path.includes('store-variety.html')) {
+      currentActiveVendorId = 'variety';
+    }
+    
+    renderGlobalNav(currentActiveVendorId);
+  }, 50);
+}
+
+// Render subnav and mobile menu links dynamically across all pages
+function renderGlobalNav(activeVendorId = null) {
+  const subnav = document.getElementById('navSubLinks') || document.querySelector('.nav-sub-inner');
+  const mobileLinks = document.getElementById('mobileNavLinks') || document.querySelector('.mobile-menu');
+  
+  if (subnav) {
+    const isHomepage = window.location.pathname.includes('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/');
+    let subnavHtml = `<a href="index.html" class="nav-sub-link ${isHomepage ? 'active' : ''}">🏠 Home</a>`;
+    
+    Object.keys(VENDORS).forEach(id => {
+      const vendor = VENDORS[id];
+      const pageLink = vendor.page || `store.html?vendor=${id}`;
+      const isActive = (id === activeVendorId) && !isHomepage;
+      subnavHtml += `<a href="${pageLink}" class="nav-sub-link ${isActive ? 'active' : ''}">${vendor.logo} ${vendor.name}</a>`;
+    });
+    
+    subnavHtml += '<a href="vendor-login.html" class="nav-sub-link">🏪 Vendor Portal</a>';
+    subnav.innerHTML = subnavHtml;
+  }
+  
+  if (mobileLinks) {
+    const isMobileMenuContainer = mobileLinks.id === 'mobileMenu' || mobileLinks.classList.contains('mobile-menu');
+    if (isMobileMenuContainer) {
+      let mobileHtml = `<a href="index.html" class="mobile-link">🏠 Home</a>`;
+      
+      Object.keys(VENDORS).forEach(id => {
+        const vendor = VENDORS[id];
+        const pageLink = vendor.page || `store.html?vendor=${id}`;
+        mobileHtml += `<a href="${pageLink}" class="mobile-link">${vendor.logo} ${vendor.name}</a>`;
+      });
+      
+      mobileHtml += `<a href="cart.html" class="mobile-link">🛒 Cart</a>`;
+      mobileHtml += `<a href="vendor-login.html" class="mobile-link">🏪 Vendor Portal</a>`;
+      
+      // If mobile links element is a simple div inside, replace inner. If it is the menu container, keep children structure or replace.
+      const navLinksDiv = document.getElementById('mobileNavLinks');
+      if (navLinksDiv) {
+        let linksInner = '';
+        Object.keys(VENDORS).forEach(id => {
+          const vendor = VENDORS[id];
+          const pageLink = vendor.page || `store.html?vendor=${id}`;
+          linksInner += `<a href="${pageLink}" class="mobile-link">${vendor.logo} ${vendor.name}</a>`;
+        });
+        navLinksDiv.innerHTML = linksInner;
+      } else {
+        mobileLinks.innerHTML = mobileHtml;
+      }
+    }
+  }
 }
 
 // ---- VENDOR AUTH ----
@@ -39,14 +116,24 @@ const VendorAuth = {
     return JSON.parse(localStorage.getItem('vendorSession') || 'null');
   },
   login(email, password) {
-    for (const [vendorId, creds] of Object.entries(VENDOR_CREDENTIALS)) {
+    const credsMap = JSON.parse(localStorage.getItem('vendor_credentials_registry') || '{}');
+    
+    // Check Admin Credentials
+    if (email.trim() === 'admin@zarahsstore.com' && password === 'AdminPassword2026!') {
+      const session = { isAdmin: true, name: 'Store Admin', email: email.trim(), loginTime: Date.now() };
+      localStorage.setItem('adminSession', JSON.stringify(session));
+      return { success: true, isAdmin: true, session };
+    }
+
+    // Check Vendor Credentials
+    for (const [vendorId, creds] of Object.entries(credsMap)) {
       if (creds.email === email.trim() && creds.password === password) {
         const session = { vendorId, name: creds.name, email: creds.email, loginTime: Date.now() };
         localStorage.setItem('vendorSession', JSON.stringify(session));
-        return { success: true, session };
+        return { success: true, isAdmin: false, session };
       }
     }
-    return { success: false, error: 'Invalid vendor email or password.' };
+    return { success: false, error: 'Invalid email or password.' };
   },
   logout() {
     localStorage.removeItem('vendorSession');
@@ -59,6 +146,113 @@ const VendorAuth = {
     if (!VendorAuth.isLoggedIn()) {
       window.location.href = 'vendor-login.html';
     }
+  }
+};
+
+// ---- ADMIN AUTH ----
+const AdminAuth = {
+  getSession() {
+    return JSON.parse(localStorage.getItem('adminSession') || 'null');
+  },
+  isLoggedIn() {
+    return !!AdminAuth.getSession();
+  },
+  logout() {
+    localStorage.removeItem('adminSession');
+    window.location.href = 'vendor-login.html';
+  },
+  requireAuth() {
+    if (!AdminAuth.isLoggedIn()) {
+      window.location.href = 'vendor-login.html';
+    }
+  }
+};
+
+// ---- ADMIN VENDORS CRUD ----
+const AdminVendors = {
+  create(vendorId, info, email, password) {
+    const vendors = JSON.parse(localStorage.getItem('vendors_registry') || '{}');
+    const creds = JSON.parse(localStorage.getItem('vendor_credentials_registry') || '{}');
+    
+    if (vendors[vendorId]) return { success: false, error: 'Vendor ID already exists.' };
+    
+    // Add to VENDORS
+    vendors[vendorId] = {
+      id: vendorId,
+      name: info.name,
+      tagline: info.tagline || '',
+      description: info.description || '',
+      rating: 5.0,
+      reviewCount: 0,
+      logo: info.logo || '🏪',
+      primaryColor: info.primaryColor || '#8B5A2B',
+      gradient: info.gradient || 'linear-gradient(135deg, #3D1C00, #8B5A2B)',
+      categories: info.categories || [],
+      page: `store.html?vendor=${vendorId}`
+    };
+    
+    // Add to CREDENTIALS
+    creds[vendorId] = {
+      email: email,
+      password: password,
+      name: info.name
+    };
+    
+    localStorage.setItem('vendors_registry', JSON.stringify(vendors));
+    localStorage.setItem('vendor_credentials_registry', JSON.stringify(creds));
+    
+    // Initialize empty products array in localStorage
+    localStorage.setItem('vendor_products_' + vendorId, JSON.stringify([]));
+    
+    // Sync globals
+    window.VENDORS = vendors;
+    PRODUCTS[vendorId] = [];
+    return { success: true };
+  },
+  update(vendorId, info, email, password) {
+    const vendors = JSON.parse(localStorage.getItem('vendors_registry') || '{}');
+    const creds = JSON.parse(localStorage.getItem('vendor_credentials_registry') || '{}');
+    
+    if (!vendors[vendorId]) return { success: false, error: 'Vendor does not exist.' };
+    
+    // Update VENDORS
+    Object.assign(vendors[vendorId], info);
+    if (vendorId !== 'perfume' && vendorId !== 'kitchen' && vendorId !== 'variety') {
+      vendors[vendorId].page = `store.html?vendor=${vendorId}`;
+    }
+    
+    // Update CREDENTIALS
+    if (email) creds[vendorId].email = email;
+    if (password) creds[vendorId].password = password;
+    creds[vendorId].name = vendors[vendorId].name;
+    
+    localStorage.setItem('vendors_registry', JSON.stringify(vendors));
+    localStorage.setItem('vendor_credentials_registry', JSON.stringify(creds));
+    
+    // Sync globals
+    window.VENDORS = vendors;
+    return { success: true };
+  },
+  delete(vendorId) {
+    const vendors = JSON.parse(localStorage.getItem('vendors_registry') || '{}');
+    const creds = JSON.parse(localStorage.getItem('vendor_credentials_registry') || '{}');
+    
+    if (!vendors[vendorId]) return { success: false, error: 'Vendor does not exist.' };
+    
+    delete vendors[vendorId];
+    delete creds[vendorId];
+    
+    localStorage.setItem('vendors_registry', JSON.stringify(vendors));
+    localStorage.setItem('vendor_credentials_registry', JSON.stringify(creds));
+    
+    // Remove related localStorage items
+    localStorage.removeItem('vendor_products_' + vendorId);
+    localStorage.removeItem('vendor_info_' + vendorId);
+    
+    // Sync globals
+    window.VENDORS = vendors;
+    delete PRODUCTS[vendorId];
+    return { success: true };
   }
 };
 

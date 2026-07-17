@@ -40,21 +40,15 @@
     <div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
   </div>
   <div class="nav-sub">
-    <div class="nav-sub-inner">
+    <div class="nav-sub-inner" id="navSubLinks">
       <a href="index.html" class="nav-sub-link active">🏠 Home</a>
-      <a href="store-perfume.html" class="nav-sub-link">🌸 Zarah's Perfume</a>
-      <a href="store-kitchen.html" class="nav-sub-link">🍳 Zarah's Kitchen</a>
-      <a href="store-variety.html" class="nav-sub-link">💎 Teemerh Collection</a>
       <a href="vendor-login.html" class="nav-sub-link">🏪 Vendor Portal</a>
     </div>
   </div>
   <div class="mobile-menu" id="mobileMenu">
     <a href="index.html" class="mobile-link">🏠 Home</a>
-    <a href="store-perfume.html" class="mobile-link">🌸 Zarah's Perfume</a>
-    <a href="store-kitchen.html" class="mobile-link">🍳 Zarah's Kitchen</a>
-    <a href="store-variety.html" class="mobile-link">💎 Teemerh Collection</a>
+    <div id="mobileNavLinks"></div>
     <a href="cart.html" class="mobile-link">🛒 Cart</a>
-    <a href="auth.html" class="mobile-link">👤 Login / Sign Up</a>
     <a href="vendor-login.html" class="mobile-link">🏪 Vendor Portal</a>
   </div>
 </nav>
@@ -131,53 +125,7 @@
       <p>Curated Flagship Boutiques</p>
       <h2>Shop Our Stores</h2>
     </div>
-    <div class="boutique-showcase">
-      <!-- Zarah's Perfume -->
-      <div class="boutique-card" onclick="window.location.href='store-perfume.html'">
-        <img src="images/perfume/zahra-collection-oils.jpg" alt="Zarah's Perfume Collection" onerror="this.src='https://picsum.photos/seed/perfumebg/600/400'">
-        <div class="boutique-overlay">
-          <div class="boutique-glass-plate">
-            <span class="boutique-emoji">🌸</span>
-            <h3 class="boutique-title">Zarah's Perfume</h3>
-            <p class="boutique-tagline">Signature scents for every occasion</p>
-            <div class="boutique-meta">
-              <span>⭐ 4.8 Rating</span>
-              <span class="boutique-shop-link">Enter Boutique →</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Zarah's Kitchen -->
-      <div class="boutique-card" onclick="window.location.href='store-kitchen.html'">
-        <img src="https://picsum.photos/seed/kitchen-ng/600/400" alt="Zarah's Kitchen" onerror="this.style.background='#1A5C3A'">
-        <div class="boutique-overlay">
-          <div class="boutique-glass-plate">
-            <span class="boutique-emoji">🍳</span>
-            <h3 class="boutique-title">Zarah's Kitchen</h3>
-            <p class="boutique-tagline">Cookware, Dresses & Accessories</p>
-            <div class="boutique-meta">
-              <span>⭐ 4.6 Rating</span>
-              <span class="boutique-shop-link">Enter Boutique →</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Teemerh Collection -->
-      <div class="boutique-card" onclick="window.location.href='store-variety.html'">
-        <img src="https://picsum.photos/seed/globe-ng/600/400" alt="Teemerh Collection" onerror="this.style.background='#1A3A6B'">
-        <div class="boutique-overlay">
-          <div class="boutique-glass-plate">
-            <span class="boutique-emoji">💎</span>
-            <h3 class="boutique-title">Teemerh Collection</h3>
-            <p class="boutique-tagline">Spices, Jewelry & Organizers</p>
-            <div class="boutique-meta">
-              <span>⭐ 4.7 Rating</span>
-              <span class="boutique-shop-link">Enter Boutique →</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="boutique-showcase" id="boutiqueShowcase"></div>
 
     <!-- FEATURED PRODUCTS -->
     <div style="margin-top: 40px; margin-bottom: 40px">
@@ -279,10 +227,68 @@
 <script src="js/vendor-store.js"></script>
 <script>
   initVendorProducts();
+  
+  // Render Dynamic Navigation Links
+  function renderBoutiquesMenu() {
+    const subnav = document.getElementById('navSubLinks');
+    subnav.innerHTML = '<a href="index.html" class="nav-sub-link active">🏠 Home</a>';
+    
+    const mobileLinks = document.getElementById('mobileNavLinks');
+    mobileLinks.innerHTML = '';
+
+    Object.keys(VENDORS).forEach(id => {
+      const vendor = VENDORS[id];
+      const pageLink = vendor.page || `store.html?vendor=${id}`;
+      subnav.innerHTML += `<a href="${pageLink}" class="nav-sub-link">${vendor.logo} ${vendor.name}</a>`;
+      mobileLinks.innerHTML += `<a href="${pageLink}" class="mobile-link">${vendor.logo} ${vendor.name}</a>`;
+    });
+    subnav.innerHTML += '<a href="vendor-login.html" class="nav-sub-link">🏪 Vendor Portal</a>';
+  }
+
+  // Render Dynamic Boutique Cards on Homepage
+  function renderBoutiquesShowcase() {
+    const showcase = document.getElementById('boutiqueShowcase');
+    if (!showcase) return;
+    showcase.innerHTML = '';
+
+    Object.keys(VENDORS).forEach(id => {
+      const v = VENDORS[id];
+      const pageLink = v.page || `store.html?vendor=${id}`;
+
+      // Select banner image based on vendor and remove generic placeholder pictures
+      let imgUrl = 'https://picsum.photos/seed/' + id + '/600/400';
+      if (id === 'perfume') {
+        imgUrl = 'images/perfume/zahra-collection-oils.jpg';
+      } else if (id === 'kitchen') {
+        imgUrl = 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=600&auto=format&fit=crop';
+      } else if (id === 'variety') {
+        imgUrl = 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=600&auto=format&fit=crop';
+      } else if (v.bannerImage) {
+        imgUrl = v.bannerImage;
+      }
+
+      showcase.innerHTML += `
+      <div class="boutique-card" onclick="window.location.href='${pageLink}'">
+        <img src="${imgUrl}" alt="${v.name}" onerror="this.style.background='${v.primaryColor || '#8B5A2B'}'">
+        <div class="boutique-overlay">
+          <div class="boutique-glass-plate">
+            <span class="boutique-emoji">${v.logo || '🏪'}</span>
+            <h3 class="boutique-title">${v.name}</h3>
+            <p class="boutique-tagline">${v.tagline}</p>
+            <div class="boutique-meta">
+              <span>⭐ ${v.rating || '5.0'} Rating</span>
+              <span class="boutique-shop-link">Enter Boutique →</span>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
   function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
   function doSearch() {
     const q = document.getElementById('globalSearch').value.trim();
-    if (q) window.location.href = 'store-perfume.html?search=' + encodeURIComponent(q);
+    if (q) window.location.href = 'store.html?vendor=perfume&search=' + encodeURIComponent(q);
   }
 
   // Buy Now direct from homepage
@@ -294,9 +300,19 @@
     }
   }
 
+  // Add Item to Cart direct from homepage
+  function addToCart(productId) {
+    const product = getProductById(productId);
+    if (product) {
+      Cart.addItem(product, 1);
+      alert(`🛒 ${product.name} added to cart!`);
+    }
+  }
+
   // Luxury minimalist product card renderer
   function renderFkCard(p) {
     const v = VENDORS[p.vendor];
+    if (!v) return ''; // Skip if vendor was deleted
     const inWish = Wishlist.has(p.id);
     const discPct = p.originalPrice ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
     
@@ -333,18 +349,28 @@
     </div>`;
   }
 
+  // Initial Render Functions
+  renderBoutiquesMenu();
+  renderBoutiquesShowcase();
+
   // Render all sections
   const featured = getFeaturedProducts(8);
   document.getElementById('featuredGrid').innerHTML = featured.map(renderFkCard).join('');
 
-  const perfumes = getProductsByVendor('perfume').slice(0, 4);
-  document.getElementById('perfumeGrid').innerHTML = perfumes.map(renderFkCard).join('');
+  if (VENDORS.perfume) {
+    const perfumes = getProductsByVendor('perfume').slice(0, 4);
+    document.getElementById('perfumeGrid').innerHTML = perfumes.map(renderFkCard).join('');
+  }
 
-  const kitchen = getProductsByVendor('kitchen').slice(0, 4);
-  document.getElementById('kitchenGrid').innerHTML = kitchen.map(renderFkCard).join('');
+  if (VENDORS.kitchen) {
+    const kitchen = getProductsByVendor('kitchen').slice(0, 4);
+    document.getElementById('kitchenGrid').innerHTML = kitchen.map(renderFkCard).join('');
+  }
 
-  const variety = getProductsByVendor('variety').slice(0, 4);
-  document.getElementById('varietyGrid').innerHTML = variety.map(renderFkCard).join('');
+  if (VENDORS.variety) {
+    const variety = getProductsByVendor('variety').slice(0, 4);
+    document.getElementById('varietyGrid').innerHTML = variety.map(renderFkCard).join('');
+  }
 </script>
 </body>
 </html>

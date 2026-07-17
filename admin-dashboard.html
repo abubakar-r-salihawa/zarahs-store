@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Control Panel — Zarah's Store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    :root {
+      --bg-dark: #090909;
+      --bg-card: rgba(18, 18, 18, 0.85);
+      --gold: #c39b62;
+      --gold-dark: #8c6a3a;
+      --text-light: #f7f6f2;
+      --text-muted: #8c8984;
+      --border-dark: rgba(255, 255, 255, 0.08);
+      --font-serif: 'Cormorant Garamond', Georgia, serif;
+      --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      font-family: var(--font-sans);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .admin-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-dark);
+      padding-bottom: 24px;
+      margin-bottom: 40px;
+    }
+
+    .admin-title-wrap h1 {
+      font-family: var(--font-serif);
+      font-size: 2.2rem;
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      margin: 0 0 4px;
+      color: var(--text-light);
+    }
+
+    .admin-title-wrap p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin: 0;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .btn-admin-logout {
+      background: transparent;
+      color: var(--text-light);
+      border: 1px solid var(--border-dark);
+      padding: 10px 20px;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-admin-logout:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 40px;
+    }
+
+    @media (max-width: 992px) {
+      .admin-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .admin-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 32px;
+      backdrop-filter: blur(10px);
+    }
+
+    .card-title {
+      font-family: var(--font-serif);
+      font-size: 1.6rem;
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      margin-top: 0;
+      margin-bottom: 24px;
+      color: var(--gold);
+      border-bottom: 1px solid var(--border-dark);
+      padding-bottom: 12px;
+    }
+
+    /* Vendors List Table */
+    .vendor-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .vendor-table th {
+      padding: 12px 16px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-dark);
+    }
+
+    .vendor-table td {
+      padding: 16px;
+      font-size: 0.88rem;
+      border-bottom: 1px solid var(--border-dark);
+      vertical-align: middle;
+    }
+
+    .vendor-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .vendor-row-logo {
+      font-size: 1.6rem;
+      margin-right: 12px;
+    }
+
+    .vendor-row-info {
+      display: flex;
+      align-items: center;
+    }
+
+    .vendor-row-name {
+      font-weight: 500;
+      color: var(--text-light);
+    }
+
+    .vendor-row-tagline {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .vendor-creds-box {
+      font-family: monospace;
+      font-size: 0.8rem;
+      background: rgba(0,0,0,0.2);
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-dark);
+    }
+
+    .btn-row-action {
+      background: transparent;
+      border: 1px solid var(--border-dark);
+      padding: 6px 12px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      color: var(--text-light);
+      margin-right: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-row-action.edit:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .btn-row-action.delete:hover {
+      border-color: #d9534f;
+      color: #d9534f;
+    }
+
+    /* Forms */
+    .admin-form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .form-input {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border-dark);
+      padding: 12px;
+      color: var(--text-light);
+      font-family: inherit;
+      font-size: 0.88rem;
+      border-radius: 4px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .form-input:focus {
+      border-color: var(--gold);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .btn-form-submit {
+      background: var(--gold);
+      color: var(--bg-dark);
+      border: 1px solid var(--gold);
+      padding: 14px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
+
+    .btn-form-submit:hover {
+      background: transparent;
+      color: var(--gold);
+      box-shadow: 0 0 15px rgba(195,155,98,0.25);
+    }
+
+    /* Modal */
+    .admin-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2000;
+    }
+
+    .admin-modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+      position: relative;
+      width: 90%;
+      max-width: 550px;
+      z-index: 2001;
+      background: #121212;
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 32px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .modal-close-btn:hover {
+      color: var(--text-light);
+    }
+
+    .error-banner {
+      background: rgba(217, 83, 79, 0.15);
+      border: 1px solid rgba(217, 83, 79, 0.3);
+      color: #ff6b6b;
+      padding: 12px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="admin-container">
+  <!-- HEADER -->
+  <header class="admin-header">
+    <div class="admin-title-wrap">
+      <p>Zarah's Store Portal</p>
+      <h1>Admin Control Panel</h1>
+    </div>
+    <div>
+      <a href="index.html" class="btn-admin-logout" style="margin-right: 12px;">Storefront</a>
+      <button class="btn-admin-logout" onclick="AdminAuth.logout()">Sign Out</button>
+    </div>
+  </header>
+
+  <!-- CONTENT GRID -->
+  <div class="admin-grid">
+    
+    <!-- LEFT: VENDORS LIST -->
+    <div class="admin-card">
+      <h2 class="card-title">Manage Boutiques</h2>
+      <div style="overflow-x: auto;">
+        <table class="vendor-table">
+          <thead>
+            <tr>
+              <th>Boutique</th>
+              <th>Login Details</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="vendorTableBody">
+            <!-- Rendered Dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RIGHT: REGISTER NEW VENDOR -->
+    <div class="admin-card">
+      <h2 class="card-title">Register New Boutique</h2>
+      <div class="error-banner" id="addError"></div>
+      <form class="admin-form" id="addVendorForm" onsubmit="event.preventDefault(); handleAddVendor();">
+        <div class="form-group">
+          <label class="form-label">Unique Vendor ID (URL friendly)</label>
+          <input type="text" class="form-input" id="addVendorId" placeholder="e.g. fashion" required pattern="^[a-zA-Z0-9\-]+$">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Boutique Name</label>
+          <input type="text" class="form-input" id="addVendorName" placeholder="e.g. Zarah's Fashion" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Emoji Icon</label>
+            <input type="text" class="form-input" id="addVendorEmoji" placeholder="e.g. 👗" required maxlength="4">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Primary Color Theme (Hex)</label>
+            <input type="text" class="form-input" id="addVendorColor" placeholder="e.g. #8B5A2B" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tagline Description</label>
+          <input type="text" class="form-input" id="addVendorTagline" placeholder="e.g. Premium dresses and accessories" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Login Email</label>
+          <input type="email" class="form-input" id="addVendorEmail" placeholder="e.g. vendor@fashion.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="text" class="form-input" id="addVendorPassword" placeholder="e.g. Fashion2026!" required minlength="6">
+        </div>
+        <button type="submit" class="btn-form-submit">Register Boutique</button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="admin-modal" id="editModal">
+  <div class="modal-overlay" onclick="closeEditModal()"></div>
+  <div class="modal-content">
+    <button class="modal-close-btn" onclick="closeEditModal()">×</button>
+    <h2 class="card-title">Modify Boutique Settings</h2>
+    <div class="error-banner" id="editError"></div>
+    <form class="admin-form" id="editVendorForm" onsubmit="event.preventDefault(); handleUpdateVendor();">
+      <input type="hidden" id="editVendorId">
+      <div class="form-group">
+        <label class="form-label">Boutique Name</label>
+        <input type="text" class="form-input" id="editVendorName" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Emoji Icon</label>
+          <input type="text" class="form-input" id="editVendorEmoji" required maxlength="4">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Primary Color Theme</label>
+          <input type="text" class="form-input" id="editVendorColor" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tagline Description</label>
+        <input type="text" class="form-input" id="editVendorTagline" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Login Email</label>
+        <input type="email" class="form-input" id="editVendorEmail" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password (Leave blank to keep current)</label>
+        <input type="text" class="form-input" id="editVendorPassword" placeholder="Enter new password if changing">
+      </div>
+      <button type="submit" class="btn-form-submit">Save Settings</button>
+    </form>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/vendor-store.js"></script>
+<script>
+  // Restrict access
+  AdminAuth.requireAuth();
+
+  // Populate page
+  function renderVendors() {
+    const tbody = document.getElementById('vendorTableBody');
+    tbody.innerHTML = '';
+
+    const vendors = JSON.parse(localStorage.getItem('vendors_registry') || '{}');
+    const credsMap = JSON.parse(localStorage.getItem('vendor_credentials_registry') || '{}');
+
+    Object.keys(vendors).forEach(id => {
+      const v = vendors[id];
+      const creds = credsMap[id] || { email: '', password: '' };
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div class="vendor-row-info">
+            <span class="vendor-row-logo">${v.logo}</span>
+            <div>
+              <span class="vendor-row-name">${v.name}</span><br>
+              <span class="vendor-row-tagline">${v.tagline}</span>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div style="margin-bottom:4px">
+            <span class="form-label" style="font-size:0.6rem">Email:</span>
+            <span class="vendor-creds-box">${creds.email}</span>
+          </div>
+          <div>
+            <span class="form-label" style="font-size:0.6rem">Pass:</span>
+            <span class="vendor-creds-box">${creds.password}</span>
+          </div>
+        </td>
+        <td>
+          <button class="btn-row-action edit" onclick="openEditModal('${id}')">Edit</button>
+          <button class="btn-row-action delete" onclick="handleDeleteVendor('${id}')">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Add Vendor Action
+  function handleAddVendor() {
+    const id = document.getElementById('addVendorId').value.trim().toLowerCase();
+    const name = document.getElementById('addVendorName').value.trim();
+    const emoji = document.getElementById('addVendorEmoji').value.trim();
+    const color = document.getElementById('addVendorColor').value.trim();
+    const tagline = document.getElementById('addVendorTagline').value.trim();
+    const email = document.getElementById('addVendorEmail').value.trim();
+    const password = document.getElementById('addVendorPassword').value;
+    const errEl = document.getElementById('addError');
+
+    const info = {
+      name: name,
+      tagline: tagline,
+      logo: emoji,
+      primaryColor: color,
+      gradient: `linear-gradient(135deg, #090909, ${color})`
+    };
+
+    const res = AdminVendors.create(id, info, email, password);
+    if (res.success) {
+      errEl.style.display = 'none';
+      document.getElementById('addVendorForm').reset();
+      renderVendors();
+    } else {
+      errEl.textContent = '⚠️ ' + res.error;
+      errEl.style.display = 'block';
+    }
+  }
+
+  // Edit Modal Toggles
+  function openEditModal(vendorId) {
+    const vendors = JSON.parse(localStorage.getItem('vendors_registry') || '{}');
+    const credsMap = JSON.parse(localStorage.getItem('vendor_credentials_registry') || '{}');
+    const v = vendors[vendorId];
+    const creds = credsMap[vendorId] || { email: '', password: '' };
+
+    if (!v) return;
+
+    document.getElementById('editVendorId').value = vendorId;
+    document.getElementById('editVendorName').value = v.name;
+    document.getElementById('editVendorEmoji').value = v.logo;
+    document.getElementById('editVendorColor').value = v.primaryColor;
+    document.getElementById('editVendorTagline').value = v.tagline;
+    document.getElementById('editVendorEmail').value = creds.email;
+    document.getElementById('editVendorPassword').value = '';
+
+    document.getElementById('editError').style.display = 'none';
+    document.getElementById('editModal').classList.add('active');
+  }
+
+  // Close Modal
+  function closeEditModal() {
+    document.getElementById('editModal').classList.remove('active');
+  }
+
+  // Update Vendor Action
+  function handleUpdateVendor() {
+    const id = document.getElementById('editVendorId').value;
+    const name = document.getElementById('editVendorName').value.trim();
+    const emoji = document.getElementById('editVendorEmoji').value.trim();
+    const color = document.getElementById('editVendorColor').value.trim();
+    const tagline = document.getElementById('editVendorTagline').value.trim();
+    const email = document.getElementById('editVendorEmail').value.trim();
+    const password = document.getElementById('editVendorPassword').value;
+    const errEl = document.getElementById('editError');
+
+    const info = {
+      name: name,
+      tagline: tagline,
+      logo: emoji,
+      primaryColor: color,
+      gradient: `linear-gradient(135deg, #090909, ${color})`
+    };
+
+    const res = AdminVendors.update(id, info, email, password);
+    if (res.success) {
+      closeEditModal();
+      renderVendors();
+    } else {
+      errEl.textContent = '⚠️ ' + res.error;
+      errEl.style.display = 'block';
+    }
+  }
+
+  // Delete Vendor Action
+  function handleDeleteVendor(vendorId) {
+    if (vendorId === 'perfume' || vendorId === 'kitchen' || vendorId === 'variety') {
+      alert("⚠️ Core system boutiques (Perfume, Kitchen, Variety) cannot be deleted to ensure platform stability.");
+      return;
+    }
+
+    if (confirm(`❌ Are you sure you want to delete this boutique? This will permanently erase the boutique settings and all its products!`)) {
+      const res = AdminVendors.delete(vendorId);
+      if (res.success) {
+        renderVendors();
+      }
+    }
+  }
+
+  // Initial load
+  renderVendors();
+</script>
+</body>
+</html>

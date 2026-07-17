@@ -247,12 +247,6 @@
       </div>
     </div>
 
-    <!-- Credentials hint -->
-    <div class="hint-box" id="hintBox" style="display:none">
-      <div class="hint-cred"><span>Email:</span><code id="hintEmail"></code></div>
-      <div class="hint-cred"><span>Password:</span><code id="hintPwd"></code></div>
-    </div>
-
     <div class="error-message" id="errorMsg"></div>
 
     <div class="vl-form">
@@ -277,15 +271,11 @@
 <script src="js/vendor-store.js"></script>
 <script>
   // Redirect if already logged in
-  if (VendorAuth.isLoggedIn()) {
+  if (AdminAuth.isLoggedIn()) {
+    window.location.href = 'admin-dashboard.html';
+  } else if (VendorAuth.isLoggedIn()) {
     window.location.href = 'vendor-dashboard.html';
   }
-
-  const CREDS_MAP = {
-    perfume: { email: 'vendor@aura.com',   password: 'Aura2026!' },
-    kitchen: { email: 'vendor@hearth.com', password: 'Hearth2026!' },
-    variety: { email: 'vendor@globe.com',  password: 'Globe2026!' }
-  };
 
   let selectedVendor = null;
 
@@ -297,15 +287,13 @@
     });
     document.getElementById('vs-' + vendorId).classList.add('selected-' + vendorId);
 
-    // Autofill credentials
-    const creds = CREDS_MAP[vendorId];
-    document.getElementById('vendorEmail').value = creds.email;
-    document.getElementById('vendorPassword').value = creds.password;
-
-    // Show hint
-    document.getElementById('hintBox').style.display = 'block';
-    document.getElementById('hintEmail').textContent = creds.email;
-    document.getElementById('hintPwd').textContent = creds.password;
+    // Autofill email only (no password) for security and convenience
+    const credsMap = JSON.parse(localStorage.getItem('vendor_credentials_registry') || '{}');
+    const creds = credsMap[vendorId];
+    if (creds) {
+      document.getElementById('vendorEmail').value = creds.email;
+    }
+    document.getElementById('vendorPassword').value = '';
   }
 
   function doLogin() {
@@ -321,7 +309,11 @@
     const result = VendorAuth.login(email, password);
     if (result.success) {
       errEl.classList.remove('show');
-      window.location.href = 'vendor-dashboard.html';
+      if (result.isAdmin) {
+        window.location.href = 'admin-dashboard.html';
+      } else {
+        window.location.href = 'vendor-dashboard.html';
+      }
     } else {
       errEl.textContent = '❌ ' + result.error;
       errEl.classList.add('show');

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="storePageTitle">Storefront — Zarah's Store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Dynamic banner overrides */
+    .store-banner {
+      background: var(--vendor-gradient, linear-gradient(90deg, #1A120B, #3E2715));
+      color: #FFFFFF;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ==================== NAVBAR ==================== -->
+<nav class="navbar" id="navbar">
+  <div class="nav-top">
+    <a href="index.html" class="nav-logo">Zarah's Store<span class="nav-logo-sub">Premium Marketplace</span></a>
+    <div class="nav-search">
+      <input type="text" id="searchInput" placeholder="Search this store..." oninput="filterAndRender()">
+      <button class="nav-search-btn" onclick="filterAndRender()">🔍</button>
+    </div>
+    <div class="nav-right">
+      <div class="auth-logged-out" style="display:flex"><a href="vendor-login.html" class="nav-btn login">Sign In</a></div>
+      <div class="auth-logged-in" style="display:none;align-items:center;gap:8px">
+        <div class="user-avatar-nav"><span class="user-avatar"></span></div>
+        <span class="user-greeting">Hi, <span class="user-name"></span></span>
+        <button class="nav-btn" onclick="Auth.logout()" style="font-size:0.75rem">Logout</button>
+      </div>
+      <a href="cart.html" class="nav-btn cart">🛒 Cart<span class="nav-cart-count cart-count">0</span></a>
+    </div>
+    <div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+  </div>
+  <div class="nav-sub">
+    <div class="nav-sub-inner" id="navSubLinks">
+      <!-- Generated Dynamically -->
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html" class="mobile-link">← Marketplace</a>
+    <div id="mobileNavLinks"></div>
+    <a href="cart.html" class="mobile-link">🛒 Cart</a>
+  </div>
+</nav>
+
+<div class="page">
+  <!-- DYNAMIC STORE BANNER -->
+  <div class="store-banner" id="storeBanner">
+    <div class="store-banner-inner">
+      <div class="store-logo-fk" id="storeLogo">🏪</div>
+      <div>
+        <div class="store-banner-name" id="storeName">Boutique Store</div>
+        <div class="store-banner-tag" id="storeTagline">Curated collection for you</div>
+        <div class="store-banner-meta">
+          <span class="store-badge" id="storeRating">⭐ 5.0 Rating</span>
+          <span class="store-badge" id="storeReviews">👥 0 Reviews</span>
+          <span class="store-badge">🚚 Delivery: Discuss on WhatsApp</span>
+          <span class="store-badge">✅ Verified Seller</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- BREADCRUMB -->
+    <div class="fk-breadcrumb section-card" style="border-radius:8px;margin-bottom:12px">
+      <a href="index.html">Home</a> › <span id="bcStoreName">Boutique</span> › <span id="bcCat">All Products</span>
+    </div>
+
+    <div class="store-layout">
+      <!-- FILTER SIDEBAR -->
+      <aside class="filter-panel">
+        <div class="filter-hd">
+          Filters
+          <span class="filter-clear" onclick="clearFilters()">Clear All</span>
+        </div>
+
+        <div class="filter-section">
+          <h4>Search</h4>
+          <input type="text" class="search-fk" id="sideSearch" placeholder="Search..." oninput="syncSearch(this.value)">
+        </div>
+
+        <div class="filter-section">
+          <h4>Category</h4>
+          <div id="categoryFiltersList">
+            <!-- Rendered Dynamically -->
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <h4>Max Price</h4>
+          <div class="price-slider-wrap">
+            <input type="range" class="slider-fk" id="priceRange" min="0" max="150000" step="500" value="150000" oninput="updatePriceLabel(this.value)">
+            <div class="price-slider-lbl" id="priceLabel">Under ₦150,000</div>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <h4>Sort By</h4>
+          <select class="sort-select" id="sortBy" onchange="filterAndRender()">
+            <option value="popularity">Popularity</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="rating">Customer Rating</option>
+          </select>
+        </div>
+      </aside>
+
+      <!-- PRODUCTS AREA -->
+      <main class="products-area">
+        <div class="products-grid" id="productsGrid">
+          <!-- Rendered Dynamically -->
+        </div>
+        <div class="empty-state" id="emptyState" style="display:none">
+          <div style="font-size:3rem;margin-bottom:16px">🔍</div>
+          <h3>No products found</h3>
+          <p>Try adjusting your filters or search keywords.</p>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="fk-footer">
+  <div class="fk-footer-top">
+    <div>
+      <div class="fk-logo-footer" style="margin-bottom:12px">🛍️ Zarah's Store</div>
+      <p style="font-size:0.8rem;line-height:1.7">Zarah's Store — Nigeria's trusted multi-vendor marketplace. Shop from verified boutiques and get fast delivery nationwide.</p>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:0.8rem;font-weight:700;color:var(--text-3);margin-bottom:8px">ORDERS & PAYMENT</div>
+      <p style="font-size:0.75rem;color:var(--text-4)">Orders: WhatsApp Direct · Payment: Bank Transfer</p>
+    </div>
+  </div>
+  <div class="fk-footer-bottom">
+    <p>&copy; 2026 Zarah's Store. All Rights Reserved.</p>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script src="js/vendor-store.js"></script>
+<script>
+  // Get vendor parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const vendorId = urlParams.get('vendor');
+
+  // Verify vendor exists
+  const v = VENDORS[vendorId];
+  if (!v) {
+    window.location.href = 'index.html';
+  }
+
+  // Populate vendor information
+  document.getElementById('storePageTitle').textContent = `${v.name} — Zarah's Store`;
+  document.getElementById('storeName').textContent = v.name;
+  document.getElementById('bcStoreName').textContent = v.name;
+  document.getElementById('storeTagline').textContent = v.tagline;
+  document.getElementById('storeLogo').textContent = v.logo || '🏪';
+  document.getElementById('storeRating').textContent = `⭐ ${v.rating || '5.0'} Rating`;
+  document.getElementById('storeReviews').textContent = `👥 ${v.reviewCount || '0'} Reviews`;
+  
+  // Set theme color variables
+  document.documentElement.style.setProperty('--vendor-gradient', v.gradient);
+  document.documentElement.style.setProperty('--fk-yellow', v.primaryColor);
+
+  // Initialize
+  initVendorProducts();
+  renderDynamicSubnav();
+  Cart.updateHeaderCount();
+
+  // Populate category filters in sidebar
+  const catList = document.getElementById('categoryFiltersList');
+  catList.innerHTML = '';
+  const categories = v.categories || [];
+  categories.forEach(cat => {
+    const label = document.createElement('label');
+    label.className = 'filter-option';
+    label.innerHTML = `<input type="checkbox" class="cat-checkbox" value="${cat}" onchange="filterAndRender()"><label>${cat}</label>`;
+    catList.appendChild(label);
+  });
+
+  // Dynamic Navigation Menus
+  function renderDynamicSubnav() {
+    const subnav = document.getElementById('navSubLinks');
+    subnav.innerHTML = '<a href="index.html" class="nav-sub-link">← Marketplace</a>';
+    
+    const mobileLinks = document.getElementById('mobileNavLinks');
+    mobileLinks.innerHTML = '';
+
+    Object.keys(VENDORS).forEach(id => {
+      const vendor = VENDORS[id];
+      const pageLink = vendor.page || `store.html?vendor=${id}`;
+      const isActive = (id === vendorId);
+      
+      subnav.innerHTML += `<a href="${pageLink}" class="nav-sub-link ${isActive ? 'active' : ''}">${vendor.logo} ${vendor.name}</a>`;
+      mobileLinks.innerHTML += `<a href="${pageLink}" class="mobile-link">${vendor.logo} ${vendor.name}</a>`;
+    });
+  }
+
+  function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
+
+  function syncSearch(val) {
+    document.getElementById('searchInput').value = val;
+    filterAndRender();
+  }
+
+  function updatePriceLabel(val) {
+    document.getElementById('priceLabel').textContent = `Under ₦${parseInt(val).toLocaleString()}`;
+    filterAndRender();
+  }
+
+  function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('sideSearch').value = '';
+    document.getElementById('priceRange').value = 150000;
+    updatePriceLabel(150000);
+    document.querySelectorAll('.cat-checkbox').forEach(cb => cb.checked = false);
+    filterAndRender();
+  }
+
+  // Add Item / Buy Now functions
+  function addToCart(pId) {
+    const product = getProductById(pId);
+    if (product) {
+      Cart.addItem(product, 1);
+      Cart.updateHeaderCount();
+      alert(`🛒 ${product.name} added to cart!`);
+    }
+  }
+
+  function buyNowDirect(pId) {
+    const product = getProductById(pId);
+    if (product) {
+      Cart.addItem(product, 1);
+      window.location.href = 'checkout.html';
+    }
+  }
+
+  // Filter & Render products
+  function filterAndRender() {
+    const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
+    document.getElementById('sideSearch').value = searchVal;
+
+    const maxPrice = parseFloat(document.getElementById('priceRange').value);
+    const sortBy = document.getElementById('sortBy').value;
+
+    // Selected categories
+    const selectedCats = Array.from(document.querySelectorAll('.cat-checkbox:checked')).map(cb => cb.value);
+
+    // Get vendor products
+    let products = VendorProducts.getAll(vendorId);
+
+    // Filter by search
+    if (searchVal) {
+      products = products.filter(p => p.name.toLowerCase().includes(searchVal) || p.category.toLowerCase().includes(searchVal));
+    }
+
+    // Filter by category
+    if (selectedCats.length > 0) {
+      products = products.filter(p => selectedCats.includes(p.category));
+      document.getElementById('bcCat').textContent = selectedCats.join(', ');
+    } else {
+      document.getElementById('bcCat').textContent = 'All Products';
+    }
+
+    // Filter by price
+    products = products.filter(p => p.price <= maxPrice);
+
+    // Sort
+    if (sortBy === 'price-asc') {
+      products.sort((a,b) => a.price - b.price);
+    } else if (sortBy === 'price-desc') {
+      products.sort((a,b) => b.price - a.price);
+    } else if (sortBy === 'rating') {
+      products.sort((a,b) => b.rating - a.rating);
+    } else {
+      // default: popularity (review count)
+      products.sort((a,b) => b.reviewCount - a.reviewCount);
+    }
+
+    // Render Grid
+    const grid = document.getElementById('productsGrid');
+    const emptyState = document.getElementById('emptyState');
+
+    if (products.length === 0) {
+      grid.innerHTML = '';
+      emptyState.style.display = 'block';
+      return;
+    }
+
+    emptyState.style.display = 'none';
+    grid.innerHTML = products.map(p => {
+      const discPct = p.originalPrice ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
+      
+      let starsHtml = '';
+      const fullStars = Math.floor(p.rating);
+      for (let i = 0; i < 5; i++) {
+        starsHtml += i < fullStars ? '★' : '☆';
+      }
+
+      return `
+      <div class="minimal-card" onclick="window.location.href='product.html?id=${p.id}'">
+        <div class="minimal-card-img-wrap">
+          <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/300/300'">
+          ${p.badge ? `<span class="minimal-card-badge">${p.badge}</span>` : ''}
+          ${!p.inStock ? '<div class="oos-overlay"><span>Out of Stock</span></div>' : ''}
+        </div>
+        <div class="minimal-card-body">
+          <div class="minimal-card-brand">${v.name}</div>
+          <div class="minimal-card-title">${p.name}</div>
+          <div class="minimal-card-rating">
+            <span class="minimal-rating-star">${starsHtml}</span>
+            <span class="minimal-rating-count">(${p.reviewCount})</span>
+          </div>
+          <div class="minimal-card-price-row">
+            <span class="minimal-price-current">₦${p.price.toLocaleString()}</span>
+            ${p.originalPrice ? `<span class="minimal-price-old">₦${p.originalPrice.toLocaleString()}</span><span class="minimal-price-disc">${discPct}% off</span>` : ''}
+          </div>
+          <div class="minimal-card-actions" onclick="event.stopPropagation()">
+            <button class="minimal-btn-cart" onclick="${p.inStock ? `addToCart('${p.id}')` : ''}" ${!p.inStock ? 'disabled' : ''}>🛒 Add</button>
+            <button class="minimal-btn-buy" onclick="${p.inStock ? `buyNowDirect('${p.id}')` : ''}" ${!p.inStock ? 'disabled' : ''}>Buy Now</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Initial render
+  filterAndRender();
+</script>
+</body>
+</html>
