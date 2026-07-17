@@ -314,8 +314,8 @@
     const v = VENDORS[p.vendor];
     if (!v) return ''; // Skip if vendor was deleted
     const inWish = Wishlist.has(p.id);
-    const discPct = p.originalPrice ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
-    
+    const discPct = 0; // discount badges removed
+
 
 
     return `
@@ -334,7 +334,6 @@
         </div>
         <div class="minimal-card-price-row">
           <span class="minimal-price-current">${formatNaira(p.price)}</span>
-          ${p.originalPrice ? `<span class="minimal-price-old">${formatNaira(p.originalPrice)}</span><span class="minimal-price-disc">${discPct}% off</span>` : ''}
         </div>
         <div class="minimal-card-actions" onclick="event.stopPropagation()">
           <button class="minimal-btn-cart" onclick="${p.inStock ? `addToCart('${p.id}')` : ''}" ${!p.inStock ? 'disabled' : ''}>🛒 Add</button>

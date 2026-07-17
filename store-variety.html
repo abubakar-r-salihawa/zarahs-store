@@ -171,7 +171,6 @@
   }
   function renderFkCard(p){
     const inWish=Wishlist.has(p.id);
-    const discPct=p.originalPrice?Math.round((1-p.price/p.originalPrice)*100):0;
     return `<div class="product-card-fk" onclick="window.location.href='product.html?id=${p.id}'">
       <div class="product-img-fk">
         <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/300/300'">
@@ -183,7 +182,6 @@
         <div class="product-name-fk">${p.name}</div>
         <div class="product-rating-fk"><span class="assured-badge" style="margin-left:0">✔ Zarah's Store Assured</span></div>
         <div class="product-price-fk">${formatNaira(p.price)}</div>
-        <div class="product-price-row-fk">${p.originalPrice?`<span class="product-orig-fk">${formatNaira(p.originalPrice)}</span><span class="product-discount-fk">${discPct}% off</span>`:''}<span class="free-delivery">Free Delivery</span></div>
         <div class="product-btns" onclick="event.stopPropagation()">
           <button class="btn-addcart-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`addToCart('${p.id}')`:''}" ${!p.inStock?'disabled':''}>🛒 Add to Cart</button>
           <button class="btn-buynow-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`window.location.href='product.html?id=${p.id}'`:''}" ${!p.inStock?'disabled':''}>Buy Now</button>
