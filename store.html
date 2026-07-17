@@ -57,8 +57,8 @@
         <div class="store-banner-name" id="storeName">Boutique Store</div>
         <div class="store-banner-tag" id="storeTagline">Curated collection for you</div>
         <div class="store-banner-meta">
-          <span class="store-badge" id="storeRating">⭐ 5.0 Rating</span>
-          <span class="store-badge" id="storeReviews">👥 0 Reviews</span>
+          
+          
           <span class="store-badge">🚚 Delivery: Discuss on WhatsApp</span>
           <span class="store-badge">✅ Verified Seller</span>
         </div>
@@ -106,7 +106,7 @@
             <option value="popularity">Popularity</option>
             <option value="price-asc">Price: Low to High</option>
             <option value="price-desc">Price: High to Low</option>
-            <option value="rating">Customer Rating</option>
+            
           </select>
         </div>
       </aside>
@@ -163,8 +163,8 @@
   document.getElementById('bcStoreName').textContent = v.name;
   document.getElementById('storeTagline').textContent = v.tagline;
   document.getElementById('storeLogo').textContent = v.logo || '🏪';
-  document.getElementById('storeRating').textContent = `⭐ ${v.rating || '5.0'} Rating`;
-  document.getElementById('storeReviews').textContent = `👥 ${v.reviewCount || '0'} Reviews`;
+  
+  
   
   // Set theme color variables
   document.documentElement.style.setProperty('--vendor-gradient', v.gradient);
@@ -278,9 +278,7 @@
       products.sort((a,b) => a.price - b.price);
     } else if (sortBy === 'price-desc') {
       products.sort((a,b) => b.price - a.price);
-    } else if (sortBy === 'rating') {
-      products.sort((a,b) => b.rating - a.rating);
-    } else {
+    }  else {
       // default: popularity (review count)
       products.sort((a,b) => b.reviewCount - a.reviewCount);
     }
@@ -299,11 +297,7 @@
     grid.innerHTML = products.map(p => {
       const discPct = p.originalPrice ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
       
-      let starsHtml = '';
-      const fullStars = Math.floor(p.rating);
-      for (let i = 0; i < 5; i++) {
-        starsHtml += i < fullStars ? '★' : '☆';
-      }
+
 
       return `
       <div class="minimal-card" onclick="window.location.href='product.html?id=${p.id}'">
@@ -316,8 +310,7 @@
           <div class="minimal-card-brand">${v.name}</div>
           <div class="minimal-card-title">${p.name}</div>
           <div class="minimal-card-rating">
-            <span class="minimal-rating-star">${starsHtml}</span>
-            <span class="minimal-rating-count">(${p.reviewCount})</span>
+            <span class="assured-badge" style="margin-left:0">✔ Zarah's Store Assured</span>
           </div>
           <div class="minimal-card-price-row">
             <span class="minimal-price-current">₦${p.price.toLocaleString()}</span>

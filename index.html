@@ -316,11 +316,7 @@
     const inWish = Wishlist.has(p.id);
     const discPct = p.originalPrice ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
     
-    let starsHtml = '';
-    const fullStars = Math.floor(p.rating);
-    for (let i = 0; i < 5; i++) {
-      starsHtml += i < fullStars ? '★' : '☆';
-    }
+
 
     return `
     <div class="minimal-card" onclick="window.location.href='product.html?id=${p.id}'">
@@ -334,8 +330,7 @@
         <div class="minimal-card-brand">${v.name}</div>
         <div class="minimal-card-title">${p.name}</div>
         <div class="minimal-card-rating">
-          <span class="minimal-rating-star">${starsHtml}</span>
-          <span class="minimal-rating-count">(${p.reviewCount})</span>
+          <span class="assured-badge" style="margin-left:0">✔ Zarah's Store Assured</span>
         </div>
         <div class="minimal-card-price-row">
           <span class="minimal-price-current">${formatNaira(p.price)}</span>

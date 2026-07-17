@@ -57,8 +57,8 @@
         <div class="store-banner-name">Zarah's Kitchen</div>
         <div class="store-banner-tag">Cook with passion · Dress with confidence</div>
         <div class="store-banner-meta">
-          <span class="store-badge">⭐ 4.6 Rating</span>
-          <span class="store-badge">👥 893 Reviews</span>
+          
+          
           <span class="store-badge">🚚 Delivery: Discuss on WhatsApp</span>
           <span class="store-badge">🇳🇬 Nigerian Designs Available</span>
         </div>
@@ -97,11 +97,7 @@
           <h4>Availability</h4>
           <label class="filter-option"><input type="checkbox" id="inStockOnly" onchange="filterAndRender()"><label>In Stock Only</label></label>
         </div>
-        <div class="filter-section">
-          <h4>Rating</h4>
-          <label class="filter-option"><input type="checkbox" value="4" onchange="filterAndRender()"><label>4★ & above</label></label>
-          <label class="filter-option"><input type="checkbox" value="3" onchange="filterAndRender()"><label>3★ & above</label></label>
-        </div>
+
       </aside>
 
       <div>
@@ -112,7 +108,7 @@
             <button class="sort-btn" onclick="setSort('popular',this)">Popularity</button>
             <button class="sort-btn" onclick="setSort('price-asc',this)">Price: Low–High</button>
             <button class="sort-btn" onclick="setSort('price-desc',this)">Price: High–Low</button>
-            <button class="sort-btn" onclick="setSort('rating',this)">Rating</button>
+            
             <span class="results-count" id="resultsCount">Loading...</span>
           </div>
           <div class="products-grid" id="productsGrid"></div>
@@ -123,10 +119,7 @@
           </div>
         </div>
 
-        <div class="section-card" style="margin-top:12px">
-          <div class="section-hd"><div><h2>Customer Reviews</h2></div></div>
-          <div style="padding:0 20px" id="reviewsContainer"></div>
-        </div>
+
       </div>
     </div>
   </div>
@@ -158,17 +151,17 @@
     const search=document.getElementById('searchInput').value.toLowerCase();
     if(document.getElementById('sideSearch').value!==search) document.getElementById('sideSearch').value=search;
     const inStockOnly=document.getElementById('inStockOnly').checked;
-    const checkedCats=[...document.querySelectorAll('.filter-section input[type=checkbox][value]:checked')].map(c=>c.value).filter(v=>!['4','3'].includes(v));
-    const minRating=document.querySelector('.filter-section input[value="4"]:checked')?4:document.querySelector('.filter-section input[value="3"]:checked')?3:0;
+    const checkedCats=[...document.querySelectorAll('.filter-section input[type=checkbox][value]:checked')].map(c=>c.value);
+    
     let products=getProductsByVendor('kitchen');
     if(search) products=products.filter(p=>p.name.toLowerCase().includes(search)||p.description.toLowerCase().includes(search)||p.category.toLowerCase().includes(search));
     if(checkedCats.length) products=products.filter(p=>checkedCats.includes(p.category));
     if(inStockOnly) products=products.filter(p=>p.inStock);
-    if(minRating) products=products.filter(p=>p.rating>=minRating);
+    
     products=products.filter(p=>p.price<=maxPrice);
     if(currentSort==='price-asc') products.sort((a,b)=>a.price-b.price);
     else if(currentSort==='price-desc') products.sort((a,b)=>b.price-a.price);
-    else if(currentSort==='rating') products.sort((a,b)=>b.rating-a.rating);
+    
     else if(currentSort==='popular') products.sort((a,b)=>b.reviewCount-a.reviewCount);
     const grid=document.getElementById('productsGrid');
     const empty=document.getElementById('emptyState');
@@ -177,7 +170,7 @@
     else{empty.style.display='none';grid.innerHTML=products.map(p=>renderFkCard(p)).join('');}
   }
   function renderFkCard(p) {
-    const inWish=Wishlist.has(p.id); const ratingClass=p.rating>=4.5?'high':p.rating>=3.5?'mid':'low';
+    const inWish=Wishlist.has(p.id); 
     const discPct=p.originalPrice?Math.round((1-p.price/p.originalPrice)*100):0;
     return `<div class="product-card-fk" onclick="window.location.href='product.html?id=${p.id}'">
       <div class="product-img-fk">
@@ -188,7 +181,7 @@
       </div>
       <div class="product-info-fk">
         <div class="product-name-fk">${p.name}</div>
-        <div class="product-rating-fk"><span class="rating-pill ${ratingClass}">${p.rating} ★</span><span class="rating-count-fk">(${p.reviewCount.toLocaleString()})</span><span class="assured-badge">✔ Hearth</span></div>
+        <div class="product-rating-fk"><span class="assured-badge" style="margin-left:0">✔ Zarah's Store Assured</span></div>
         <div class="product-price-fk">${formatNaira(p.price)}</div>
         <div class="product-price-row-fk">${p.originalPrice?`<span class="product-orig-fk">${formatNaira(p.originalPrice)}</span><span class="product-discount-fk">${discPct}% off</span>`:''}<span class="free-delivery">Free Delivery</span></div>
         <div class="product-btns" onclick="event.stopPropagation()">
@@ -198,8 +191,7 @@
       </div>
     </div>`;
   }
-  const reviews=getReviewsByVendor('kitchen');
-  document.getElementById('reviewsContainer').innerHTML=reviews.map(r=>`<div class="review-card-fk"><div class="review-top"><div class="reviewer-avatar-fk">${r.avatar}</div><div><div class="reviewer-name-fk">${r.user}</div><div style="margin-top:3px"><span class="rating-pill ${r.rating>=4?'high':'mid'}" style="font-size:0.65rem;padding:1px 5px">${r.rating} ★</span></div></div><span class="review-date-fk">${new Date(r.date).toLocaleDateString('en-NG',{year:'numeric',month:'short'})}</span></div><div class="review-text-fk">${r.comment}</div></div>`).join('');
+
   filterAndRender();
 </script>
 </body>

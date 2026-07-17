@@ -3,489 +3,316 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Zarah's Perfume - Luxury oil perfumes. Explore our signature White Cream oil perfume, Royal Oudh, and Amber Spray. Delivered nationwide in Nigeria.">
-  <meta name="keywords" content="perfume, oil perfume, luxury fragrance, oudh, amber, zarah's store, nigeria">
-  <title>Zarah's Perfume | Signature Luxury Oils</title>
-  
-  <!-- CSS Stylesheet -->
-  <link rel="stylesheet" href="css/store-perfume.css">
-  
-  <!-- FontAwesome for Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <title>Zarah's Perfume — Zarah's Store</title>
+  <meta name="description" content="Shop signature fragrances at Zarah's Perfume. Floral, Oriental, Woody & Fresh scents. Delivered nationwide in Nigeria.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <!-- Custom Cursor Elements -->
-  <div class="custom-cursor"></div>
-  <div class="custom-cursor-follower"></div>
-
-  <!-- Header & Sticky Navigation -->
-  <header id="main-header">
-    <a href="index.html" class="logo" id="logo-brand">ZARAH'S PERFUME</a>
-    <nav id="nav-menu">
-      <ul>
-        <li><a href="index.html" id="link-hero">← Marketplace</a></li>
-        <li><a href="#story" id="link-story">Our Story</a></li>
-        <li><a href="#showcase" id="link-showcase">Collection</a></li>
-        <li><a href="#scent" id="link-scent">Scent Profile</a></li>
-      </ul>
-    </nav>
-    <div class="nav-actions">
-      <button class="btn-trigger-quiz btn btn-secondary" style="padding: 8px 18px; font-size: 0.65rem;" id="nav-btn-quiz">Sensory Quiz</button>
-      <button class="cart-icon-btn" aria-label="Open shopping bag" id="nav-btn-cart">
-        <i class="fa-solid fa-bag-shopping"></i>
-        <span class="cart-count" id="cart-counter">0</span>
-      </button>
-      <button class="menu-toggle" aria-label="Toggle mobile menu" id="nav-btn-menu">
-        <i class="fa-solid fa-bars"></i>
-      </button>
+<!-- ==================== NAVBAR ==================== -->
+<nav class="navbar" id="navbar">
+  <div class="nav-top">
+    <a href="index.html" class="nav-logo">Zarah's Store<span class="nav-logo-sub">Premium Marketplace</span></a>
+    <div class="nav-search">
+      <input type="text" id="searchInput" placeholder="Search fragrances, scents, perfumes..." oninput="filterAndRender()" onkeydown="if(event.key==='Enter')filterAndRender()">
+      <button class="nav-search-btn" onclick="filterAndRender()">🔍</button>
     </div>
-  </header>
-
-  <!-- Hero Section -->
-  <section class="hero" id="hero-section">
-    <div class="hero-content">
-      <span class="hero-subtitle" id="hero-lbl-subtitle">Zarah's Signature Oil</span>
-      <h1 class="hero-title" id="hero-lbl-title">WHITE<br><span class="text-gold">CREAM</span></h1>
-      <p class="hero-description" id="hero-lbl-desc">
-        A rich, velvety fragrance that lingers on the skin. High-contrast notes of sweet white musk and fresh blossoms, melting slowly into a warm base of pure bourbon vanilla and golden amber resin.
-      </p>
-      <div class="hero-cta-group">
-        <a href="#showcase" class="btn btn-primary" id="hero-btn-experience">Experience the Scent</a>
-        <button class="btn btn-secondary btn-trigger-quiz" id="hero-btn-quiz">Fragrance Finder</button>
+    <div class="nav-right">
+      <div class="auth-logged-out" style="display:flex"><a href="auth.html" class="nav-btn login">Login</a></div>
+      <div class="auth-logged-in" style="display:none;align-items:center;gap:8px">
+        <div class="user-avatar-nav"><span class="user-avatar"></span></div>
+        <span class="user-greeting">Hi, <span class="user-name"></span></span>
+        <button class="nav-btn" onclick="Auth.logout()" style="font-size:0.75rem;opacity:0.8">Logout</button>
       </div>
+      <a href="cart.html" class="nav-btn cart">🛒 Cart<span class="nav-cart-count cart-count">0</span></a>
     </div>
-    <div class="hero-visual">
-      <div class="hero-image-overlay"></div>
-      <img src="assets/zahra-collection-oils.jpg" alt="Zarah's Perfume Collection" class="hero-main-img" id="hero-img-bg">
-      
-      <!-- Floating Ingredients Tags -->
-      <div class="floating-element float-1" id="float-tag-1">Sweet White Musk</div>
-      <div class="floating-element float-2" id="float-tag-2">Warm Golden Amber</div>
-    </div>
-    <div class="scroll-indicator">
-      <span>Scroll to explore</span>
-      <div class="scroll-mouse">
-        <div class="scroll-wheel"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Brand Story Section -->
-  <section class="story-section section-padding" id="story">
-    <div class="story-visual">
-      <div class="story-frame">
-        <img src="assets/zahra-apy-collection.jpg" alt="Zarah's Perfume Apy Collection" id="story-img-portrait">
-      </div>
-    </div>
-    <div class="story-content">
-      <span class="story-tagline" id="story-lbl-tagline">Crafted with Passion, Worn with Elegance</span>
-      <h2 class="story-title" id="story-lbl-title">The Art of Oil Perfume</h2>
-      <p class="story-desc" id="story-lbl-desc-1">
-        Zarah's Perfume specializes in pure, concentrated perfume oils. Unlike alcohol-based sprays that evaporate quickly, our oils blend with your body's natural heat to release a continuous, subtle fragrance trail (sillage) that lasts all day.
-      </p>
-      <p class="story-desc" id="story-lbl-desc-2">
-        Every bottle is handpicked and formulated at maximum concentration. Our White Cream, Royal Oudh, and Apy collection are designed for local and national perfume lovers who demand long-lasting sophistication.
-      </p>
-      <span class="story-signature" id="story-lbl-sign">Zarah's Perfume, Nigeria</span>
-    </div>
-  </section>
-
-  <!-- Product Detail & Tilt Showcase -->
-  <section class="showcase-section section-padding" id="showcase">
-    <div class="showcase-grid">
-      <div class="showcase-gallery">
-        <!-- 3D Tilt Card container -->
-        <div class="tilt-card" id="showcase-tilt-container">
-          <div class="tilt-card-glow"></div>
-          <img src="assets/zahra-white-square-bottles.jpg" alt="Zarah's White Cream Oil Perfume Bottle" class="showcase-bottle-img" id="showcase-img-bottle">
-        </div>
-      </div>
-      <div class="showcase-details">
-        <span class="showcase-meta" id="showcase-lbl-meta">Premium Concentrated Perfume Oil</span>
-        <h2 class="showcase-title" id="showcase-lbl-title">WHITE CREAM OIL</h2>
-        <div class="showcase-price" id="showcase-lbl-price">
-          <span class="price-value">₦12,500</span>
-          <span class="price-original">₦16,000</span>
-        </div>
-        <p class="showcase-desc" id="showcase-lbl-desc">
-          Presented in our signature hand-polished square crystal glass dropper bottle finished with a metallic gold cap. Alcohol-free, long-lasting, and direct from our premium batch.
-        </p>
-        
-        <!-- Fragrance performance metrics -->
-        <div class="perfume-metrics">
-          <div class="metric-row">
-            <span class="metric-label">Sillage (Scent Trail)</span>
-            <div class="metric-bar-container">
-              <div class="metric-bar" data-width="85%" id="metric-bar-sillage"></div>
-            </div>
-          </div>
-          <div class="metric-row">
-            <span class="metric-label">Longevity (Wear Time)</span>
-            <div class="metric-bar-container">
-              <div class="metric-bar" data-width="95%" id="metric-bar-longevity"></div>
-            </div>
-          </div>
-          <div class="metric-row">
-            <span class="metric-label">Intensity</span>
-            <div class="metric-bar-container">
-              <div class="metric-bar" data-width="75%" id="metric-bar-intensity"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="showcase-actions">
-          <!-- Size Selectors -->
-          <div class="size-selector" id="showcase-size-selector">
-            <div class="size-option" data-size="30ml" data-price="8500" id="size-btn-30">
-              <span class="size-option-vol">30 ML</span>
-              <span class="size-option-label">Dropper Bottle</span>
-            </div>
-            <div class="size-option active" data-size="50ml" data-price="12500" id="size-btn-50">
-              <span class="size-option-vol">50 ML</span>
-              <span class="size-option-label">Signature Square</span>
-            </div>
-            <div class="size-option" data-size="100ml" data-price="22000" id="size-btn-100">
-              <span class="size-option-vol">100 ML</span>
-              <span class="size-option-label">Grand Collection</span>
-            </div>
-          </div>
-          
-          <button class="btn btn-primary btn-add-bag" id="showcase-btn-add">Add to Bag</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Scent Notes Visualizer -->
-  <section class="scent-visualizer-section section-padding" id="scent">
-    <div class="section-intro">
-      <span class="section-tag" id="scent-lbl-tag">Olfactory Architecture</span>
-      <h2 class="section-headline" id="scent-lbl-title">Deconstructing White Cream</h2>
-      <p class="section-subtitle" id="scent-lbl-desc">
-        Our perfume oil is built in layers that adapt uniquely to your skin's natural warmth.
-      </p>
-    </div>
-    
-    <div class="visualizer-container">
-      <div class="scent-map-interactive">
-        <!-- SVG concentric ripples -->
-        <svg class="scent-ring-svg" viewBox="0 0 100 100">
-          <circle class="scent-ring active" cx="50" cy="50" r="40" data-ring="top"></circle>
-          <circle class="scent-ring" cx="50" cy="50" r="28" data-ring="heart"></circle>
-          <circle class="scent-ring" cx="50" cy="50" r="16" data-ring="base"></circle>
-        </svg>
-        
-        <!-- Interactive Node Buttons -->
-        <div class="note-node node-top active" data-note="top" id="node-btn-top">
-          <span class="node-icon"><i class="fa-solid fa-wind"></i></span>
-          <span class="node-label">Top Note</span>
-        </div>
-        <div class="note-node node-heart" data-note="heart" id="node-btn-heart">
-          <span class="node-icon"><i class="fa-solid fa-leaf"></i></span>
-          <span class="node-label">Heart Note</span>
-        </div>
-        <div class="note-node node-base" data-note="base" id="node-btn-base">
-          <span class="node-icon"><i class="fa-solid fa-fire"></i></span>
-          <span class="node-label">Base Note</span>
-        </div>
-      </div>
-      
-      <!-- Details Card for Scent Info -->
-      <div class="scent-details-card" id="scent-desc-card">
-        <!-- Top Note Details -->
-        <div class="note-details-content active" id="details-top">
-          <span class="details-note-type">First Impression (0 - 30 Mins)</span>
-          <h3 class="details-note-title">Sweet White Musk & Citrus Sparkle</h3>
-          <p class="details-note-desc">
-            The opening releases a beautifully clean, sweet aroma of freshly gathered white musk, layered with subtle, refreshing touches of local citrus zest. This provides an immediate, bright envelope that captures attention.
-          </p>
-          <div class="details-note-ingredients">
-            <div class="ingredient-preview">
-              <img src="assets/zahra-white-dropper-cone.jpg" alt="Pure White Musk Essence">
-              <div class="ingredient-info">
-                <span class="ing-name">White Musk Essence</span>
-                <span class="ing-origin">Kano, Nigeria</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Heart Note Details -->
-        <div class="note-details-content" id="details-heart">
-          <span class="details-note-type">The Core Identity (30 Mins - 4 Hours)</span>
-          <h3 class="details-note-title">Velvet Rose & Midnight Blossom</h3>
-          <p class="details-note-desc">
-            As the top notes mellow, the heart unfolds a rich floral core. Velvet rose petals and delicate nighttime jasmine combine to create a soft, clean, and deeply elegant floral texture that is classic and luxurious.
-          </p>
-          <div class="details-note-ingredients">
-            <div class="ingredient-preview">
-              <img src="assets/zahra-apy-collection.jpg" alt="Velvet Rose Petals">
-              <div class="ingredient-info">
-                <span class="ing-name">Velvet Rose & Jasmine</span>
-                <span class="ing-origin">Grasse, France</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Base Note Details -->
-        <div class="note-details-content" id="details-base">
-          <span class="details-note-type">The Sillage Trail (4 Hours - 12+ Hours)</span>
-          <h3 class="details-note-title">Warm Golden Amber & Bourbon Vanilla</h3>
-          <p class="details-note-desc">
-            The final skin-scent stage is warm, deep, and creamy. Raw Madagascar vanilla pods melt into sweet golden amber crystals and sandalwood. This heavy base ensures the fragrance remains close to the body, leaving an unmistakable trail.
-          </p>
-          <div class="details-note-ingredients">
-            <div class="ingredient-preview">
-              <img src="assets/zahra-amber-spray.jpg" alt="Raw Amber Crystals">
-              <div class="ingredient-info">
-                <span class="ing-name">Amber & Bourbon Vanilla</span>
-                <span class="ing-origin">Madagascar</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Fragrance Finder Quiz CTA -->
-  <section class="quiz-cta-section section-padding">
-    <div class="quiz-cta-container">
-      <h2 class="quiz-cta-title" id="quiz-lbl-cta-title">Find Your Sillage</h2>
-      <p class="quiz-cta-desc" id="quiz-lbl-cta-desc">
-        Fragrance is personal. Take our short, sensory finder quiz to discover the concentration, size, and application ritual that matches your lifestyle and scent footprint.
-      </p>
-      <button class="btn btn-primary btn-trigger-quiz" id="quiz-btn-trigger">Begin Sensory Quiz</button>
-    </div>
-  </section>
-
-  <!-- Interactive Testimonials Section -->
-  <section class="testimonials-section section-padding">
-    <div class="testimonials-container">
-      <div class="testimonials-slider" id="review-slider">
-        <!-- Slide 1 -->
-        <div class="testimonial-slide active" data-index="0">
-          <div class="testimonial-img-wrapper">
-            <img src="assets/zahra-white-dropper-cone.jpg" alt="Zarah's White Dropper Bottle">
-          </div>
-          <div class="testimonial-info">
-            <div class="stars">
-              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-            </div>
-            <p class="quote">
-              "This white cream oil is exceptional. The smell is incredibly clean, luxurious, and lasts for over 24 hours. I get compliments every single day!"
-            </p>
-            <div class="author-meta">
-              <span class="author-name">Zainab A.</span>
-              <span class="author-title">Verified Buyer, Abuja</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Slide 2 -->
-        <div class="testimonial-slide" data-index="1">
-          <div class="testimonial-img-wrapper">
-            <img src="assets/zahra-amber-spray.jpg" alt="Zarah's Amber Spray Bottle">
-          </div>
-          <div class="testimonial-info">
-            <div class="stars">
-              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-            </div>
-            <p class="quote">
-              "Simply the best oil perfume in Nigeria. It's soft yet projects amazingly. Love the elegant square droppers and gold crown bottles."
-            </p>
-            <div class="author-meta">
-              <span class="author-name">Farouk M.</span>
-              <span class="author-title">Collector, Lagos</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Controls -->
-      <div class="slider-controls">
-        <button class="slider-nav-btn slider-prev" aria-label="Previous review" id="review-btn-prev">
-          <i class="fa-solid fa-arrow-left"></i>
-        </button>
-        <div class="slider-dots" id="review-slider-dots"></div>
-        <button class="slider-nav-btn slider-next" aria-label="Next review" id="review-btn-next">
-          <i class="fa-solid fa-arrow-right"></i>
-        </button>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer & Premium Newsletter -->
-  <footer class="section-padding">
-    <div class="footer-top">
-      <div class="footer-brand">
-        <span class="logo">ZARAH'S PERFUME</span>
-        <p class="footer-tagline" id="footer-lbl-tagline">
-          Crafting premium luxury oil perfumes with a modern heart. Our oils are 100% concentrated, long-lasting, and direct to your skin.
-        </p>
-        <div style="display: flex; gap: 15px; font-size: 1.1rem; color: var(--text-muted-dark);">
-          <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-          <a href="#" aria-label="Pinterest"><i class="fa-brands fa-pinterest"></i></a>
-          <a href="#" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
-        </div>
-      </div>
-      <div class="newsletter-wrapper">
-        <h3 class="newsletter-title" id="newsletter-lbl-title">Subscribe to the House</h3>
-        <form class="newsletter-form" id="newsletter-form-submit">
-          <input type="email" placeholder="Your Email Address" class="newsletter-input" required id="newsletter-inp-email">
-          <button type="submit" class="newsletter-submit" id="newsletter-btn-submit">Enter</button>
-        </form>
-        
-        <!-- Wax Seal success seal -->
-        <div class="newsletter-success" id="newsletter-success-container">
-          <div class="monogram-seal">ZP</div>
-          <h4 class="success-heading">Welcome to Zarah's Club</h4>
-          <p class="success-message">You will receive priority access to our next premium scent releases.</p>
-        </div>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <p id="footer-lbl-copy">&copy; 2026 Zarah's Store. All Rights Reserved.</p>
-      <div class="footer-links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-        <a href="index.html">Back to Marketplace</a>
-      </div>
-    </div>
-  </footer>
-
-  <!-- Dark Overlay -->
-  <div class="overlay" id="global-overlay"></div>
-
-  <!-- Shopping Cart Drawer (Slide-out) -->
-  <div class="cart-drawer" id="cart-drawer-container">
-    <div class="cart-header">
-      <h3 class="cart-title">Your Collection</h3>
-      <button class="close-btn close-cart-btn" aria-label="Close shopping bag" id="cart-btn-close">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-    </div>
-    
-    <!-- Items scroll container -->
-    <div class="cart-items-container" id="cart-items-list">
-      <!-- Empty message by default -->
-      <div class="empty-cart-msg">Your collection is empty.</div>
-    </div>
-    
-    <div class="cart-footer">
-      <div class="cart-summary-row">
-        <span class="cart-total-label">Subtotal</span>
-        <span class="cart-total-price" id="cart-lbl-subtotal">$0.00</span>
-      </div>
-      <button class="btn btn-primary btn-checkout" id="cart-btn-checkout">Proceed to Checkout</button>
+    <div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+  </div>
+  <div class="nav-sub">
+    <div class="nav-sub-inner">
+      <a href="index.html" class="nav-sub-link">← Marketplace</a>
+      <a href="store-perfume.html" class="nav-sub-link active">🌸 Zarah's Perfume</a>
+      <a href="store-kitchen.html" class="nav-sub-link">🍳 Zarah's Kitchen</a>
+      <a href="store-variety.html" class="nav-sub-link">💎 Teemerh Collection</a>
     </div>
   </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html" class="mobile-link">← Marketplace</a>
+    <a href="store-perfume.html" class="mobile-link">🌸 Zarah's Perfume</a>
+    <a href="store-kitchen.html" class="mobile-link">🍳 Zarah's Kitchen</a>
+    <a href="store-variety.html" class="mobile-link">💎 Teemerh Collection</a>
+    <a href="cart.html" class="mobile-link">🛒 Cart</a>
+  </div>
+</nav>
 
-  <!-- Fragrance Finder Quiz Modal -->
-  <div class="quiz-modal" id="quiz-modal-container">
-    <div class="quiz-header">
-      <h3 class="quiz-title">Fragrance Finder</h3>
-      <button class="close-btn close-quiz-btn" aria-label="Close quiz modal" id="quiz-btn-close">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-    </div>
-    
-    <div class="quiz-body">
-      <!-- Progress Tracker -->
-      <div class="quiz-progress-bar">
-        <div class="quiz-progress" id="quiz-progress-indicator"></div>
-      </div>
+<div class="page">
 
-      <!-- Step 1: Vibe -->
-      <div class="quiz-step active" data-step="1" data-category="vibe">
-        <h4 class="quiz-question">Which words define your aura?</h4>
-        <div class="quiz-options">
-          <div class="quiz-option-btn" data-value="mystique" id="quiz-opt-mystique">
-            <span class="option-title">Mysterious & Bold</span>
-            <span class="option-desc">Drawn to shadows, candlelight, and intense sillage.</span>
-          </div>
-          <div class="quiz-option-btn" data-value="fresh" id="quiz-opt-fresh">
-            <span class="option-title">Fresh & Clean</span>
-            <span class="option-desc">Crisp mornings, citrus groves, and light layers.</span>
-          </div>
-          <div class="quiz-option-btn" data-value="romantic" id="quiz-opt-romantic">
-            <span class="option-title">Romantic & Floral</span>
-            <span class="option-desc">Dewy rose petals, soft tea leaves, velvet sheets.</span>
-          </div>
-          <div class="quiz-option-btn" data-value="cozy" id="quiz-opt-cozy">
-            <span class="option-title">Warm & Intimate</span>
-            <span class="option-desc">Fireside chats, cashmere blankets, sweet amber.</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 2: Occasion -->
-      <div class="quiz-step" data-step="2" data-category="occasion">
-        <h4 class="quiz-question">What is your ideal ritual?</h4>
-        <div class="quiz-options">
-          <div class="quiz-option-btn" data-value="evening" id="quiz-opt-evening">
-            <span class="option-title">Black-Tie Evening</span>
-            <span class="option-desc">Unforgettable presence for formal, twilight affairs.</span>
-          </div>
-          <div class="quiz-option-btn" data-value="daily" id="quiz-opt-daily">
-            <span class="option-title">Daily Signature</span>
-            <span class="option-desc">A continuous, elegant skin scent all day.</span>
-          </div>
-          <div class="quiz-option-btn" data-value="date" id="quiz-opt-date">
-            <span class="option-title">Intimate Date Nights</span>
-            <span class="option-desc">Designed to be smelled up close and personal.</span>
-          </div>
-          <div class="quiz-option-btn" data-value="morning" id="quiz-opt-morning">
-            <span class="option-title">Crisp Morning Energy</span>
-            <span class="option-desc">Bright splash of vitality to start the day.</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 3: Intensity -->
-      <div class="quiz-step" data-step="3" data-category="intensity">
-        <h4 class="quiz-question">How do you prefer to leave a trail?</h4>
-        <div class="quiz-options">
-          <div class="quiz-option-btn" data-value="strong" id="quiz-opt-strong">
-            <span class="option-title">Unforgettable Sillage</span>
-            <span class="option-desc">People know you've left the room by the scent path.</span>
-          </div>
-          <div class="quiz-option-btn" data-value="medium" id="quiz-opt-medium">
-            <span class="option-title">Noticeable Wave</span>
-            <span class="option-desc">Catching hints as you move, but never overpowering.</span>
-          </div>
-          <div class="quiz-option-btn" data-value="soft" id="quiz-opt-soft">
-            <span class="option-title">Delicate Whisper</span>
-            <span class="option-desc">Only smelled when someone gets close for a hug.</span>
-          </div>
-          <div class="quiz-option-btn" data-value="skin" id="quiz-opt-skin">
-            <span class="option-title">Private Skin-Scent</span>
-            <span class="option-desc">A quiet composition enjoyed primarily by yourself.</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 4: Results (Dynamic JS insertion) -->
-      <div class="quiz-step quiz-result quiz-step-results" data-step="4">
-        <div class="result-percentage" id="quiz-lbl-result-pct">99%</div>
-        <h4 class="result-product" id="quiz-lbl-result-title">AURA NOIRE (Eau de Parfum)</h4>
-        <p class="result-desc" id="quiz-lbl-result-desc">
-          A match crafted in shadow and amber. Sillage Noir's signature fits your magnetic presence, elevating your nights with smoked tea, jasmine, and deep bourbon vanilla.
-        </p>
-        <div style="display: flex; gap: 15px; width: 100%;">
-          <button class="btn btn-primary btn-restart-quiz" style="flex: 1;" id="quiz-btn-restart">Retake Quiz</button>
-          <a href="#showcase" class="btn btn-secondary close-quiz-btn" style="flex: 1;" id="quiz-btn-view-reco">View Collection</a>
+  <!-- STORE BANNER -->
+  <div class="store-banner">
+    <div class="store-banner-inner">
+      <div class="store-logo-fk">🌸</div>
+      <div>
+        <div class="store-banner-name">Zarah's Perfume</div>
+        <div class="store-banner-tag">Signature scents for every occasion</div>
+        <div class="store-banner-meta">
+          <span class="store-badge">🚚 Delivery: Discuss on WhatsApp</span>
+          <span class="store-badge">✅ Authentic Fragrances</span>
+          <span class="store-badge">🇳🇬 Nigeria-wide Delivery</span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- JavaScript Files -->
-  <script src="js/data.js"></script>
-  <script src="js/store.js"></script>
-  <script src="js/vendor-store.js"></script>
-  <script src="js/store-perfume.js"></script>
+  <div class="container">
+    <!-- BREADCRUMB -->
+    <div class="fk-breadcrumb section-card" style="border-radius:8px;margin-bottom:12px">
+      <a href="index.html">Home</a> › <a href="store-perfume.html">Zarah's Perfume</a> › <span id="bcCat">All Fragrances</span>
+    </div>
+
+    <div class="store-layout">
+
+      <!-- FILTER SIDEBAR -->
+      <aside class="filter-panel">
+        <div class="filter-hd">
+          Filters
+          <span class="filter-clear" onclick="clearFilters()">Clear All</span>
+        </div>
+
+        <div class="filter-section">
+          <h4>Search</h4>
+          <input type="text" class="search-fk" id="sideSearch" placeholder="Search fragrances..." oninput="syncSearch(this.value)">
+        </div>
+
+        <div class="filter-section">
+          <h4>Category</h4>
+          <label class="filter-option"><input type="checkbox" value="Floral" onchange="filterAndRender()"><label>Floral</label></label>
+          <label class="filter-option"><input type="checkbox" value="Fresh" onchange="filterAndRender()"><label>Fresh</label></label>
+          <label class="filter-option"><input type="checkbox" value="Oriental" onchange="filterAndRender()"><label>Oriental</label></label>
+          <label class="filter-option"><input type="checkbox" value="Woody" onchange="filterAndRender()"><label>Woody</label></label>
+          <label class="filter-option"><input type="checkbox" value="Cologne" onchange="filterAndRender()"><label>Cologne</label></label>
+        </div>
+
+        <div class="filter-section">
+          <h4>Max Price</h4>
+          <div class="price-range-fk">
+            <input type="range" class="price-range-input" id="priceSlider" min="0" max="100000" value="100000" step="5000" oninput="updatePrice(this.value)">
+            <div class="price-range-labels">
+              <span>₦0</span>
+              <span id="priceVal" style="color:var(--fk-blue);font-weight:600">₦100,000</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <h4>Availability</h4>
+          <label class="filter-option"><input type="checkbox" id="inStockOnly" onchange="filterAndRender()"><label>In Stock Only</label></label>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <div>
+        <!-- SORT BAR -->
+        <div class="products-panel">
+          <div class="sort-bar">
+            <span class="sort-label">Sort By</span>
+            <button class="sort-btn active" id="sort-rel" onclick="setSort('default',this)">Relevance</button>
+            <button class="sort-btn" id="sort-pop" onclick="setSort('popular',this)">Popularity</button>
+            <button class="sort-btn" id="sort-pr-asc" onclick="setSort('price-asc',this)">Price: Low–High</button>
+            <button class="sort-btn" id="sort-pr-desc" onclick="setSort('price-desc',this)">Price: High–Low</button>
+            <span class="results-count" id="resultsCount">Loading...</span>
+          </div>
+
+          <!-- PRODUCTS GRID -->
+          <div class="products-grid" id="productsGrid"></div>
+
+          <!-- EMPTY -->
+          <div class="empty-fk" id="emptyState" style="display:none">
+            <div style="font-size:3rem;margin-bottom:12px">😔</div>
+            <h3>No fragrances found</h3>
+            <p>Try adjusting your filters or search terms</p>
+          </div>
+        </div>
+
+        <!-- STORE INFO -->
+        <div class="section-card" style="margin-top:12px">
+          <div class="section-hd"><div><h2>About Zarah's Perfume</h2></div></div>
+          <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:20px">
+            <div>
+              <p style="font-size:0.85rem;color:var(--text-2);line-height:1.75;margin-bottom:12px">Zarah's Perfume is Nigeria's most-loved fragrance boutique. Founded with a passion for authentic scents, we bring you the world's finest fragrances at fair prices.</p>
+              <p style="font-size:0.85rem;color:var(--text-2);line-height:1.75">From oriental oudh to fresh florals — whether you're heading to an owambe in Lagos or a business meeting in Abuja, your signature scent awaits.</p>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div style="background:var(--fk-blue-light);border:1px solid #B3CFFF;border-radius:6px;padding:14px;text-align:center">
+                <div style="font-size:1.5rem;font-weight:800;color:var(--fk-blue)">4.8★</div>
+                <div style="font-size:0.72rem;color:var(--text-3);margin-top:3px">Store Rating</div>
+              </div>
+              <div style="background:#F1FBF4;border:1px solid #A5D6A7;border-radius:6px;padding:14px;text-align:center">
+                <div style="font-size:1.5rem;font-weight:800;color:var(--fk-green)">1,247</div>
+                <div style="font-size:0.72rem;color:var(--text-3);margin-top:3px">Customers</div>
+              </div>
+              <div style="background:#FFF9E6;border:1px solid #FFE082;border-radius:6px;padding:14px;text-align:center">
+                <div style="font-size:1.5rem;font-weight:800;color:var(--fk-orange)">36</div>
+                <div style="font-size:0.72rem;color:var(--text-3);margin-top:3px">States Served</div>
+              </div>
+              <div style="background:#FFF1F1;border:1px solid #FFCDD2;border-radius:6px;padding:14px;text-align:center">
+                <div style="font-size:1.5rem;font-weight:800;color:#C62828">100%</div>
+                <div style="font-size:0.72rem;color:var(--text-3);margin-top:3px">Authentic</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="fk-footer">
+  <div class="fk-footer-top">
+    <div>
+      <div class="fk-logo-footer" style="margin-bottom:12px">🛍️ Zarah's Store</div>
+      <p style="font-size:0.8rem;line-height:1.7;color:rgba(255,255,255,0.5)">Zarah's Store — Nigeria's trusted marketplace.</p>
+    </div>
+    <div>
+      <h4>Zarah's Perfume</h4>
+      <a href="#" onclick="setCat('Floral');return false">Floral Scents</a>
+      <a href="#" onclick="setCat('Oriental');return false">Oriental Scents</a>
+      <a href="#" onclick="setCat('Woody');return false">Woody Scents</a>
+      <a href="#" onclick="setCat('Fresh');return false">Fresh Scents</a>
+    </div>
+    <div>
+      <h4>Other Stores</h4>
+      <a href="store-kitchen.html">🍳 Zarah's Kitchen</a>
+      <a href="store-variety.html">💎 Teemerh Collection</a>
+      <a href="index.html">🏠 Marketplace Home</a>
+      <a href="vendor-login.html" style="color:rgba(255,185,0,0.7)">🏪 Vendor Portal</a>
+    </div>
+    <div>
+      <h4>Help</h4>
+      <a href="#">Help Center</a>
+    </div>
+  </div>
+  <div class="fk-footer-bottom">
+    <p>© 2026 Zarah's Store</p>
+    <p>Orders: WhatsApp Direct · Payment: Bank Transfer</p>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script src="js/vendor-store.js"></script>
+<script>
+  initVendorProducts();
+  function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
+
+  let currentSort = 'default';
+  let maxPrice = 100000;
+
+  function setSort(s, btn) {
+    currentSort = s;
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filterAndRender();
+  }
+
+  function updatePrice(val) {
+    maxPrice = parseInt(val);
+    document.getElementById('priceVal').textContent = formatNaira(val);
+    filterAndRender();
+  }
+
+  function syncSearch(val) {
+    document.getElementById('searchInput').value = val;
+    filterAndRender();
+  }
+
+  function setCat(cat) {
+    document.querySelectorAll('.filter-section input[type=checkbox]').forEach(cb => {
+      if (cb.value === cat) cb.checked = true;
+    });
+    filterAndRender();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function clearFilters() {
+    document.querySelectorAll('.filter-section input').forEach(i => { i.checked = false; });
+    document.getElementById('priceSlider').value = 100000;
+    document.getElementById('priceVal').textContent = '₦100,000';
+    document.getElementById('searchInput').value = '';
+    document.getElementById('sideSearch').value = '';
+    maxPrice = 100000;
+    filterAndRender();
+  }
+
+  function filterAndRender() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    if (document.getElementById('sideSearch').value !== search) document.getElementById('sideSearch').value = search;
+    const inStockOnly = document.getElementById('inStockOnly').checked;
+    const checkedCats = [...document.querySelectorAll('.filter-section input[type=checkbox][value]:checked')].map(c => c.value);
+
+    let products = getProductsByVendor('perfume');
+    if (search) products = products.filter(p => p.name.toLowerCase().includes(search) || p.description.toLowerCase().includes(search) || p.category.toLowerCase().includes(search));
+    if (checkedCats.length) products = products.filter(p => checkedCats.includes(p.category));
+    if (inStockOnly) products = products.filter(p => p.inStock);
+    products = products.filter(p => p.price <= maxPrice);
+
+    if (currentSort === 'price-asc') products.sort((a,b) => a.price - b.price);
+    else if (currentSort === 'price-desc') products.sort((a,b) => b.price - a.price);
+    else if (currentSort === 'popular') products.sort((a,b) => b.reviewCount - a.reviewCount);
+
+    const grid = document.getElementById('productsGrid');
+    const empty = document.getElementById('emptyState');
+    const count = document.getElementById('resultsCount');
+    count.textContent = `${products.length} result${products.length !== 1 ? 's' : ''}`;
+
+    if (products.length === 0) {
+      grid.innerHTML = '';
+      empty.style.display = 'block';
+    } else {
+      empty.style.display = 'none';
+      grid.innerHTML = products.map(p => renderFkCard(p)).join('');
+    }
+  }
+
+  function renderFkCard(p) {
+    const inWish = Wishlist.has(p.id);
+    const discPct = p.originalPrice ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
+    return `
+    <div class="product-card-fk" onclick="window.location.href='product.html?id=${p.id}'">
+      <div class="product-img-fk">
+        <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/300/300'">
+        ${p.badge ? `<span class="product-badge-fk badge-${p.badge.toLowerCase().replace(' ','-')}">${p.badge}</span>` : ''}
+        <button class="wishlist-fk ${inWish?'active':''}" onclick="event.stopPropagation();toggleWishlist('${p.id}',this)">${inWish?'❤️':'🤍'}</button>
+        ${!p.inStock ? '<div class="oos-overlay"><span>Out of Stock</span></div>' : ''}
+      </div>
+      <div class="product-info-fk">
+        <div class="product-name-fk">${p.name}</div>
+        <div class="product-rating-fk">
+          <span class="assured-badge" style="margin-left:0">✔ Zarah's Store Assured</span>
+        </div>
+        <div class="product-price-fk">${formatNaira(p.price)}</div>
+        <div class="product-price-row-fk">
+          ${p.originalPrice ? `<span class="product-orig-fk">${formatNaira(p.originalPrice)}</span><span class="product-discount-fk">${discPct}% off</span>` : ''}
+          <span class="free-delivery">Free Delivery</span>
+        </div>
+        <div class="product-btns" onclick="event.stopPropagation()">
+          <button class="btn-addcart-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`addToCart('${p.id}')`:''}" ${!p.inStock?'disabled':''}>🛒 Add to Cart</button>
+          <button class="btn-buynow-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`window.location.href='product.html?id=${p.id}'`:''}" ${!p.inStock?'disabled':''}>Buy Now</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Handle URL search param
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('search')) { document.getElementById('searchInput').value = urlParams.get('search'); }
+
+  filterAndRender();
+</script>
 </body>
 </html>

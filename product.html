@@ -54,11 +54,7 @@
     <!-- DETAIL CONTENT -->
     <div id="detailContent"></div>
 
-    <!-- REVIEWS -->
-    <div class="section-card" style="margin-top:12px" id="reviewsSection" style="display:none">
-      <div class="section-hd"><div><h2>Customer Reviews & Ratings</h2></div></div>
-      <div style="padding:0 20px;padding-bottom:8px" id="reviewsList"></div>
-    </div>
+
 
     <!-- RELATED PRODUCTS -->
     <div class="section-card" style="margin-top:12px" id="relatedSection">
@@ -124,7 +120,7 @@
         </div>
       </div>` : '';
 
-    const ratingClass = product.rating >= 4.5 ? 'high' : product.rating >= 3.5 ? 'mid' : 'low';
+    
     const inWish = Wishlist.has(product.id);
 
     document.getElementById('detailContent').innerHTML = `
@@ -155,11 +151,7 @@
           </div>
           <h1 class="detail-title">${product.name}</h1>
 
-          <div class="detail-rating-row">
-            <span class="rating-pill ${ratingClass}" style="font-size:0.88rem;padding:4px 10px">${product.rating} ★</span>
-            <span style="font-size:0.85rem;color:var(--text-3)">${product.reviewCount.toLocaleString()} ratings</span>
-            <span style="font-size:0.85rem;color:var(--fk-green);margin-left:4px">· Verified Reviews</span>
-          </div>
+
 
           <div class="detail-price-block">
             ${product.inStock ? '<div style="font-size:0.78rem;color:var(--fk-green);font-weight:600;margin-bottom:6px">✓ In Stock</div>' : '<div style="font-size:0.78rem;color:var(--fk-red);font-weight:600;margin-bottom:6px">✗ Currently Out of Stock</div>'}
@@ -217,7 +209,7 @@
               <div style="font-size:2rem">${vendor.logo}</div>
               <div style="flex:1">
                 <div style="font-weight:700;font-size:0.88rem">${vendor.name}</div>
-                <div style="font-size:0.75rem;color:var(--text-3);margin-top:2px">⭐ ${vendor.rating} · ${vendor.reviewCount.toLocaleString()} reviews · ${vendor.tagline}</div>
+                <div style="font-size:0.75rem;color:var(--text-3);margin-top:2px">${vendor.tagline}</div>
               </div>
               <div style="color:var(--fk-blue);font-size:0.82rem;font-weight:600">Visit Store →</div>
             </div>
@@ -252,7 +244,7 @@
   }
 
   function renderFkCard(p) {
-    const ratingClass = p.rating >= 4.5 ? 'high' : p.rating >= 3.5 ? 'mid' : 'low';
+    
     const discPct = p.originalPrice ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
     return `
     <div class="product-card-fk" onclick="window.location.href='product.html?id=${p.id}'">
@@ -263,7 +255,7 @@
       </div>
       <div class="product-info-fk">
         <div class="product-name-fk">${p.name}</div>
-        <div class="product-rating-fk"><span class="rating-pill ${ratingClass}">${p.rating} ★</span><span class="rating-count-fk">(${p.reviewCount.toLocaleString()})</span></div>
+        <div class="product-rating-fk"><span class="assured-badge" style="margin-left:0">✔ Zarah's Store Assured</span></div>
         <div class="product-price-fk">${formatNaira(p.price)}</div>
         <div class="product-price-row-fk">${p.originalPrice ? `<span class="product-orig-fk">${formatNaira(p.originalPrice)}</span><span class="product-discount-fk">${discPct}% off</span>` : ''}</div>
         <div class="product-btns" onclick="event.stopPropagation()">
@@ -277,26 +269,7 @@
   if (productId) {
     renderDetail();
 
-    // Reviews
-    const reviews = getReviewsByProduct(productId);
-    if (reviews.length > 0) {
-      document.getElementById('reviewsSection').style.display = 'block';
-      document.getElementById('reviewsList').innerHTML = reviews.map(r => `
-        <div class="review-card-fk">
-          <div class="review-top">
-            <div class="reviewer-avatar-fk">${r.avatar}</div>
-            <div>
-              <div class="reviewer-name-fk">${r.user}</div>
-              <div style="margin-top:3px;display:flex;align-items:center;gap:6px">
-                <span class="rating-pill ${r.rating >= 4 ? 'high' : 'mid'}" style="font-size:0.65rem;padding:1px 5px">${r.rating} ★</span>
-                <span style="font-size:0.72rem;color:var(--fk-green);font-weight:600">✓ Verified Purchase</span>
-              </div>
-            </div>
-            <span class="review-date-fk">${new Date(r.date).toLocaleDateString('en-NG',{year:'numeric',month:'short',day:'numeric'})}</span>
-          </div>
-          <div class="review-text-fk">${r.comment}</div>
-        </div>`).join('');
-    }
+
 
     // Related
     const product = getProductById(productId);
