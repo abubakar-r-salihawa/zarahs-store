@@ -455,6 +455,10 @@
         <label class="form-label">Password (Leave blank to keep current)</label>
         <input type="text" class="form-input" id="editVendorPassword" placeholder="Enter new password if changing">
       </div>
+      <div class="form-group">
+        <label class="form-label">WhatsApp Number for Orders (digits only, e.g. 2348147923724)</label>
+        <input type="text" class="form-input" id="editVendorWhatsapp" placeholder="e.g. 2348147923724" pattern="[0-9]+">
+      </div>
       <button type="submit" class="btn-form-submit">Save Settings</button>
     </form>
   </div>
@@ -554,6 +558,7 @@
     document.getElementById('editVendorTagline').value = v.tagline;
     document.getElementById('editVendorEmail').value = creds.email;
     document.getElementById('editVendorPassword').value = '';
+    document.getElementById('editVendorWhatsapp').value = v.whatsapp || '';
 
     document.getElementById('editError').style.display = 'none';
     document.getElementById('editModal').classList.add('active');
@@ -575,12 +580,15 @@
     const password = document.getElementById('editVendorPassword').value;
     const errEl = document.getElementById('editError');
 
+    const whatsapp = document.getElementById('editVendorWhatsapp').value.trim();
+
     const info = {
       name: name,
       tagline: tagline,
       logo: emoji,
       primaryColor: color,
-      gradient: `linear-gradient(135deg, #090909, ${color})`
+      gradient: `linear-gradient(135deg, #090909, ${color})`,
+      whatsapp: whatsapp || null
     };
 
     const res = AdminVendors.update(id, info, email, password);

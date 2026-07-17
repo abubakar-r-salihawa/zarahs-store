@@ -3,9 +3,8 @@
 // ============================================================
 
 // ---- WHATSAPP ORDER CONFIG ----
-// Replace with Zahra's WhatsApp number (include country code, no + or spaces)
-// Example Nigeria number: 2348012345678
-const WHATSAPP_NUMBER = '2348147923724'; // Zarah's Perfume WhatsApp
+// Global fallback number (used if a vendor has no specific WhatsApp set)
+const WHATSAPP_NUMBER = '2348147923724';
 
 function buildWhatsAppOrderMessage(items, total, customerInfo) {
   const itemLines = items.map(i =>
@@ -31,10 +30,36 @@ Thank you! 🙏`;
   return encodeURIComponent(msg);
 }
 
-function redirectToWhatsApp(items, total, customerInfo) {
+// Route WhatsApp orders to the correct vendor's number
+function redirectToWhatsApp(items, total, customerInfo, vendorId) {
   const msg = buildWhatsAppOrderMessage(items, total, customerInfo);
-  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
+  let number = WHATSAPP_NUMBER; // fallback
+  if (vendorId) {
+    const registry = JSON.parse(localStorage.getItem('vendors_registry') || '{}');
+    const vendor = registry[vendorId];
+    if (vendor && vendor.whatsapp) number = vendor.whatsapp;
+  }
+  const url = `https://wa.me/${number}?text=${msg}`;
   window.open(url, '_blank');
+}
+
+// Per-product WhatsApp order (reads vendor from product object)
+function orderProductViaWhatsApp(productId) {
+  const product = getProductById(productId);
+  if (!product) return;
+  const vendor = VENDORS[product.vendor];
+  const registry = JSON.parse(localStorage.getItem('vendors_registry') || '{}');
+  const v = registry[product.vendor] || vendor;
+  const number = (v && v.whatsapp) ? v.whatsapp : WHATSAPP_NUMBER;
+  const msg = encodeURIComponent(
+`🛍️ *Product Inquiry — Zarah's Store*
+
+*Product:* ${product.name}
+*Price:* ${formatNaira(product.price)}
+*Vendor:* ${vendor ? vendor.name : ''}
+
+I would like to place an order. Please share delivery cost and payment details. Thank you!`);
+  window.open(`https://wa.me/${number}?text=${msg}`, '_blank');
 }
 
 const VENDORS = {
@@ -53,6 +78,7 @@ const VENDORS = {
     accentColor: '#C4952A',
     categories: ['Eau de Parfum', 'Cologne', 'Oriental', 'Fresh', 'Floral', 'Woody'],
     bannerImage: 'https://picsum.photos/seed/zarah-perfume/1400/500',
+    whatsapp: '2348147923724',
     page: 'store-perfume.html'
   },
   kitchen: {
@@ -70,6 +96,7 @@ const VENDORS = {
     accentColor: '#27AE60',
     categories: ['Cookware', 'Knives', 'Bakeware', 'Dresses', 'Tops', 'Accessories'],
     bannerImage: 'https://picsum.photos/seed/kitchen-ng/1400/500',
+    whatsapp: '2348147923724',
     page: 'store-kitchen.html'
   },
   variety: {
@@ -87,6 +114,7 @@ const VENDORS = {
     accentColor: '#2563EB',
     categories: ['Spices', 'Jewelry', 'Plastics', 'Organizers', 'Necklaces', 'Rings'],
     bannerImage: 'https://picsum.photos/seed/globe-ng/1400/500',
+    whatsapp: '2348147923724',
     page: 'store-variety.html'
   }
 };

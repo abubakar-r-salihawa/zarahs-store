@@ -184,6 +184,9 @@
               ⚡ Buy Now
             </button>
           </div>
+          <button onclick="orderProductViaWhatsApp('${product.id}')" style="width:100%;margin-top:10px;padding:12px;background:#25D366;color:#fff;border:none;border-radius:6px;font-size:0.95rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+            💬 Order via WhatsApp
+          </button>
 
           <!-- SPECS -->
           <div style="border-top:1px solid var(--border);padding-top:14px">
@@ -244,8 +247,6 @@
   }
 
   function renderFkCard(p) {
-    
-    const discPct = p.originalPrice ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
     return `
     <div class="product-card-fk" onclick="window.location.href='product.html?id=${p.id}'">
       <div class="product-img-fk">
@@ -257,7 +258,6 @@
         <div class="product-name-fk">${p.name}</div>
         <div class="product-rating-fk"><span class="assured-badge" style="margin-left:0">✔ Zarah's Store Assured</span></div>
         <div class="product-price-fk">${formatNaira(p.price)}</div>
-        <div class="product-price-row-fk">${p.originalPrice ? `<span class="product-orig-fk">${formatNaira(p.originalPrice)}</span><span class="product-discount-fk">${discPct}% off</span>` : ''}</div>
         <div class="product-btns" onclick="event.stopPropagation()">
           <button class="btn-addcart-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`addToCart('${p.id}')`:''}" ${!p.inStock?'disabled':''}>🛒 Add to Cart</button>
           <button class="btn-buynow-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`window.location.href='product.html?id=${p.id}'`:''}" ${!p.inStock?'disabled':''}>Buy Now</button>
