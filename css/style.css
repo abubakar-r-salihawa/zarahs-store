@@ -701,19 +701,7 @@ input, select, textarea { font-family: inherit; }
   .deal-banner { flex-direction: column; gap: 16px; }
   .deal-emojis { margin-left: 0; }
 }
-@media (max-width: 768px) {
-  .luxury-hero {
-    grid-template-columns: 1fr;
-    padding: 30px;
-    gap: 20px;
-  }
-  .luxury-hero-collage {
-    display: none;
-  }
-  .boutique-showcase {
-    grid-template-columns: 1fr;
-  }
-}
+/* (mobile overrides moved to end of file) */
 @media (max-width: 480px) {
   .fk-footer-top { grid-template-columns: 1fr; }
   .detail-notes { grid-template-columns: 1fr; }
@@ -1152,4 +1140,143 @@ input, select, textarea { font-family: inherit; }
   padding: 40px 20px;
   margin-bottom: 30px;
   box-shadow: var(--shadow-sm);
+}
+
+/* ======================================================
+   MOBILE RESPONSIVE OVERRIDES
+   Must be at the END of the file to override all above rules
+   ====================================================== */
+
+/* --- Tablet (≤ 768px) --- */
+@media (max-width: 768px) {
+
+  /* Hero: go single column, hide the image collage */
+  .luxury-hero {
+    grid-template-columns: 1fr !important;
+    padding: 28px 20px !important;
+    gap: 20px !important;
+    min-height: auto !important;
+  }
+  .luxury-hero-collage {
+    display: none !important;
+  }
+  .luxury-hero-title {
+    font-size: 2rem !important;
+  }
+  .luxury-hero-sub {
+    font-size: 0.9rem !important;
+  }
+  .luxury-hero-btn {
+    width: 100% !important;
+    text-align: center !important;
+    padding: 14px 20px !important;
+  }
+
+  /* Boutique cards: full-width stack */
+  .boutique-showcase {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .boutique-card {
+    height: 240px !important;
+  }
+
+  /* Editorial headers smaller on mobile */
+  .editorial-header h2 {
+    font-size: 1.6rem !important;
+  }
+
+  /* Why section: single column */
+  .luxury-why-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Product grid: 2 columns */
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  /* Nav sub links row: hide on mobile (hamburger menu is used instead) */
+  .nav-sub { display: none !important; }
+
+  /* Mobile menu links: stack vertically, full width */
+  .mobile-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .mobile-link {
+    display: block !important;
+    width: 100% !important;
+    padding: 14px 20px !important;
+    font-size: 0.95rem !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+  }
+
+  /* Page padding */
+  .page { padding-top: 60px !important; }
+  .page-inner { padding: 16px !important; }
+
+  /* Store layout: no sidebar on mobile */
+  .store-layout { grid-template-columns: 1fr !important; }
+  .filter-panel { display: none !important; }
+
+  /* Product detail: stack */
+  .detail-layout { grid-template-columns: 1fr !important; }
+  .detail-img-panel { position: static !important; }
+
+  /* Cart: stack */
+  .cart-layout-fk { grid-template-columns: 1fr !important; }
+  .cart-summary-fk { position: static !important; }
+
+  /* Checkout: stack */
+  .checkout-layout-fk { grid-template-columns: 1fr !important; }
+
+  /* Auth: hide decorative left panel */
+  .auth-split { grid-template-columns: 1fr !important; }
+  .auth-left { display: none !important; }
+
+  /* Vendor cards */
+  .vendor-cards-row { grid-template-columns: 1fr !important; }
+
+  /* Footer */
+  .fk-footer-top { grid-template-columns: 1fr 1fr !important; }
+  .form-grid-fk { grid-template-columns: 1fr !important; }
+
+  /* Deal banner */
+  .deal-banner { flex-direction: column !important; gap: 16px !important; }
+  .deal-emojis { margin-left: 0 !important; }
+}
+
+/* --- Phone (≤ 480px) --- */
+@media (max-width: 480px) {
+  .luxury-hero-title {
+    font-size: 1.6rem !important;
+  }
+  .boutique-card {
+    height: 200px !important;
+  }
+  .boutique-title {
+    font-size: 1.05rem !important;
+  }
+  .boutique-tagline {
+    font-size: 0.7rem !important;
+  }
+  /* Product grid: 2 compact columns */
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  /* Footer: single column */
+  .fk-footer-top { grid-template-columns: 1fr !important; }
+  .detail-notes { grid-template-columns: 1fr !important; }
+  /* Why section: single column on very small phones */
+  .luxury-why-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
