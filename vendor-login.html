@@ -299,7 +299,7 @@
     document.getElementById('vendorPassword').value = '';
   }
 
-  function doLogin() {
+  async function doLogin() {
     const email = document.getElementById('vendorEmail').value.trim();
     const password = document.getElementById('vendorPassword').value;
     const errEl = document.getElementById('errorMsg');
@@ -309,7 +309,7 @@
       errEl.classList.add('show'); return;
     }
 
-    const result = VendorAuth.login(email, password);
+    const result = await VendorAuth.login(email, password);
     if (result.success) {
       errEl.classList.remove('show');
       if (result.isAdmin) {

@@ -236,10 +236,44 @@ const VendorAuth = {
   getSession() {
     return JSON.parse(localStorage.getItem('vendorSession') || 'null');
   },
-  login(email, password) {
+  async login(email, password) {
+    // 1. Direct Live check against Supabase if client is initialized
+    if (window.supabaseClient) {
+      try {
+        // Check Admin table directly
+        const { data: adminData } = await window.supabaseClient
+          .from('admin_credentials')
+          .select('*')
+          .eq('email', email.trim())
+          .maybeSingle();
+
+        if (adminData && adminData.password === password) {
+          const session = { isAdmin: true, name: 'Store Admin', email: email.trim(), loginTime: Date.now() };
+          localStorage.setItem('adminSession', JSON.stringify(session));
+          return { success: true, isAdmin: true, session };
+        }
+
+        // Check Vendor Credentials table directly
+        const { data: vendorData } = await window.supabaseClient
+          .from('vendor_credentials')
+          .select('*')
+          .eq('email', email.trim())
+          .maybeSingle();
+
+        if (vendorData && vendorData.password === password) {
+          const session = { vendorId: vendorData.vendor_id, name: vendorData.name, email: vendorData.email, loginTime: Date.now() };
+          localStorage.setItem('vendorSession', JSON.stringify(session));
+          return { success: true, isAdmin: false, session };
+        }
+      } catch (e) {
+        console.error("Supabase direct auth error, falling back to local registry check:", e);
+      }
+    }
+
+    // 2. Local fallback if Supabase is offline or not configured
     const credsMap = JSON.parse(localStorage.getItem('vendor_credentials_registry') || '{}');
     
-    // Check Admin Credentials
+    // Check Admin Credentials from cache
     const adminCreds = JSON.parse(localStorage.getItem('admin_credentials') || JSON.stringify({
       email: 'admin@zarahsstore.com',
       password: 'AdminPassword2026!'
@@ -250,7 +284,7 @@ const VendorAuth = {
       return { success: true, isAdmin: true, session };
     }
 
-    // Check Vendor Credentials
+    // Check Vendor Credentials from cache
     for (const [vendorId, creds] of Object.entries(credsMap)) {
       if (creds.email === email.trim() && creds.password === password) {
         const session = { vendorId, name: creds.name, email: creds.email, loginTime: Date.now() };
