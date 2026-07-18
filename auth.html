@@ -7,6 +7,117 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Google Sign In button styles */
+    .google-btn-fk {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      height: 48px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 14px;
+    }
+    .google-btn-fk:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
+    }
+    .google-icon-svg {
+      width: 18px;
+      height: 18px;
+    }
+    .divider-fk {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: var(--text-4);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 20px 0;
+    }
+    .divider-fk::before, .divider-fk::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border);
+    }
+    .divider-fk:not(:empty)::before {
+      margin-right: 12px;
+    }
+    .divider-fk:not(:empty)::after {
+      margin-left: 12px;
+    }
+
+    /* Verification Modal Overlay */
+    .otp-overlay-fk {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+    .otp-overlay-fk.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .otp-content-fk {
+      background: #111;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 30px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      text-align: center;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+    }
+    .otp-overlay-fk.show .otp-content-fk {
+      transform: translateY(0);
+    }
+    .otp-input-wrap {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 24px 0;
+    }
+    .otp-digit {
+      width: 48px;
+      height: 48px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: #FFF;
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-align: center;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .otp-digit:focus {
+      border-color: var(--fk-yellow);
+      background: rgba(255,255,255,0.07);
+      box-shadow: 0 0 10px rgba(255,185,0,0.25);
+    }
+  </style>
 </head>
 <body style="background:var(--bg)">
 
@@ -26,7 +137,6 @@
           <div style="display:flex;flex-direction:column;gap:8px">
             <div style="font-size:0.82rem;color:rgba(255,255,255,0.75);display:flex;align-items:center;gap:8px"><span>🚚</span> Fast nationwide delivery</div>
             <div style="font-size:0.82rem;color:rgba(255,255,255,0.75);display:flex;align-items:center;gap:8px"><span>💬</span> Order via WhatsApp and Pay via Transfer</div>
-
           </div>
         </div>
       </div>
@@ -35,9 +145,9 @@
     <!-- RIGHT PANEL -->
     <div class="auth-right">
       <h3>Welcome to Zarah's Store</h3>
-      <p>Login or create your free account</p>
+      <p id="authSubtitle">Login or create your free account</p>
 
-      <div class="auth-tabs-fk">
+      <div class="auth-tabs-fk" id="authTabs">
         <div class="auth-tab-fk active" id="tab-login" onclick="switchTab('login')">Login</div>
         <div class="auth-tab-fk" id="tab-register" onclick="switchTab('register')">New User? Sign Up</div>
       </div>
@@ -48,12 +158,32 @@
           <label class="form-label-fk">Email Address</label>
           <input type="email" class="form-input-fk" id="loginEmail" placeholder="your@email.com">
         </div>
-        <div class="form-group-fk">
+        <div class="form-group-fk" id="passwordGroup">
           <label class="form-label-fk">Password</label>
           <input type="password" class="form-input-fk" id="loginPassword" placeholder="Enter your password">
         </div>
+        
         <div id="loginErr" class="form-err-fk"></div>
-        <button class="form-submit-fk" onclick="doLogin()">Login →</button>
+        
+        <button class="form-submit-fk" id="loginSubmitBtn" onclick="doLogin()">Login →</button>
+        
+        <div style="text-align:right;margin-top:8px">
+          <a href="#" id="otpToggleLink" onclick="toggleOtpLogin(event)" style="font-size:0.8rem;color:var(--fk-yellow)">Use Email Verification Code (OTP) instead</a>
+        </div>
+
+        <div class="divider-fk">Or continue with</div>
+
+        <!-- Google button -->
+        <button class="google-btn-fk" onclick="doGoogleLogin()">
+          <svg class="google-icon-svg" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.69c-.29 1.5-.1.14-.9 1.15-.84 1.34-2 2.4-3.5 3.08l5.42 4.2c3.18-2.93 5.025-7.25 5.025-12.28z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-5.42-4.2c-1.5.1-3.13-.23-4.51-1.04-1.38-.81-2.46-2.04-3.07-3.53l-5.64 4.36C5.07 20.3 8.32 24 12 24z"/>
+            <path fill="#FBBC05" d="M6.93 12.32c-.15-.45-.23-.93-.23-1.42s.08-.97.23-1.42L1.29 5.12C-.48 8.68-.48 12.92 1.29 16.48l5.64-4.16z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77-.03 3.47.65 4.75 1.88l3.5-3.5C18.06 1.13 15.1.04 12 0 8.32 0 5.07 3.7 1.29 7.52l5.64 4.36c.61-1.49 1.69-2.72 3.07-3.53 1.38-.81 3.01-1.14 4.51-1.04H12z"/>
+          </svg>
+          Google
+        </button>
+
         <div class="form-alt-fk">
           Don't have an account? <a href="#" onclick="switchTab('register')">Sign Up Free</a>
         </div>
@@ -75,7 +205,9 @@
         </div>
         <div id="regErr" class="form-err-fk"></div>
         <div id="regOk" class="form-ok-fk"></div>
+        
         <button class="form-submit-fk" onclick="doRegister()">Create Account →</button>
+        
         <div class="form-alt-fk">
           Already have an account? <a href="#" onclick="switchTab('login')">Login</a>
         </div>
@@ -84,6 +216,35 @@
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
         <p style="font-size:0.72rem;color:var(--text-3);text-align:center">By continuing, you agree to Zarah's Store's Terms of Use and Privacy Policy.</p>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- OTP VERIFICATION OVERLAY MODAL -->
+<div class="otp-overlay-fk" id="otpOverlay">
+  <div class="otp-content-fk">
+    <div style="font-size:3rem;margin-bottom:14px">✉️</div>
+    <h3 style="color:#FFF;font-size:1.25rem;margin-bottom:8px">Enter Verification Code</h3>
+    <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.5">
+      We sent a 6-digit verification code to <br>
+      <strong id="otpEmailSpan" style="color:var(--fk-yellow)"></strong>
+    </p>
+
+    <div class="otp-input-wrap">
+      <input type="text" maxlength="1" class="otp-digit" id="otp1" oninput="moveFocus(this, 'otp2')" onkeydown="handleBackspace(this, event, null)">
+      <input type="text" maxlength="1" class="otp-digit" id="otp2" oninput="moveFocus(this, 'otp3')" onkeydown="handleBackspace(this, event, 'otp1')">
+      <input type="text" maxlength="1" class="otp-digit" id="otp3" oninput="moveFocus(this, 'otp4')" onkeydown="handleBackspace(this, event, 'otp2')">
+      <input type="text" maxlength="1" class="otp-digit" id="otp4" oninput="moveFocus(this, 'otp5')" onkeydown="handleBackspace(this, event, 'otp3')">
+      <input type="text" maxlength="1" class="otp-digit" id="otp5" oninput="moveFocus(this, 'otp6')" onkeydown="handleBackspace(this, event, 'otp4')">
+      <input type="text" maxlength="1" class="otp-digit" id="otp6" oninput="submitOtpVerification()" onkeydown="handleBackspace(this, event, 'otp5')">
+    </div>
+
+    <div id="otpErr" class="form-err-fk" style="margin-bottom:14px"></div>
+    <div id="otpOk" class="form-ok-fk" style="margin-bottom:14px"></div>
+
+    <div style="display:flex;gap:12px">
+      <button onclick="closeOtpModal()" style="flex:1;height:42px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer">Cancel</button>
+      <button onclick="submitOtpVerification()" style="flex:1;height:42px;border-radius:6px;border:none;background:var(--fk-yellow);color:#111;font-weight:700;cursor:pointer">Verify Code</button>
     </div>
   </div>
 </div>
@@ -97,6 +258,10 @@
   // Redirect if already logged in
   if (Auth.isLoggedIn()) window.location.href = 'index.html';
 
+  let isOtpLogin = false;
+  let activeEmail = '';
+  let activeVerificationType = 'signup'; // 'signup' or 'magiclink'
+
   function switchTab(tab) {
     document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
     document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
@@ -104,17 +269,71 @@
     document.getElementById('tab-register').classList.toggle('active', tab === 'register');
   }
 
+  function toggleOtpLogin(e) {
+    e.preventDefault();
+    isOtpLogin = !isOtpLogin;
+    
+    const pGroup = document.getElementById('passwordGroup');
+    const submitBtn = document.getElementById('loginSubmitBtn');
+    const toggleLink = document.getElementById('otpToggleLink');
+    
+    if (isOtpLogin) {
+      pGroup.style.display = 'none';
+      submitBtn.textContent = 'Send Verification Code →';
+      toggleLink.textContent = 'Use Password instead';
+    } else {
+      pGroup.style.display = 'block';
+      submitBtn.textContent = 'Login →';
+      toggleLink.textContent = 'Use Email Verification Code (OTP) instead';
+    }
+  }
+
+  // Google Login Action
+  async function doGoogleLogin() {
+    const res = await Auth.loginWithGoogle();
+    if (!res.success) {
+      alert("Google login error: " + res.error);
+    }
+  }
+
   async function doLogin() {
     const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
     const err = document.getElementById('loginErr');
-    if (!email || !password) { err.textContent = '⚠️ Please fill in all fields.'; err.classList.add('show'); return; }
-    const result = await Auth.login(email, password);
-    if (result.success) {
-      window.location.href = 'index.html';
+    err.classList.remove('show');
+
+    if (!email) { 
+      err.textContent = '⚠️ Please enter your email address.'; 
+      err.classList.add('show'); 
+      return; 
+    }
+
+    if (isOtpLogin) {
+      // 1. Request OTP Code
+      const result = await Auth.loginWithOTP(email);
+      if (result.success) {
+        activeEmail = email;
+        activeVerificationType = 'magiclink';
+        openOtpModal(email);
+      } else {
+        err.textContent = '❌ ' + result.error;
+        err.classList.add('show');
+      }
     } else {
-      err.textContent = '❌ ' + result.error;
-      err.classList.add('show');
+      // 2. Regular Password Login
+      const password = document.getElementById('loginPassword').value;
+      if (!password) { 
+        err.textContent = '⚠️ Please enter your password.'; 
+        err.classList.add('show'); 
+        return; 
+      }
+      
+      const result = await Auth.login(email, password);
+      if (result.success) {
+        window.location.href = 'index.html';
+      } else {
+        err.textContent = '❌ ' + result.error;
+        err.classList.add('show');
+      }
     }
   }
 
@@ -125,22 +344,86 @@
     const err = document.getElementById('regErr');
     const ok = document.getElementById('regOk');
     err.classList.remove('show'); ok.classList.remove('show');
+    
     if (!name || !email || !password) { err.textContent = '⚠️ Please fill in all fields.'; err.classList.add('show'); return; }
     if (password.length < 6) { err.textContent = '⚠️ Password must be at least 6 characters.'; err.classList.add('show'); return; }
+    
     const result = await Auth.register(name, email, password);
     if (result.success) {
-      ok.textContent = `✅ Welcome, ${name.split(' ')[0]}! Redirecting...`;
-      ok.classList.add('show');
-      setTimeout(() => window.location.href = 'index.html', 1200);
+      activeEmail = email;
+      activeVerificationType = 'signup';
+      openOtpModal(email);
     } else {
       err.textContent = '❌ ' + result.error;
       err.classList.add('show');
     }
   }
 
-  document.querySelectorAll('.form-input-fk').forEach(input => {
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') { const form = input.closest('#loginForm, #registerForm'); if (form?.id === 'loginForm') doLogin(); else doRegister(); } });
-  });
+  // --- OTP MODAL FLOWS ---
+  function openOtpModal(email) {
+    document.getElementById('otpEmailSpan').textContent = email;
+    document.getElementById('otpErr').classList.remove('show');
+    document.getElementById('otpOk').classList.remove('show');
+    
+    // Clear old inputs
+    for (let i = 1; i <= 6; i++) {
+      document.getElementById('otp' + i).value = '';
+    }
+    
+    document.getElementById('otpOverlay').classList.add('show');
+    document.getElementById('otp1').focus();
+  }
+
+  function closeOtpModal() {
+    document.getElementById('otpOverlay').classList.remove('show');
+  }
+
+  function moveFocus(current, nextId) {
+    if (current.value.length === current.maxLength) {
+      document.getElementById(nextId).focus();
+    }
+  }
+
+  function handleBackspace(current, event, prevId) {
+    if (event.key === 'Backspace' && current.value.length === 0 && prevId) {
+      const prev = document.getElementById(prevId);
+      prev.focus();
+      prev.value = '';
+    }
+  }
+
+  async function submitOtpVerification() {
+    // Gather code digits
+    let code = '';
+    for (let i = 1; i <= 6; i++) {
+      code += document.getElementById('otp' + i).value.trim();
+    }
+
+    const err = document.getElementById('otpErr');
+    const ok = document.getElementById('otpOk');
+    err.classList.remove('show');
+    ok.classList.remove('show');
+
+    if (code.length < 6) {
+      err.textContent = '⚠️ Please enter the full 6-digit code.';
+      err.classList.add('show');
+      return;
+    }
+
+    // Verify OTP code with Supabase
+    const result = await Auth.verifyOTP(activeEmail, code, activeVerificationType);
+    if (result.success) {
+      ok.textContent = '✅ Verification successful! Redirecting...';
+      ok.classList.add('show');
+      setTimeout(() => {
+        closeOtpModal();
+        window.location.href = 'index.html';
+      }, 1500);
+    } else {
+      err.textContent = '❌ Verification failed: ' + result.error;
+      err.classList.add('show');
+    }
+  }
 </script>
 </body>
 </html>

@@ -69,97 +69,84 @@ const Auth = {
     return JSON.parse(localStorage.getItem('user') || 'null');
   },
   async register(name, email, password) {
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    if (users.find(u => u.email === email)) {
-      return { success: false, error: 'Email already registered' };
-    }
-
-    const user = { 
-      id: Date.now().toString(), 
-      name, 
-      email, 
-      password: btoa(password), 
-      avatar: name[0].toUpperCase(), 
-      joinDate: new Date().toISOString() 
-    };
-
-    // 1. Direct write to Supabase shoppers table if client is initialized
-    if (window.supabaseClient) {
-      try {
-        // Check if email already registered in Supabase
-        const { data: existing } = await window.supabaseClient
-          .from('shoppers')
-          .select('email')
-          .eq('email', email.trim())
-          .maybeSingle();
-
-        if (existing) {
-          return { success: false, error: 'Email already registered' };
+    if (!window.supabaseClient) return { success: false, error: 'Supabase not initialized.' };
+    try {
+      const { data, error } = await window.supabaseClient.auth.signUp({
+        email: email.trim(),
+        password: password,
+        options: {
+          data: {
+            display_name: name.trim()
+          }
         }
-
-        const { error } = await window.supabaseClient.from('shoppers').insert({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          password: user.password,
-          avatar: user.avatar,
-          join_date: user.joinDate
-        });
-        if (error) throw error;
-        console.log("Shopper account registered in Supabase.");
-      } catch (err) {
-        console.error("Failed to register shopper in Supabase:", err);
-      }
+      });
+      if (error) throw error;
+      return { success: true, data };
+    } catch (e) {
+      return { success: false, error: e.message };
     }
-
-    // 2. Local fallback
-    users.push(user);
-    localStorage.setItem('users', JSON.stringify(users));
-    const { password: _, ...safeUser } = user;
-    localStorage.setItem('user', JSON.stringify(safeUser));
-    Auth.updateUI();
-    return { success: true, user: safeUser };
   },
   async login(email, password) {
-    const encodedPass = btoa(password);
-
-    // 1. Direct check against Supabase shoppers table if client is initialized
-    if (window.supabaseClient) {
-      try {
-        const { data: dbUser, error } = await window.supabaseClient
-          .from('shoppers')
-          .select('*')
-          .eq('email', email.trim())
-          .eq('password', encodedPass)
-          .maybeSingle();
-
-        if (dbUser) {
-          const safeUser = {
-            id: dbUser.id,
-            name: dbUser.name,
-            email: dbUser.email,
-            avatar: dbUser.avatar,
-            joinDate: dbUser.join_date
-          };
-          localStorage.setItem('user', JSON.stringify(safeUser));
-          Auth.updateUI();
-          return { success: true, user: safeUser };
-        }
-      } catch (err) {
-        console.error("Failed to verify shopper login from Supabase:", err);
-      }
+    if (!window.supabaseClient) return { success: false, error: 'Supabase not initialized.' };
+    try {
+      const { data, error } = await window.supabaseClient.auth.signInWithPassword({
+        email: email.trim(),
+        password: password
+      });
+      if (error) throw error;
+      return { success: true, data };
+    } catch (e) {
+      return { success: false, error: e.message };
     }
-
-    // 2. Local fallback
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const user = users.find(u => u.email === email && u.password === encodedPass);
-    if (!user) return { success: false, error: 'Invalid email or password' };
-    const { password: _, ...safeUser } = user;
-    localStorage.setItem('user', JSON.stringify(safeUser));
-    Auth.updateUI();
-    return { success: true, user: safeUser };
   },
-  logout() {
+  async loginWithOTP(email) {
+    if (!window.supabaseClient) return { success: false, error: 'Supabase not initialized.' };
+    try {
+      const { error } = await window.supabaseClient.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          shouldCreateUser: true
+        }
+      });
+      if (error) throw error;
+      return { success: true };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  },
+  async verifyOTP(email, token, type = 'signup') {
+    if (!window.supabaseClient) return { success: false, error: 'Supabase not initialized.' };
+    try {
+      const { data, error } = await window.supabaseClient.auth.verifyOtp({
+        email: email.trim(),
+        token: token.trim(),
+        type: type
+      });
+      if (error) throw error;
+      return { success: true, data };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  },
+  async loginWithGoogle() {
+    if (!window.supabaseClient) return { success: false, error: 'Supabase not initialized.' };
+    try {
+      const { error } = await window.supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + window.location.pathname
+        }
+      });
+      if (error) throw error;
+      return { success: true };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  },
+  async logout() {
+    if (window.supabaseClient) {
+      await window.supabaseClient.auth.signOut();
+    }
     localStorage.removeItem('user');
     Auth.updateUI();
     window.location.href = 'index.html';
@@ -175,6 +162,27 @@ const Auth = {
     document.querySelectorAll('.user-avatar').forEach(el => el.textContent = user ? user.avatar : '');
   }
 };
+
+// Listen to Supabase Auth state changes to keep local shopper cache synced
+if (window.supabaseClient) {
+  window.supabaseClient.auth.onAuthStateChange((event, session) => {
+    console.log("Supabase Auth Event:", event);
+    if (session && session.user) {
+      const metadata = session.user.user_metadata || {};
+      const user = {
+        id: session.user.id,
+        name: metadata.display_name || metadata.name || session.user.email.split('@')[0],
+        email: session.user.email,
+        avatar: (metadata.display_name || metadata.name || session.user.email)[0].toUpperCase(),
+        joinDate: session.user.created_at
+      };
+      localStorage.setItem('user', JSON.stringify(user));
+    } else if (event === 'SIGNED_OUT') {
+      localStorage.removeItem('user');
+    }
+    Auth.updateUI();
+  });
+}
 
 // ---- WISHLIST ----
 const Wishlist = {
