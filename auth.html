@@ -88,6 +88,9 @@
   </div>
 </div>
 
+<!-- Supabase Integration Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
 <script>
@@ -101,12 +104,12 @@
     document.getElementById('tab-register').classList.toggle('active', tab === 'register');
   }
 
-  function doLogin() {
+  async function doLogin() {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
     const err = document.getElementById('loginErr');
     if (!email || !password) { err.textContent = '⚠️ Please fill in all fields.'; err.classList.add('show'); return; }
-    const result = Auth.login(email, password);
+    const result = await Auth.login(email, password);
     if (result.success) {
       window.location.href = 'index.html';
     } else {
@@ -115,7 +118,7 @@
     }
   }
 
-  function doRegister() {
+  async function doRegister() {
     const name = document.getElementById('regName').value.trim();
     const email = document.getElementById('regEmail').value.trim();
     const password = document.getElementById('regPassword').value;
@@ -124,7 +127,7 @@
     err.classList.remove('show'); ok.classList.remove('show');
     if (!name || !email || !password) { err.textContent = '⚠️ Please fill in all fields.'; err.classList.add('show'); return; }
     if (password.length < 6) { err.textContent = '⚠️ Password must be at least 6 characters.'; err.classList.add('show'); return; }
-    const result = Auth.register(name, email, password);
+    const result = await Auth.register(name, email, password);
     if (result.success) {
       ok.textContent = `✅ Welcome, ${name.split(' ')[0]}! Redirecting...`;
       ok.classList.add('show');

@@ -308,6 +308,9 @@
   </div>
 </div>
 
+<!-- Supabase Integration Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
 <script>
@@ -391,6 +394,28 @@
     };
 
     const orderId = 'ZS-' + Math.floor(100000 + Math.random() * 900000);
+
+    // Save order details to Supabase if client is available
+    if (window.supabaseClient) {
+      (async () => {
+        try {
+          const { error } = await window.supabaseClient.from('orders').insert({
+            id: orderId,
+            customer_name: customerInfo.name,
+            customer_email: customerInfo.email,
+            customer_phone: customerInfo.phone,
+            customer_address: customerInfo.address,
+            items: items,
+            total: subtotal,
+            status: 'pending'
+          });
+          if (error) throw error;
+          console.log("Order saved to Supabase:", orderId);
+        } catch (e) {
+          console.error("Failed to save order to Supabase:", e);
+        }
+      })();
+    }
 
     // Open WhatsApp
     redirectToWhatsApp(items, subtotal, customerInfo);

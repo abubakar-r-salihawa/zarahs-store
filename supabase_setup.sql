@@ -5,6 +5,8 @@
 -- ============================================================
 
 -- 1. CLEANUP (If running multiple times)
+DROP TABLE IF EXISTS orders CASCADE;
+DROP TABLE IF EXISTS shoppers CASCADE;
 DROP TABLE IF EXISTS products CASCADE;
 DROP TABLE IF EXISTS vendor_credentials CASCADE;
 DROP TABLE IF EXISTS vendors CASCADE;
@@ -64,11 +66,36 @@ CREATE TABLE products (
     notes JSONB
 );
 
+-- Shoppers Table (Global Shopper Registration)
+CREATE TABLE shoppers (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    avatar TEXT,
+    join_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Orders Table (Global Order Tracking)
+CREATE TABLE orders (
+    id TEXT PRIMARY KEY,
+    customer_name TEXT NOT NULL,
+    customer_email TEXT,
+    customer_phone TEXT,
+    customer_address TEXT,
+    items JSONB,
+    total NUMERIC NOT NULL,
+    status TEXT DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- 3. DISABLE RLS (For simple frontend client-side database access)
 ALTER TABLE admin_credentials DISABLE ROW LEVEL SECURITY;
 ALTER TABLE vendors DISABLE ROW LEVEL SECURITY;
 ALTER TABLE vendor_credentials DISABLE ROW LEVEL SECURITY;
 ALTER TABLE products DISABLE ROW LEVEL SECURITY;
+ALTER TABLE shoppers DISABLE ROW LEVEL SECURITY;
+ALTER TABLE orders DISABLE ROW LEVEL SECURITY;
 
 -- 4. INSERT SEED DATA
 -- Default Admin
