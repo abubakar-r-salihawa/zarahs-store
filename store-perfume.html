@@ -201,6 +201,9 @@
   </div>
 </footer>
 
+<!-- Supabase Integration Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
 <script src="js/vendor-store.js"></script>
@@ -306,6 +309,9 @@
   if (urlParams.get('search')) { document.getElementById('searchInput').value = urlParams.get('search'); }
 
   filterAndRender();
+
+  // Listen for Supabase live data sync
+  window.addEventListener('db_synced', filterAndRender);
 </script>
 </body>
 </html>

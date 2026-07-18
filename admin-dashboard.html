@@ -479,6 +479,9 @@
   </div>
 </div>
 
+<!-- Supabase Integration Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/vendor-store.js"></script>
 <script>
@@ -678,7 +681,7 @@
       return;
     }
 
-    localStorage.setItem('admin_credentials', JSON.stringify({ email, password }));
+    AdminAuth.updateCredentials(email, password);
     
     // Update active admin session as well
     const session = AdminAuth.getSession();
@@ -701,7 +704,7 @@
   function resetAdminToDefault() {
     if (!confirm('⚠️ This will reset the admin login to the default credentials:\n\nEmail: admin@zarahsstore.com\nPassword: AdminPassword2026!\n\nAre you sure?')) return;
     const defaults = { email: 'admin@zarahsstore.com', password: 'AdminPassword2026!' };
-    localStorage.setItem('admin_credentials', JSON.stringify(defaults));
+    AdminAuth.updateCredentials(defaults.email, defaults.password);
     document.getElementById('adminEmail').value = defaults.email;
     document.getElementById('adminPassword').value = defaults.password;
     document.getElementById('currentAdminEmail').textContent = defaults.email;
@@ -712,8 +715,15 @@
   }
 
   // Initial load
-  renderVendors();
-  populateAdminSettings();
+  function initAllAdmin() {
+    renderVendors();
+    populateAdminSettings();
+  }
+
+  initAllAdmin();
+
+  // Listen for Supabase live data sync
+  window.addEventListener('db_synced', initAllAdmin);
 </script>
 </body>
 </html>

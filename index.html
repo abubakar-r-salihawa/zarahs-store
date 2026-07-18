@@ -222,6 +222,9 @@
   </div>
 </footer>
 
+<!-- Supabase Integration Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
 <script src="js/vendor-store.js"></script>
@@ -343,28 +346,39 @@
     </div>`;
   }
 
-  // Initial Render Functions
-  renderBoutiquesMenu();
-  renderBoutiquesShowcase();
+  // Main rendering function (run on load & on DB sync completion)
+  function renderAll() {
+    renderBoutiquesMenu();
+    renderBoutiquesShowcase();
 
-  // Render all sections
-  const featured = getFeaturedProducts(8);
-  document.getElementById('featuredGrid').innerHTML = featured.map(renderFkCard).join('');
+    const featured = getFeaturedProducts(8);
+    const gridF = document.getElementById('featuredGrid');
+    if (gridF) gridF.innerHTML = featured.map(renderFkCard).join('');
 
-  if (VENDORS.perfume) {
-    const perfumes = getProductsByVendor('perfume').slice(0, 4);
-    document.getElementById('perfumeGrid').innerHTML = perfumes.map(renderFkCard).join('');
+    if (VENDORS.perfume) {
+      const perfumes = getProductsByVendor('perfume').slice(0, 4);
+      const gridP = document.getElementById('perfumeGrid');
+      if (gridP) gridP.innerHTML = perfumes.map(renderFkCard).join('');
+    }
+
+    if (VENDORS.kitchen) {
+      const kitchen = getProductsByVendor('kitchen').slice(0, 4);
+      const gridK = document.getElementById('kitchenGrid');
+      if (gridK) gridK.innerHTML = kitchen.map(renderFkCard).join('');
+    }
+
+    if (VENDORS.variety) {
+      const variety = getProductsByVendor('variety').slice(0, 4);
+      const gridV = document.getElementById('varietyGrid');
+      if (gridV) gridV.innerHTML = variety.map(renderFkCard).join('');
+    }
   }
 
-  if (VENDORS.kitchen) {
-    const kitchen = getProductsByVendor('kitchen').slice(0, 4);
-    document.getElementById('kitchenGrid').innerHTML = kitchen.map(renderFkCard).join('');
-  }
+  // Initial local render from cache
+  renderAll();
 
-  if (VENDORS.variety) {
-    const variety = getProductsByVendor('variety').slice(0, 4);
-    document.getElementById('varietyGrid').innerHTML = variety.map(renderFkCard).join('');
-  }
+  // Listen for Supabase live data sync
+  window.addEventListener('db_synced', renderAll);
 </script>
 </body>
 </html>

@@ -395,6 +395,9 @@
   </div>
 </div>
 
+<!-- Supabase Integration Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
 <script src="js/vendor-store.js"></script>
@@ -703,8 +706,21 @@
 
 
   // ---- INIT ----
-  renderDashboard();
-  populateSettings();
+  function initAllDashboard() {
+    // Update topbar avatar / settings in case vendor info changed in DB
+    const currentVendor = VENDORS[vendorId] || vendor;
+    document.getElementById('topbarAvatar').textContent = currentVendor.logo;
+    document.getElementById('sidebarVendorName').textContent = currentVendor.name;
+    document.getElementById('sidebarBadge').textContent = currentVendor.logo + ' ' + currentVendor.name;
+    
+    renderDashboard();
+    populateSettings();
+  }
+
+  initAllDashboard();
+
+  // Listen for Supabase live data sync
+  window.addEventListener('db_synced', initAllDashboard);
 </script>
 </body>
 </html>
