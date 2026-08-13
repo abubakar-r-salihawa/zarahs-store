@@ -350,6 +350,29 @@
       .promotion-form-panel { padding:16px; }
     }
 
+
+    .subscription-card { margin-top:40px; }
+    .subscription-summary { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0 24px; }
+    .subscription-stat { border:1px solid rgba(59,130,246,.22);background:rgba(59,130,246,.06);padding:16px;border-radius:10px; }
+    .subscription-stat span { color:var(--text-muted);font-size:.75rem; }
+    .subscription-stat strong { display:block;color:#93C5FD;font-size:1.25rem;margin-top:5px; }
+    .subscription-layout { display:grid;grid-template-columns:minmax(280px,.78fr) minmax(480px,1.5fr);gap:24px;align-items:start; }
+    .subscription-form-panel { border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:20px;background:rgba(255,255,255,.02); }
+    .subscription-price { padding:14px;border-radius:8px;background:rgba(59,130,246,.09);border:1px solid rgba(59,130,246,.22);color:var(--text-light);font-size:.8rem; }
+    .subscription-price strong { display:block;color:#93C5FD;font-size:1.2rem;margin-top:4px; }
+    .subscription-table-wrap { overflow-x:auto; }
+    .subscription-status { display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em; }
+    .subscription-status.active,.subscription-status.trial { color:#86EFAC;background:rgba(34,197,94,.12); }
+    .subscription-status.expiring { color:#FDE68A;background:rgba(245,158,11,.14); }
+    .subscription-status.expired,.subscription-status.suspended { color:#FCA5A5;background:rgba(239,68,68,.13); }
+    .subscription-actions { display:flex;gap:7px;flex-wrap:wrap;margin-top:8px; }
+    .subscription-actions button { min-height:44px;border-radius:6px;border:1px solid rgba(255,255,255,.16);background:transparent;color:var(--text-light);padding:7px 10px;cursor:pointer;font-size:.7rem; }
+    .subscription-actions button:hover { border-color:#93C5FD;color:#BFDBFE; }
+    .subscription-actions button:focus-visible { outline:3px solid rgba(147,197,253,.45);outline-offset:2px; }
+    .subscription-help { color:var(--text-muted);font-size:.74rem;line-height:1.55;margin-top:6px; }
+    @media(max-width:960px){.subscription-layout{grid-template-columns:1fr}.subscription-summary{grid-template-columns:1fr}}
+    @media(max-width:560px){.subscription-form-panel{padding:16px}}
+
   </style>
 </head>
 <body>
@@ -465,6 +488,66 @@
       </div>
     </div>
 
+  </div>
+
+
+
+  <!-- VENDOR SUBSCRIPTIONS -->
+  <div class="admin-card subscription-card">
+    <div>
+      <p style="text-transform:uppercase;letter-spacing:.14em;color:#93C5FD;font-size:.68rem;margin-bottom:7px">Recurring revenue</p>
+      <h2 class="card-title" style="margin-bottom:8px">Vendor Subscriptions</h2>
+      <p style="font-size:.8rem;color:var(--text-muted);line-height:1.55">Every new boutique receives a 30-day trial. Record confirmed bank transfers here; expired or suspended boutiques and their products are automatically hidden from shoppers.</p>
+    </div>
+
+    <div class="subscription-summary">
+      <div class="subscription-stat"><span>Subscription revenue received</span><strong id="subscriptionRevenue">₦0</strong></div>
+      <div class="subscription-stat"><span>Visible boutiques</span><strong id="subscriptionLiveCount">0</strong></div>
+      <div class="subscription-stat"><span>Expiring within 7 days</span><strong id="subscriptionExpiringCount">0</strong></div>
+    </div>
+
+    <div class="subscription-layout">
+      <div class="subscription-form-panel">
+        <h3 style="font-size:1rem;margin-bottom:18px;color:var(--text-light)">Record a paid renewal</h3>
+        <div class="error-banner" id="subscriptionError" role="alert"></div>
+        <form class="admin-form" id="subscriptionForm" onsubmit="event.preventDefault(); recordSubscriptionPayment();">
+          <div class="form-group">
+            <label class="form-label" for="subscriptionVendor">Boutique</label>
+            <select class="form-input" id="subscriptionVendor" onchange="updateSubscriptionPlanHelp()"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="subscriptionPlan">Subscription plan</label>
+            <select class="form-input" id="subscriptionPlan" onchange="updateSubscriptionPlanHelp()">
+              <option value="launch">Launch rate — ₦5,000 for 30 days</option>
+              <option value="monthly">Standard monthly — ₦10,000 for 30 days</option>
+              <option value="annual">Annual — ₦100,000 for 365 days</option>
+            </select>
+          </div>
+          <div class="subscription-price">
+            Renewal amount
+            <strong id="subscriptionPlanPrice">₦5,000</strong>
+            <span class="subscription-help" id="subscriptionPlanHelp">Launch rate can be used for a maximum of three paid months.</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="subscriptionNotes">Payment note or reference</label>
+            <input class="form-input" id="subscriptionNotes" maxlength="500" placeholder="Optional bank transfer reference">
+          </div>
+          <label class="promotion-checkbox">
+            <input type="checkbox" id="subscriptionPaymentConfirmed">
+            <span>I have confirmed this bank transfer and want to extend the boutique's access.</span>
+          </label>
+          <button type="submit" class="btn-admin-primary" id="subscriptionSubmit">Record paid renewal</button>
+          <div id="subscriptionSuccess" aria-live="polite" style="display:none;color:#86EFAC;font-size:.8rem">Renewal recorded successfully.</div>
+        </form>
+      </div>
+
+      <div class="subscription-table-wrap">
+        <table class="vendor-table">
+          <thead><tr><th>Boutique</th><th>Plan / Expiry</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="subscriptionTableBody"><tr><td colspan="4" style="text-align:center;color:var(--text-muted)">Loading subscriptions...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
 
@@ -786,6 +869,165 @@
       delete vendorAccessMap[id];
       renderVendors();
     }
+  }
+
+
+
+  let adminSubscriptions = [];
+  let subscriptionPayments = [];
+
+  const SUBSCRIPTION_PLANS = {
+    launch: { label: 'Launch rate', amount: 5000, days: 30 },
+    monthly: { label: 'Standard monthly', amount: 10000, days: 30 },
+    annual: { label: 'Annual', amount: 100000, days: 365 },
+    trial: { label: 'Free trial', amount: 0, days: 30 }
+  };
+
+  function populateSubscriptionVendors() {
+    const select = document.getElementById('subscriptionVendor');
+    const current = select.value;
+    select.innerHTML = Object.values(window.VENDORS).map(vendor =>
+      `<option value="${escapeOrderText(vendor.id)}">${escapeOrderText(vendor.name)}</option>`
+    ).join('');
+    if (current && window.VENDORS[current]) select.value = current;
+    updateSubscriptionPlanHelp();
+  }
+
+  function getLaunchPaymentCount(vendorId) {
+    return subscriptionPayments.filter(payment =>
+      payment.vendor_id === vendorId && payment.plan === 'launch' && payment.payment_status === 'paid'
+    ).length;
+  }
+
+  function updateSubscriptionPlanHelp() {
+    const planCode = document.getElementById('subscriptionPlan')?.value || 'launch';
+    const vendorId = document.getElementById('subscriptionVendor')?.value;
+    const plan = SUBSCRIPTION_PLANS[planCode];
+    document.getElementById('subscriptionPlanPrice').textContent = formatNaira(plan.amount);
+    if (planCode === 'launch') {
+      const used = getLaunchPaymentCount(vendorId);
+      document.getElementById('subscriptionPlanHelp').textContent =
+        `Launch rate used ${used} of 3 times for this boutique.`;
+    } else {
+      document.getElementById('subscriptionPlanHelp').textContent =
+        `Adds ${plan.days} days after the boutique's current expiry date.`;
+    }
+  }
+
+  function getSubscriptionDisplay(subscription) {
+    const end = new Date(subscription.access_ends_at).getTime();
+    const days = Math.ceil((end - Date.now()) / 86400000);
+    if (subscription.status === 'suspended') return { code:'suspended', label:'Suspended', days };
+    if (end <= Date.now()) return { code:'expired', label:'Expired', days:0 };
+    if (days <= 7) return { code:'expiring', label:`${days} day${days === 1 ? '' : 's'} left`, days };
+    if (subscription.status === 'trial') return { code:'trial', label:'Free trial', days };
+    return { code:'active', label:'Active', days };
+  }
+
+  function renderSubscriptions() {
+    const tbody = document.getElementById('subscriptionTableBody');
+    const paidRevenue = subscriptionPayments
+      .filter(payment => payment.payment_status === 'paid')
+      .reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+    const states = adminSubscriptions.map(getSubscriptionDisplay);
+    document.getElementById('subscriptionRevenue').textContent = formatNaira(paidRevenue);
+    document.getElementById('subscriptionLiveCount').textContent =
+      String(states.filter(state => ['active','trial','expiring'].includes(state.code)).length);
+    document.getElementById('subscriptionExpiringCount').textContent =
+      String(states.filter(state => state.code === 'expiring').length);
+
+    if (!adminSubscriptions.length) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No subscription records found.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = adminSubscriptions.map(subscription => {
+      const vendor = window.VENDORS[subscription.vendor_id];
+      const state = getSubscriptionDisplay(subscription);
+      const plan = SUBSCRIPTION_PLANS[subscription.plan] || { label: subscription.plan };
+      const expiry = new Date(subscription.access_ends_at).toLocaleDateString('en-NG', { day:'numeric', month:'short', year:'numeric' });
+      const action = subscription.status === 'suspended'
+        ? `<button onclick="manageSubscription('${subscription.vendor_id}','resume')">Resume</button>`
+        : `<button onclick="manageSubscription('${subscription.vendor_id}','suspend')">Suspend</button>`;
+      return `<tr>
+        <td><strong>${escapeOrderText(vendor?.name || subscription.vendor_id)}</strong><br>
+          <span class="vendor-row-tagline">Launch rate: ${getLaunchPaymentCount(subscription.vendor_id)}/3 used</span></td>
+        <td>${escapeOrderText(plan.label)}<br><span class="vendor-row-tagline">Ends ${escapeOrderText(expiry)}</span></td>
+        <td><span class="subscription-status ${state.code}">${escapeOrderText(state.label)}</span></td>
+        <td><div class="subscription-actions">
+          <button onclick="manageSubscription('${subscription.vendor_id}','grant_days',7)">+7 days</button>
+          <button onclick="manageSubscription('${subscription.vendor_id}','grant_days',30)">+30 days</button>
+          ${action}
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function refreshSubscriptions() {
+    const [
+      { data: subscriptions, error: subscriptionError },
+      { data: payments, error: paymentError }
+    ] = await Promise.all([
+      window.supabaseClient.from('vendor_subscriptions').select('*').order('access_ends_at'),
+      window.supabaseClient.from('subscription_payments').select('*').order('confirmed_at', { ascending:false })
+    ]);
+    if (subscriptionError || paymentError) {
+      document.getElementById('subscriptionTableBody').innerHTML =
+        '<tr><td colspan="4" style="text-align:center;color:#FCA5A5">Subscriptions could not be loaded.</td></tr>';
+      return;
+    }
+    adminSubscriptions = subscriptions || [];
+    subscriptionPayments = payments || [];
+    renderSubscriptions();
+    updateSubscriptionPlanHelp();
+  }
+
+  async function recordSubscriptionPayment() {
+    const errorBox = document.getElementById('subscriptionError');
+    const successBox = document.getElementById('subscriptionSuccess');
+    const submit = document.getElementById('subscriptionSubmit');
+    errorBox.style.display = 'none';
+    successBox.style.display = 'none';
+
+    if (!document.getElementById('subscriptionPaymentConfirmed').checked) {
+      errorBox.textContent = 'Confirm that the bank transfer has been received before recording this renewal.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    submit.disabled = true;
+    submit.textContent = 'Recording renewal...';
+    const { error } = await window.supabaseClient.rpc('record_vendor_subscription_payment', {
+      p_vendor_id: document.getElementById('subscriptionVendor').value,
+      p_plan: document.getElementById('subscriptionPlan').value,
+      p_notes: document.getElementById('subscriptionNotes').value.trim() || null
+    });
+    submit.disabled = false;
+    submit.textContent = 'Record paid renewal';
+
+    if (error) {
+      errorBox.textContent = error.message;
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    document.getElementById('subscriptionPaymentConfirmed').checked = false;
+    document.getElementById('subscriptionNotes').value = '';
+    successBox.style.display = 'block';
+    await refreshSubscriptions();
+  }
+
+  async function manageSubscription(vendorId, action, days = null) {
+    const actionLabel = action === 'suspend' ? 'suspend this boutique' :
+      action === 'resume' ? 'restore this boutique' : `grant ${days} extra days`;
+    if (!confirm(`Do you want to ${actionLabel}?`)) return;
+    const { error } = await window.supabaseClient.rpc('manage_vendor_subscription', {
+      p_vendor_id: vendorId,
+      p_action: action,
+      p_days: days
+    });
+    if (error) alert('Subscription could not be updated: ' + error.message);
+    await refreshSubscriptions();
   }
 
 
@@ -1124,8 +1366,9 @@
     await refreshVendorAccess();
     renderVendors();
     populatePromotionVendors();
+    populateSubscriptionVendors();
     syncPromotionForm(true);
-    await Promise.all([renderOrders(), refreshPromotions()]);
+    await Promise.all([renderOrders(), refreshPromotions(), refreshSubscriptions()]);
   }
 
   hideLegacyCredentialControls();
@@ -1134,6 +1377,7 @@
     await refreshVendorAccess();
     renderVendors();
     populatePromotionVendors();
+    populateSubscriptionVendors();
   });
 </script>
 </body>
