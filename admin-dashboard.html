@@ -388,12 +388,14 @@
             <input type="text" class="form-input" id="addVendorTagline" placeholder="e.g. Premium dresses and accessories" required>
           </div>
           <div class="form-group">
-            <label class="form-label">Login Email</label>
-            <input type="email" class="form-input" id="addVendorEmail" placeholder="e.g. vendor@fashion.com" required>
+            <label class="form-label">Vendor Google Login Email</label>
+            <input type="email" class="form-input" id="addVendorEmail" placeholder="e.g. vendor@gmail.com" required>
+            <div style="font-size:.72rem;color:var(--text-muted);margin-top:6px">The vendor must sign in with this exact Google account. No password is stored here.</div>
           </div>
           <div class="form-group">
-            <label class="form-label">Password</label>
-            <input type="text" class="form-input" id="addVendorPassword" placeholder="e.g. Fashion2026!" required minlength="6">
+            <label class="form-label">Vendor WhatsApp Number</label>
+            <input type="tel" class="form-input" id="addVendorWhatsapp" placeholder="e.g. 08147923724" required inputmode="tel">
+            <div style="font-size:.72rem;color:var(--text-muted);margin-top:6px">Customer orders for this boutique will open this WhatsApp number.</div>
           </div>
           <button type="submit" class="btn-form-submit">Register Boutique</button>
         </form>
@@ -482,16 +484,14 @@
         <input type="text" class="form-input" id="editVendorTagline" required>
       </div>
       <div class="form-group">
-        <label class="form-label">Login Email</label>
+        <label class="form-label">Vendor Google Login Email</label>
         <input type="email" class="form-input" id="editVendorEmail" required>
+        <div style="font-size:.72rem;color:var(--text-muted);margin-top:6px">Changing this email removes access from the previous Google account.</div>
       </div>
       <div class="form-group">
-        <label class="form-label">Password (Leave blank to keep current)</label>
-        <input type="text" class="form-input" id="editVendorPassword" placeholder="Enter new password if changing">
-      </div>
-      <div class="form-group">
-        <label class="form-label">WhatsApp Number for Orders (digits only, e.g. 2348147923724)</label>
-        <input type="text" class="form-input" id="editVendorWhatsapp" placeholder="e.g. 2348147923724" pattern="[0-9]+">
+        <label class="form-label">Vendor WhatsApp Number</label>
+        <input type="tel" class="form-input" id="editVendorWhatsapp" placeholder="e.g. 08147923724" required inputmode="tel">
+        <div style="font-size:.72rem;color:var(--text-muted);margin-top:6px">Customer orders for this boutique will open this WhatsApp number.</div>
       </div>
       <button type="submit" class="btn-form-submit">Save Settings</button>
     </form>
@@ -506,19 +506,35 @@
 <script>
   AdminAuth.requireAuth();
 
+  let vendorAccessMap = {};
+
   function hideLegacyCredentialControls() {
-    ['addVendorEmail','addVendorPassword','editVendorEmail','editVendorPassword'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el?.closest('.form-group')) el.closest('.form-group').style.display = 'none';
-    });
     const settings = document.getElementById('adminSettingsForm');
     if (settings?.closest('.admin-card')) settings.closest('.admin-card').style.display = 'none';
+  }
+
+  function normalizeWhatsAppNumber(value) {
+    let digits = String(value || '').replace(/\D/g, '');
+    if (digits.startsWith('00')) digits = digits.slice(2);
+    if (digits.startsWith('0')) digits = '234' + digits.slice(1);
+    return digits;
+  }
+
+  async function refreshVendorAccess() {
+    const result = await AdminVendors.listAccess();
+    if (!result.success) {
+      console.error('Vendor access could not be loaded:', result.error);
+      return;
+    }
+    vendorAccessMap = Object.fromEntries((result.data || []).map(item => [item.vendorId, item]));
   }
 
   function renderVendors() {
     const tbody = document.getElementById('vendorTableBody');
     tbody.innerHTML = '';
     Object.values(window.VENDORS).forEach(v => {
+      const access = vendorAccessMap[v.id] || {};
+      const accountStatus = access.accountCreated ? 'Google account connected' : 'Waiting for first Google sign-in';
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>
@@ -528,8 +544,9 @@
             <span class="vendor-row-tagline">${v.tagline || ''}</span></div>
           </div>
         </td>
-        <td><span class="vendor-creds-box">Secure Supabase Auth</span><br>
-          <span class="vendor-row-tagline">ID: ${v.id}</span></td>
+        <td><span class="vendor-creds-box">${access.email || 'Login email not assigned'}</span><br>
+          <span class="vendor-row-tagline">WhatsApp: ${access.whatsapp || v.whatsapp || 'Not assigned'}</span><br>
+          <span class="vendor-row-tagline">${accountStatus}</span></td>
         <td>
           <button class="btn-row-action edit" onclick="openEditModal('${v.id}')">Edit</button>
           <button class="btn-row-action delete" onclick="handleDeleteVendor('${v.id}')">Delete</button>
@@ -540,15 +557,18 @@
 
   async function handleAddVendor() {
     const id = document.getElementById('addVendorId').value.trim().toLowerCase();
+    const email = document.getElementById('addVendorEmail').value.trim().toLowerCase();
+    const whatsapp = normalizeWhatsAppNumber(document.getElementById('addVendorWhatsapp').value);
     const info = {
       name: document.getElementById('addVendorName').value.trim(),
       tagline: document.getElementById('addVendorTagline').value.trim(),
       logo: document.getElementById('addVendorEmoji').value.trim(),
-      primaryColor: document.getElementById('addVendorColor').value.trim()
+      primaryColor: document.getElementById('addVendorColor').value.trim(),
+      whatsapp
     };
     info.gradient = `linear-gradient(135deg, #090909, ${info.primaryColor})`;
     const err = document.getElementById('addError');
-    const result = await AdminVendors.create(id, info);
+    const result = await AdminVendors.create(id, info, email, whatsapp);
     if (!result.success) {
       err.textContent = '⚠️ ' + result.error;
       err.style.display = 'block';
@@ -556,18 +576,21 @@
     }
     err.style.display = 'none';
     document.getElementById('addVendorForm').reset();
+    await refreshVendorAccess();
     renderVendors();
   }
 
   function openEditModal(id) {
     const v = window.VENDORS[id];
+    const access = vendorAccessMap[id] || {};
     if (!v) return;
     document.getElementById('editVendorId').value = id;
     document.getElementById('editVendorName').value = v.name;
     document.getElementById('editVendorEmoji').value = v.logo;
     document.getElementById('editVendorColor').value = v.primaryColor;
     document.getElementById('editVendorTagline').value = v.tagline || '';
-    document.getElementById('editVendorWhatsapp').value = v.whatsapp || '';
+    document.getElementById('editVendorEmail').value = access.email || '';
+    document.getElementById('editVendorWhatsapp').value = access.whatsapp || v.whatsapp || '';
     document.getElementById('editError').style.display = 'none';
     document.getElementById('editModal').classList.add('active');
   }
@@ -579,21 +602,24 @@
   async function handleUpdateVendor() {
     const id = document.getElementById('editVendorId').value;
     const color = document.getElementById('editVendorColor').value.trim();
+    const email = document.getElementById('editVendorEmail').value.trim().toLowerCase();
+    const whatsapp = normalizeWhatsAppNumber(document.getElementById('editVendorWhatsapp').value);
     const info = {
       name: document.getElementById('editVendorName').value.trim(),
       tagline: document.getElementById('editVendorTagline').value.trim(),
       logo: document.getElementById('editVendorEmoji').value.trim(),
       primaryColor: color,
       gradient: `linear-gradient(135deg, #090909, ${color})`,
-      whatsapp: document.getElementById('editVendorWhatsapp').value.trim() || null
+      whatsapp
     };
-    const result = await AdminVendors.update(id, info);
+    const result = await AdminVendors.update(id, info, email, whatsapp);
     if (!result.success) {
       const err = document.getElementById('editError');
       err.textContent = '⚠️ ' + result.error;
       err.style.display = 'block';
       return;
     }
+    await refreshVendorAccess();
     closeEditModal();
     renderVendors();
   }
@@ -603,10 +629,13 @@
       alert('Core boutiques cannot be deleted.');
       return;
     }
-    if (!confirm('Delete this boutique and its products?')) return;
+    if (!confirm('Delete this boutique, its vendor access, and its products?')) return;
     const result = await AdminVendors.delete(id);
     if (!result.success) alert(result.error);
-    else renderVendors();
+    else {
+      delete vendorAccessMap[id];
+      renderVendors();
+    }
   }
 
   async function renderOrders() {
@@ -632,10 +661,18 @@
     }).join('');
   }
 
+  async function refreshAdminDashboard() {
+    await refreshVendorAccess();
+    renderVendors();
+    await renderOrders();
+  }
+
   hideLegacyCredentialControls();
-  renderVendors();
-  renderOrders();
-  window.addEventListener('db_synced', renderVendors);
+  refreshAdminDashboard();
+  window.addEventListener('db_synced', async () => {
+    await refreshVendorAccess();
+    renderVendors();
+  });
 </script>
 </body>
 </html>
