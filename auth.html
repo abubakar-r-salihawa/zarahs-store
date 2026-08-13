@@ -197,7 +197,12 @@
         </div>
         <div class="form-group-fk">
           <label class="form-label-fk">Email Address</label>
-          <input type="email" class="form-input-fk" id="regEmail" placeholder="your@email.com">
+          <input type="email" class="form-input-fk" id="regEmail" placeholder="your@email.com" autocomplete="email">
+        </div>
+        <div class="form-group-fk">
+          <label class="form-label-fk">WhatsApp / Phone Number</label>
+          <input type="tel" class="form-input-fk" id="regPhone" placeholder="e.g. 08012345678" inputmode="tel" autocomplete="tel">
+          <div style="font-size:.72rem;color:var(--text-3);margin-top:6px">Used for delivery and order updates. No SMS verification charge.</div>
         </div>
         <div class="form-group-fk">
           <label class="form-label-fk">Password</label>
@@ -363,15 +368,18 @@
   async function doRegister() {
     const name = document.getElementById('regName').value.trim();
     const email = document.getElementById('regEmail').value.trim();
+    const phoneInput = document.getElementById('regPhone').value.trim();
+    const phone = Auth.normalizePhone(phoneInput);
     const password = document.getElementById('regPassword').value;
     const err = document.getElementById('regErr');
     const ok = document.getElementById('regOk');
     err.classList.remove('show'); ok.classList.remove('show');
     
-    if (!name || !email || !password) { err.textContent = '⚠️ Please fill in all fields.'; err.classList.add('show'); return; }
+    if (!name || !email || !phoneInput || !password) { err.textContent = '⚠️ Please fill in all fields, including your phone number.'; err.classList.add('show'); return; }
+    if (!phone) { err.textContent = '⚠️ Enter a valid phone number, such as 08012345678.'; err.classList.add('show'); return; }
     if (password.length < 6) { err.textContent = '⚠️ Password must be at least 6 characters.'; err.classList.add('show'); return; }
     
-    const result = await Auth.register(name, email, password);
+    const result = await Auth.register(name, email, password, phone);
     if (result.success) {
       activeEmail = email;
       activeVerificationType = 'signup';
