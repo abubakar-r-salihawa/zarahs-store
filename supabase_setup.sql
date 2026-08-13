@@ -73,42 +73,66 @@ CREATE POLICY "catalog vendors are public"
 ON public.vendors FOR SELECT TO anon, authenticated USING (true);
 
 DROP POLICY IF EXISTS "admins manage vendors" ON public.vendors;
-CREATE POLICY "admins manage vendors"
-ON public.vendors FOR ALL TO authenticated
-USING ((select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
-WITH CHECK ((select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
-
 DROP POLICY IF EXISTS "vendors update own profile" ON public.vendors;
-CREATE POLICY "vendors update own profile"
+DROP POLICY IF EXISTS "staff add vendors" ON public.vendors;
+DROP POLICY IF EXISTS "staff update vendors" ON public.vendors;
+DROP POLICY IF EXISTS "staff delete vendors" ON public.vendors;
+
+CREATE POLICY "staff add vendors"
+ON public.vendors FOR INSERT TO authenticated
+WITH CHECK (((select auth.jwt()) -> 'app_metadata' ->> 'role') = 'admin');
+
+CREATE POLICY "staff update vendors"
 ON public.vendors FOR UPDATE TO authenticated
-USING (id = (select auth.jwt() -> 'app_metadata' ->> 'vendor_id'))
-WITH CHECK (id = (select auth.jwt() -> 'app_metadata' ->> 'vendor_id'));
+USING (
+  ((select auth.jwt()) -> 'app_metadata' ->> 'role') = 'admin'
+  OR id = ((select auth.jwt()) -> 'app_metadata' ->> 'vendor_id')
+)
+WITH CHECK (
+  ((select auth.jwt()) -> 'app_metadata' ->> 'role') = 'admin'
+  OR id = ((select auth.jwt()) -> 'app_metadata' ->> 'vendor_id')
+);
+
+CREATE POLICY "staff delete vendors"
+ON public.vendors FOR DELETE TO authenticated
+USING (((select auth.jwt()) -> 'app_metadata' ->> 'role') = 'admin');
 
 DROP POLICY IF EXISTS "catalog products are public" ON public.products;
 CREATE POLICY "catalog products are public"
 ON public.products FOR SELECT TO anon, authenticated USING (true);
 
 DROP POLICY IF EXISTS "admins manage products" ON public.products;
-CREATE POLICY "admins manage products"
-ON public.products FOR ALL TO authenticated
-USING ((select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
-WITH CHECK ((select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
-
 DROP POLICY IF EXISTS "vendors add own products" ON public.products;
-CREATE POLICY "vendors add own products"
-ON public.products FOR INSERT TO authenticated
-WITH CHECK (vendor = (select auth.jwt() -> 'app_metadata' ->> 'vendor_id'));
-
 DROP POLICY IF EXISTS "vendors update own products" ON public.products;
-CREATE POLICY "vendors update own products"
-ON public.products FOR UPDATE TO authenticated
-USING (vendor = (select auth.jwt() -> 'app_metadata' ->> 'vendor_id'))
-WITH CHECK (vendor = (select auth.jwt() -> 'app_metadata' ->> 'vendor_id'));
-
 DROP POLICY IF EXISTS "vendors delete own products" ON public.products;
-CREATE POLICY "vendors delete own products"
+DROP POLICY IF EXISTS "staff add products" ON public.products;
+DROP POLICY IF EXISTS "staff update products" ON public.products;
+DROP POLICY IF EXISTS "staff delete products" ON public.products;
+
+CREATE POLICY "staff add products"
+ON public.products FOR INSERT TO authenticated
+WITH CHECK (
+  ((select auth.jwt()) -> 'app_metadata' ->> 'role') = 'admin'
+  OR vendor = ((select auth.jwt()) -> 'app_metadata' ->> 'vendor_id')
+);
+
+CREATE POLICY "staff update products"
+ON public.products FOR UPDATE TO authenticated
+USING (
+  ((select auth.jwt()) -> 'app_metadata' ->> 'role') = 'admin'
+  OR vendor = ((select auth.jwt()) -> 'app_metadata' ->> 'vendor_id')
+)
+WITH CHECK (
+  ((select auth.jwt()) -> 'app_metadata' ->> 'role') = 'admin'
+  OR vendor = ((select auth.jwt()) -> 'app_metadata' ->> 'vendor_id')
+);
+
+CREATE POLICY "staff delete products"
 ON public.products FOR DELETE TO authenticated
-USING (vendor = (select auth.jwt() -> 'app_metadata' ->> 'vendor_id'));
+USING (
+  ((select auth.jwt()) -> 'app_metadata' ->> 'role') = 'admin'
+  OR vendor = ((select auth.jwt()) -> 'app_metadata' ->> 'vendor_id')
+);
 
 DROP POLICY IF EXISTS "customers create own orders" ON public.orders;
 CREATE POLICY "customers create own orders"
@@ -116,20 +140,20 @@ ON public.orders FOR INSERT TO authenticated
 WITH CHECK ((select auth.uid()) = user_id AND status = 'pending');
 
 DROP POLICY IF EXISTS "customers read own orders" ON public.orders;
-CREATE POLICY "customers read own orders"
-ON public.orders FOR SELECT TO authenticated
-USING ((select auth.uid()) = user_id);
-
 DROP POLICY IF EXISTS "admins read all orders" ON public.orders;
-CREATE POLICY "admins read all orders"
+DROP POLICY IF EXISTS "authorized users read orders" ON public.orders;
+CREATE POLICY "authorized users read orders"
 ON public.orders FOR SELECT TO authenticated
-USING ((select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+USING (
+  (select auth.uid()) = user_id
+  OR ((select auth.jwt()) -> 'app_metadata' ->> 'role') = 'admin'
+);
 
 DROP POLICY IF EXISTS "admins update orders" ON public.orders;
 CREATE POLICY "admins update orders"
 ON public.orders FOR UPDATE TO authenticated
-USING ((select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
-WITH CHECK ((select auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+USING (((select auth.jwt()) -> 'app_metadata' ->> 'role') = 'admin')
+WITH CHECK (((select auth.jwt()) -> 'app_metadata' ->> 'role') = 'admin');
 
 -- Staff authorization:
 -- Set app_metadata.role to "admin" or "vendor" from a trusted server/admin tool.
