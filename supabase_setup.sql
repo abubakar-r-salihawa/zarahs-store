@@ -726,3 +726,109 @@ REVOKE ALL ON FUNCTION public.place_whatsapp_order(text, text, text, text, jsonb
   FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.place_whatsapp_order(text, text, text, text, jsonb)
   TO authenticated;
+
+
+-- ============================================================
+-- PAID HOMEPAGE PROMOTIONS
+-- ============================================================
+
+create table public.promotions (
+  id uuid primary key default gen_random_uuid(),
+  promotion_type text not null,
+  vendor_id text references public.vendors(id) on update cascade on delete cascade,
+  product_id text references public.products(id) on update cascade on delete cascade,
+  title text,
+  subtitle text,
+  image_url text,
+  link_url text,
+  placement_level smallint not null default 1,
+  amount_paid numeric(12,2) not null default 0,
+  payment_status text not null default 'pending',
+  status text not null default 'draft',
+  starts_at timestamptz not null,
+  ends_at timestamptz not null,
+  created_by uuid references auth.users(id) on delete set null default auth.uid(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint promotions_type_check check (promotion_type in ('boutique','product','banner')),
+  constraint promotions_dates_check check (ends_at > starts_at),
+  constraint promotions_amount_check check (amount_paid >= 0),
+  constraint promotions_level_check check (placement_level between 1 and 3),
+  constraint promotions_payment_check check (payment_status in ('pending','paid','refunded')),
+  constraint promotions_status_check check (status in ('draft','active','paused','cancelled')),
+  constraint promotions_title_length check (title is null or char_length(title) <= 100),
+  constraint promotions_subtitle_length check (subtitle is null or char_length(subtitle) <= 240),
+  constraint promotions_target_check check (
+    (promotion_type = 'boutique' and vendor_id is not null and product_id is null)
+    or (promotion_type = 'product' and vendor_id is not null and product_id is not null)
+    or (promotion_type = 'banner' and product_id is null and title is not null)
+  )
+);
+
+create index promotions_active_window_idx
+  on public.promotions (promotion_type, placement_level desc, starts_at, ends_at)
+  where status = 'active' and payment_status = 'paid';
+create index promotions_vendor_idx on public.promotions (vendor_id, created_at desc)
+  where vendor_id is not null;
+create index promotions_product_idx on public.promotions (product_id, created_at desc)
+  where product_id is not null;
+
+alter table public.promotions enable row level security;
+
+create policy "Public can view current paid promotions"
+on public.promotions
+for select
+to anon, authenticated
+using (
+  (
+    status = 'active'
+    and payment_status = 'paid'
+    and starts_at <= now()
+    and ends_at > now()
+  )
+  or coalesce((select auth.jwt() -> 'app_metadata' ->> 'role'), '') = 'admin'
+);
+
+create policy "Admins can create promotions"
+on public.promotions
+for insert
+to authenticated
+with check (
+  coalesce((select auth.jwt() -> 'app_metadata' ->> 'role'), '') = 'admin'
+  and created_by = (select auth.uid())
+);
+
+create policy "Admins can update promotions"
+on public.promotions
+for update
+to authenticated
+using (coalesce((select auth.jwt() -> 'app_metadata' ->> 'role'), '') = 'admin')
+with check (coalesce((select auth.jwt() -> 'app_metadata' ->> 'role'), '') = 'admin');
+
+create policy "Admins can delete promotions"
+on public.promotions
+for delete
+to authenticated
+using (coalesce((select auth.jwt() -> 'app_metadata' ->> 'role'), '') = 'admin');
+
+grant select on table public.promotions to anon, authenticated;
+grant insert, update, delete on table public.promotions to authenticated;
+
+create or replace function private.set_promotion_updated_at()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+revoke all on function private.set_promotion_updated_at() from public, anon, authenticated;
+
+create trigger promotions_set_updated_at
+before update on public.promotions
+for each row execute function private.set_promotion_updated_at();
+
