@@ -168,7 +168,29 @@ const Auth = {
   },
   updateUI() {
     const user = Auth.getUser();
-    document.querySelectorAll('.auth-logged-in').forEach(el => el.style.display = user ? 'flex' : 'none');
+    document.querySelectorAll('.auth-logged-in').forEach(el => {
+      el.style.display = user ? 'flex' : 'none';
+      if (user && !el.querySelector('[data-my-orders-link]')) {
+        const ordersLink = document.createElement('a');
+        ordersLink.href = 'my-orders.html';
+        ordersLink.className = 'nav-btn';
+        ordersLink.dataset.myOrdersLink = 'true';
+        ordersLink.textContent = 'My Orders';
+        ordersLink.style.fontSize = '0.75rem';
+        const logoutButton = el.querySelector('button');
+        el.insertBefore(ordersLink, logoutButton || null);
+      }
+    });
+    document.querySelectorAll('.mobile-menu').forEach(menu => {
+      if (user && !menu.querySelector('[data-my-orders-link]')) {
+        const ordersLink = document.createElement('a');
+        ordersLink.href = 'my-orders.html';
+        ordersLink.className = 'mobile-link';
+        ordersLink.dataset.myOrdersLink = 'true';
+        ordersLink.textContent = '📦 My Orders';
+        menu.appendChild(ordersLink);
+      }
+    });
     document.querySelectorAll('.auth-logged-out').forEach(el => el.style.display = user ? 'none' : 'flex');
     document.querySelectorAll('.user-name').forEach(el => el.textContent = user ? user.name.split(' ')[0] : '');
     document.querySelectorAll('.user-avatar').forEach(el => el.textContent = user ? user.avatar : '');
