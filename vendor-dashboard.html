@@ -182,6 +182,16 @@
       align-items: center; justify-content: center; font-size: 1.2rem;
       cursor: pointer;
     }
+
+    .vendor-subscription-banner { margin:0 0 24px;padding:16px 18px;border-radius:12px;border:1px solid var(--border);display:none;align-items:flex-start;justify-content:space-between;gap:16px;line-height:1.5; }
+    .vendor-subscription-banner strong { display:block;font-size:.94rem;margin-bottom:3px; }
+    .vendor-subscription-banner span { color:var(--text-muted);font-size:.8rem; }
+    .vendor-subscription-banner.good { display:flex;background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.28); }
+    .vendor-subscription-banner.warning { display:flex;background:rgba(245,158,11,.09);border-color:rgba(245,158,11,.3); }
+    .vendor-subscription-banner.danger { display:flex;background:rgba(239,68,68,.09);border-color:rgba(239,68,68,.3); }
+    .vendor-subscription-pill { white-space:nowrap;padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.07);font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em; }
+    @media(max-width:600px){.vendor-subscription-banner{flex-direction:column}.vendor-subscription-pill{white-space:normal}}
+
   </style>
 </head>
 <body>
@@ -231,6 +241,12 @@
       <div class="topbar-right">
         <div class="topbar-avatar" id="topbarAvatar">🏪</div>
       </div>
+    </div>
+
+
+    <div class="vendor-subscription-banner" id="vendorSubscriptionBanner" role="status" aria-live="polite">
+      <div><strong id="vendorSubscriptionTitle">Checking subscription…</strong><span id="vendorSubscriptionMessage"></span></div>
+      <div class="vendor-subscription-pill" id="vendorSubscriptionPill">Loading</div>
     </div>
 
     <!-- ========== TAB: DASHBOARD ========== -->
@@ -448,6 +464,57 @@
   const vendor = VENDORS[vendorId];
   let vendorOrders = [];
 
+
+  let vendorSubscription = null;
+
+  function renderVendorSubscription() {
+    const banner = document.getElementById('vendorSubscriptionBanner');
+    if (!vendorSubscription) {
+      banner.className = 'vendor-subscription-banner danger';
+      document.getElementById('vendorSubscriptionTitle').textContent = 'Subscription unavailable';
+      document.getElementById('vendorSubscriptionMessage').textContent = 'Contact the store owner before accepting new orders.';
+      document.getElementById('vendorSubscriptionPill').textContent = 'Action needed';
+      return;
+    }
+
+    const end = new Date(vendorSubscription.access_ends_at);
+    const days = Math.ceil((end.getTime() - Date.now()) / 86400000);
+    const expiry = end.toLocaleDateString('en-NG', { day:'numeric', month:'short', year:'numeric' });
+    const isSuspended = vendorSubscription.status === 'suspended';
+    const isExpired = days <= 0;
+    const isWarning = !isSuspended && !isExpired && days <= 7;
+    const planLabels = { trial:'Free trial', launch:'Launch plan', monthly:'Monthly plan', annual:'Annual plan' };
+    const plan = planLabels[vendorSubscription.plan] || vendorSubscription.plan;
+
+    banner.className = 'vendor-subscription-banner ' + (isSuspended || isExpired ? 'danger' : isWarning ? 'warning' : 'good');
+    if (isSuspended) {
+      document.getElementById('vendorSubscriptionTitle').textContent = 'Boutique subscription suspended';
+      document.getElementById('vendorSubscriptionMessage').textContent = 'Your storefront is hidden from shoppers. Contact the store owner to restore access.';
+      document.getElementById('vendorSubscriptionPill').textContent = 'Suspended';
+    } else if (isExpired) {
+      document.getElementById('vendorSubscriptionTitle').textContent = 'Subscription expired';
+      document.getElementById('vendorSubscriptionMessage').textContent = 'Your storefront is hidden from shoppers. Contact the store owner to renew.';
+      document.getElementById('vendorSubscriptionPill').textContent = 'Expired';
+    } else {
+      document.getElementById('vendorSubscriptionTitle').textContent = plan + (isWarning ? ' expires soon' : ' is active');
+      document.getElementById('vendorSubscriptionMessage').textContent =
+        `Storefront access continues until ${expiry}. Contact the store owner to renew before expiry.`;
+      document.getElementById('vendorSubscriptionPill').textContent =
+        `${days} day${days === 1 ? '' : 's'} left`;
+    }
+  }
+
+  async function loadVendorSubscription() {
+    const { data, error } = await window.supabaseClient
+      .from('vendor_subscriptions')
+      .select('*')
+      .eq('vendor_id', vendorId)
+      .maybeSingle();
+    vendorSubscription = error ? null : data;
+    renderVendorSubscription();
+  }
+
+
   const ORDER_STATUS_LABELS = {
     pending: 'Pending',
     confirmed: 'Confirmed',
@@ -621,7 +688,7 @@
     if (error) {
       alert('Status could not be updated: ' + error.message);
     }
-    await loadVendorOrders();
+    await Promise.all([loadVendorOrders(), loadVendorSubscription()]);
     renderVendorOrders();
     renderDashboard();
   }
@@ -855,7 +922,7 @@
 
   // ---- INIT ----
   async function initAllDashboard() {
-    await loadVendorOrders();
+    await Promise.all([loadVendorOrders(), loadVendorSubscription()]);
     // Update topbar avatar / settings in case vendor info changed in DB
     const currentVendor = VENDORS[vendorId] || vendor;
     document.getElementById('topbarAvatar').textContent = currentVendor.logo;
