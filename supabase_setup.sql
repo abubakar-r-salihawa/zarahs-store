@@ -417,3 +417,312 @@ REVOKE ALL ON FUNCTION public.manage_vendor_account(uuid, text, jsonb)
   FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.manage_vendor_account(uuid, text, jsonb)
   TO service_role;
+
+
+-- Boutique-specific WhatsApp order management.
+CREATE TABLE IF NOT EXISTS public.vendor_orders (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id text NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
+  vendor_id text NOT NULL REFERENCES public.vendors(id) ON DELETE RESTRICT,
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  customer_name text NOT NULL,
+  customer_email text,
+  customer_phone text NOT NULL,
+  customer_address text NOT NULL,
+  items jsonb NOT NULL,
+  subtotal numeric NOT NULL,
+  status text NOT NULL DEFAULT 'pending',
+  status_note text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'vendor_orders_order_vendor_unique'
+      AND conrelid = 'public.vendor_orders'::regclass
+  ) THEN
+    ALTER TABLE public.vendor_orders
+      ADD CONSTRAINT vendor_orders_order_vendor_unique UNIQUE (order_id, vendor_id);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'vendor_orders_items_array'
+      AND conrelid = 'public.vendor_orders'::regclass
+  ) THEN
+    ALTER TABLE public.vendor_orders
+      ADD CONSTRAINT vendor_orders_items_array
+      CHECK (jsonb_typeof(items) = 'array' AND jsonb_array_length(items) > 0);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'vendor_orders_subtotal_nonnegative'
+      AND conrelid = 'public.vendor_orders'::regclass
+  ) THEN
+    ALTER TABLE public.vendor_orders
+      ADD CONSTRAINT vendor_orders_subtotal_nonnegative CHECK (subtotal >= 0);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'vendor_orders_status_allowed'
+      AND conrelid = 'public.vendor_orders'::regclass
+  ) THEN
+    ALTER TABLE public.vendor_orders
+      ADD CONSTRAINT vendor_orders_status_allowed
+      CHECK (status IN ('pending', 'confirmed', 'paid', 'shipped', 'delivered', 'cancelled'));
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'vendor_orders_status_note_length'
+      AND conrelid = 'public.vendor_orders'::regclass
+  ) THEN
+    ALTER TABLE public.vendor_orders
+      ADD CONSTRAINT vendor_orders_status_note_length
+      CHECK (status_note IS NULL OR char_length(status_note) <= 500);
+  END IF;
+END
+$$;
+
+CREATE INDEX IF NOT EXISTS vendor_orders_vendor_created_idx
+  ON public.vendor_orders(vendor_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS vendor_orders_user_created_idx
+  ON public.vendor_orders(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS vendor_orders_status_idx
+  ON public.vendor_orders(status);
+
+ALTER TABLE public.vendor_orders ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "customers create own vendor orders" ON public.vendor_orders;
+CREATE POLICY "customers create own vendor orders"
+ON public.vendor_orders FOR INSERT TO authenticated
+WITH CHECK (
+  user_id = (SELECT auth.uid())
+  AND status = 'pending'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(items) AS item
+    WHERE item ->> 'vendor' IS DISTINCT FROM vendor_id
+  )
+);
+
+DROP POLICY IF EXISTS "authorized users read vendor orders" ON public.vendor_orders;
+CREATE POLICY "authorized users read vendor orders"
+ON public.vendor_orders FOR SELECT TO authenticated
+USING (
+  user_id = (SELECT auth.uid())
+  OR (((SELECT auth.jwt()) -> 'app_metadata' ->> 'role') = 'admin')
+  OR (
+    ((SELECT auth.jwt()) -> 'app_metadata' ->> 'role') = 'vendor'
+    AND vendor_id = ((SELECT auth.jwt()) -> 'app_metadata' ->> 'vendor_id')
+  )
+);
+
+DROP POLICY IF EXISTS "staff update vendor order fulfillment" ON public.vendor_orders;
+CREATE POLICY "staff update vendor order fulfillment"
+ON public.vendor_orders FOR UPDATE TO authenticated
+USING (
+  ((SELECT auth.jwt()) -> 'app_metadata' ->> 'role') = 'admin'
+  OR (
+    ((SELECT auth.jwt()) -> 'app_metadata' ->> 'role') = 'vendor'
+    AND vendor_id = ((SELECT auth.jwt()) -> 'app_metadata' ->> 'vendor_id')
+  )
+)
+WITH CHECK (
+  ((SELECT auth.jwt()) -> 'app_metadata' ->> 'role') = 'admin'
+  OR (
+    ((SELECT auth.jwt()) -> 'app_metadata' ->> 'role') = 'vendor'
+    AND vendor_id = ((SELECT auth.jwt()) -> 'app_metadata' ->> 'vendor_id')
+  )
+);
+
+REVOKE ALL ON public.vendor_orders FROM anon, authenticated;
+GRANT SELECT, INSERT ON public.vendor_orders TO authenticated;
+GRANT UPDATE (status, status_note) ON public.vendor_orders TO authenticated;
+GRANT ALL ON public.vendor_orders TO service_role;
+
+CREATE OR REPLACE FUNCTION private.set_vendor_order_updated_at()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+  NEW.updated_at := now();
+  RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION private.set_vendor_order_updated_at()
+  FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS set_vendor_order_updated_at ON public.vendor_orders;
+CREATE TRIGGER set_vendor_order_updated_at
+BEFORE UPDATE ON public.vendor_orders
+FOR EACH ROW EXECUTE FUNCTION private.set_vendor_order_updated_at();
+
+CREATE OR REPLACE FUNCTION public.place_whatsapp_order(
+  p_customer_name text,
+  p_customer_email text,
+  p_customer_phone text,
+  p_customer_address text,
+  p_items jsonb
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+DECLARE
+  v_user_id uuid := (SELECT auth.uid());
+  v_order_id text;
+  v_items jsonb;
+  v_total numeric;
+  v_requested_count integer;
+  v_product_count integer;
+  v_vendor_orders jsonb;
+BEGIN
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'Sign in before placing an order' USING ERRCODE = '42501';
+  END IF;
+
+  IF nullif(btrim(coalesce(p_customer_name, '')), '') IS NULL
+     OR nullif(btrim(coalesce(p_customer_phone, '')), '') IS NULL
+     OR nullif(btrim(coalesce(p_customer_address, '')), '') IS NULL THEN
+    RAISE EXCEPTION 'Customer name, phone, and delivery address are required';
+  END IF;
+
+  IF char_length(p_customer_name) > 150
+     OR char_length(coalesce(p_customer_email, '')) > 320
+     OR char_length(p_customer_phone) > 30
+     OR char_length(p_customer_address) > 1000 THEN
+    RAISE EXCEPTION 'Customer details are too long';
+  END IF;
+
+  IF p_items IS NULL
+     OR jsonb_typeof(p_items) <> 'array'
+     OR jsonb_array_length(p_items) = 0
+     OR jsonb_array_length(p_items) > 50 THEN
+    RAISE EXCEPTION 'Order must contain between 1 and 50 items';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(p_items) AS item
+    WHERE jsonb_typeof(item) <> 'object'
+       OR nullif(item ->> 'id', '') IS NULL
+       OR coalesce(item ->> 'qty', '') !~ '^[1-9][0-9]?$'
+  ) THEN
+    RAISE EXCEPTION 'Order contains an invalid product or quantity';
+  END IF;
+
+  WITH requested AS (
+    SELECT item ->> 'id' AS product_id,
+           sum((item ->> 'qty')::integer)::integer AS qty
+    FROM jsonb_array_elements(p_items) AS item
+    GROUP BY item ->> 'id'
+  ),
+  canonical AS (
+    SELECT p.id,
+           p.vendor,
+           p.name,
+           p.price,
+           p.image,
+           p.size,
+           r.qty
+    FROM requested r
+    JOIN public.products p ON p.id = r.product_id
+    WHERE p.in_stock = true
+      AND r.qty BETWEEN 1 AND 99
+  )
+  SELECT jsonb_agg(
+           jsonb_build_object(
+             'id', id,
+             'vendor', vendor,
+             'name', name,
+             'price', price,
+             'image', image,
+             'size', size,
+             'qty', qty
+           )
+           ORDER BY vendor, name
+         ),
+         coalesce(sum(price * qty), 0),
+         count(*)
+  INTO v_items, v_total, v_product_count
+  FROM canonical;
+
+  SELECT count(DISTINCT item ->> 'id')
+  INTO v_requested_count
+  FROM jsonb_array_elements(p_items) AS item;
+
+  IF v_items IS NULL OR v_product_count <> v_requested_count THEN
+    RAISE EXCEPTION 'One or more products are unavailable. Refresh your cart and try again.';
+  END IF;
+
+  v_order_id := 'ZS-' || to_char(now(), 'YYMMDD') || '-' ||
+    upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 6));
+
+  INSERT INTO public.orders (
+    id, user_id, customer_name, customer_email, customer_phone,
+    customer_address, items, total, status
+  )
+  VALUES (
+    v_order_id, v_user_id, btrim(p_customer_name),
+    nullif(btrim(coalesce(p_customer_email, '')), ''),
+    btrim(p_customer_phone), btrim(p_customer_address),
+    v_items, v_total, 'pending'
+  );
+
+  WITH unpacked AS (
+    SELECT item
+    FROM jsonb_array_elements(v_items) AS item
+  )
+  INSERT INTO public.vendor_orders (
+    order_id, vendor_id, user_id, customer_name, customer_email,
+    customer_phone, customer_address, items, subtotal, status
+  )
+  SELECT
+    v_order_id,
+    item ->> 'vendor',
+    v_user_id,
+    btrim(p_customer_name),
+    nullif(btrim(coalesce(p_customer_email, '')), ''),
+    btrim(p_customer_phone),
+    btrim(p_customer_address),
+    jsonb_agg(item ORDER BY item ->> 'name'),
+    sum((item ->> 'price')::numeric * (item ->> 'qty')::integer),
+    'pending'
+  FROM unpacked
+  GROUP BY item ->> 'vendor';
+
+  SELECT jsonb_agg(
+    jsonb_build_object(
+      'id', id,
+      'vendorId', vendor_id,
+      'items', items,
+      'total', subtotal,
+      'status', status
+    )
+    ORDER BY vendor_id
+  )
+  INTO v_vendor_orders
+  FROM public.vendor_orders
+  WHERE order_id = v_order_id;
+
+  RETURN jsonb_build_object(
+    'orderId', v_order_id,
+    'total', v_total,
+    'vendorOrders', coalesce(v_vendor_orders, '[]'::jsonb)
+  );
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.place_whatsapp_order(text, text, text, text, jsonb)
+  FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.place_whatsapp_order(text, text, text, text, jsonb)
+  TO authenticated;
