@@ -277,14 +277,15 @@
     <div class="success-page">
       <div class="success-card">
         <div class="success-check">✓</div>
-        <div class="success-title">Order Sent to WhatsApp!</div>
+        <div class="success-title">Order Saved — Contact Your Seller</div>
         <div class="success-orderno" id="orderNum">Order #000000</div>
         <p class="success-msg">
           Thank you for shopping with Zarah's Store! 🎉<br>
-          Your order details have been sent to Zahra's Perfume on WhatsApp.<br>
-          The seller will contact you shortly with the bank account number for payment.<br>
-          <strong>Check your WhatsApp now!</strong>
+          We opened WhatsApp for the first boutique in your order.<br>
+          If you bought from more than one boutique, use every seller button below to send each part of the order.<br>
+          Each seller will reply with delivery cost and payment details.
         </p>
+        <div id="vendorWhatsAppLinks" style="display:flex;flex-direction:column;gap:10px;margin:18px 0"></div>
         <div class="success-steps">
           <div class="success-step">
             <div class="success-step-icon">✅</div>
@@ -435,15 +436,30 @@
       return;
     }
 
-    // Open WhatsApp
-    redirectToWhatsApp(items, subtotal, customerInfo);
+    const vendorRoutes = buildVendorWhatsAppOrders(items, customerInfo);
 
-    // Clear cart and show success
+    // Clear cart and show every vendor's WhatsApp payment route.
     Cart.clearCart();
     document.getElementById('checkoutPage').style.display = 'none';
     document.getElementById('orderSuccess').style.display = 'block';
     document.getElementById('orderNum').textContent = 'Order ' + orderId;
+    renderVendorWhatsAppLinks(vendorRoutes);
+    if (vendorRoutes[0]) window.open(vendorRoutes[0].url, '_blank', 'noopener');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function renderVendorWhatsAppLinks(routes) {
+    const container = document.getElementById('vendorWhatsAppLinks');
+    if (!routes.length) {
+      container.innerHTML = '<div style="color:var(--text-3);font-size:.84rem">No seller route was found.</div>';
+      return;
+    }
+
+    container.innerHTML = routes.map(route => `
+      <a href="${route.url}" target="_blank" rel="noopener"
+         style="display:block;padding:13px;background:#25D366;color:#062d16;font-weight:800;border-radius:4px;text-align:center;font-size:.88rem">
+        Send order to ${route.vendorName} on WhatsApp — ${formatNaira(route.total)}
+      </a>`).join('');
   }
 
   function initSummary() {
