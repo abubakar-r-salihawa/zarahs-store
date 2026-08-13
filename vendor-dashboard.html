@@ -679,7 +679,7 @@
     document.getElementById('settingTagline').value = vendor.tagline;
     document.getElementById('settingDesc').value = vendor.description;
     document.getElementById('settingLogo').value = vendor.logo;
-    document.getElementById('settingEmail').value = VENDOR_CREDENTIALS[vendorId].email;
+    document.getElementById('settingEmail').value = session.email || '';
   }
 
   function saveSettings() {

@@ -267,8 +267,19 @@
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
 <script>
-  // Redirect if already logged in
-  if (Auth.isLoggedIn()) window.location.href = 'index.html';
+  function completeAuthRedirect() {
+    const next = sessionStorage.getItem('returnAfterAuth') || 'index.html';
+    sessionStorage.removeItem('returnAfterAuth');
+    window.location.href = next;
+  }
+
+  async function redirectExistingSession() {
+    if (!window.supabaseClient) return;
+    const { data: { session } } = await window.supabaseClient.auth.getSession();
+    if (session) completeAuthRedirect();
+  }
+
+  redirectExistingSession();
 
   let isOtpLogin = false;
   let activeEmail = '';
@@ -341,7 +352,7 @@
       
       const result = await Auth.login(email, password);
       if (result.success) {
-        window.location.href = 'index.html';
+        completeAuthRedirect();
       } else {
         err.textContent = '❌ ' + result.error;
         err.classList.add('show');
@@ -429,7 +440,7 @@
       ok.classList.add('show');
       setTimeout(() => {
         closeOtpModal();
-        window.location.href = 'index.html';
+        completeAuthRedirect();
       }, 1500);
     } else {
       err.textContent = '❌ Verification failed: ' + result.error;

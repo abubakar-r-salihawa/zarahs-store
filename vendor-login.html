@@ -227,38 +227,26 @@
       <div class="shop-logo">🛍️ Zarah's Store</div>
       <div class="vl-badge">🏪 Vendor Portal</div>
     </div>
-    <h1 class="vl-title">Vendor Sign In</h1>
-    <p class="vl-sub">Manage your store, products & inventory</p>
+    <h1 class="vl-title">Staff Sign In</h1>
+    <p class="vl-sub">Secure access for the store owner and approved vendors</p>
 
-    <!-- Quick vendor select -->
-    <div style="font-size:0.75rem;font-weight:700;color:#555555;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Select Your Store</div>
-    <div class="vendor-select-grid">
-      <div class="vendor-select-btn" id="vs-perfume" onclick="autofill('perfume')">
-        <span class="vs-emoji">🌸</span>
-        <span class="vs-name">Zarah's Perfume</span>
-      </div>
-      <div class="vendor-select-btn" id="vs-kitchen" onclick="autofill('kitchen')">
-        <span class="vs-emoji">🍳</span>
-        <span class="vs-name">Zarah's Kitchen</span>
-      </div>
-      <div class="vendor-select-btn" id="vs-variety" onclick="autofill('variety')">
-        <span class="vs-emoji">💎</span>
-        <span class="vs-name">Teemerh Collection</span>
-      </div>
+    <div style="background:#F7F3EC;border:1px solid #E4D5BE;border-radius:6px;padding:12px 14px;margin-bottom:18px;font-size:0.8rem;line-height:1.6;color:#5A4630">
+      Staff accounts now use Supabase Auth. Public demo passwords have been retired.
     </div>
 
     <div class="error-message" id="errorMsg"></div>
 
     <div class="vl-form">
       <div class="form-group">
-        <label class="form-label">Vendor Email</label>
+        <label class="form-label">Staff Email</label>
         <input type="email" class="form-input-light" id="vendorEmail" placeholder="vendor@yourstore.com">
       </div>
       <div class="form-group">
         <label class="form-label">Password</label>
         <input type="password" class="form-input-light" id="vendorPassword" placeholder="••••••••" onkeypress="if(event.key==='Enter')doLogin()">
       </div>
-      <button class="vl-submit" onclick="doLogin()">Sign In to Dashboard</button>
+      <button class="vl-submit" id="staffLoginBtn" onclick="doLogin()">Sign In to Dashboard</button>
+      <button class="vl-submit" onclick="doGoogleLogin()" style="background:#fff;color:#333;border:1px solid #d6d6d6;margin-top:10px;text-transform:none;letter-spacing:0">Continue with Google</button>
     </div>
 
     <div class="back-link">
@@ -273,55 +261,55 @@
 <script src="js/data.js"></script>
 <script src="js/vendor-store.js"></script>
 <script>
-  // Redirect if already logged in
-  if (AdminAuth.isLoggedIn()) {
-    window.location.href = 'admin-dashboard.html';
-  } else if (VendorAuth.isLoggedIn()) {
-    window.location.href = 'vendor-dashboard.html';
-  }
-
-  let selectedVendor = null;
-
-  function autofill(vendorId) {
-    selectedVendor = vendorId;
-    // Update button styles
-    document.querySelectorAll('.vendor-select-btn').forEach(b => {
-      b.className = 'vendor-select-btn';
-    });
-    document.getElementById('vs-' + vendorId).classList.add('selected-' + vendorId);
-
-    // Autofill email only (no password) for security and convenience
-    const credsMap = JSON.parse(localStorage.getItem('vendor_credentials_registry') || '{}');
-    const creds = credsMap[vendorId];
-    if (creds) {
-      document.getElementById('vendorEmail').value = creds.email;
+  async function routeSignedInStaff() {
+    const staff = await StaffAuth.restore();
+    if (!staff) {
+      if (sessionStorage.getItem('staffOAuthPending')) {
+        sessionStorage.removeItem('staffOAuthPending');
+        const err = document.getElementById('errorMsg');
+        err.textContent = 'This Google account does not have staff access.';
+        err.classList.add('show');
+      }
+      return;
     }
-    document.getElementById('vendorPassword').value = '';
+    window.location.href = staff.isAdmin ? 'admin-dashboard.html' : 'vendor-dashboard.html';
   }
 
   async function doLogin() {
     const email = document.getElementById('vendorEmail').value.trim();
     const password = document.getElementById('vendorPassword').value;
     const errEl = document.getElementById('errorMsg');
+    const button = document.getElementById('staffLoginBtn');
 
     if (!email || !password) {
       errEl.textContent = '⚠️ Please enter your email and password.';
-      errEl.classList.add('show'); return;
+      errEl.classList.add('show');
+      return;
     }
 
-    const result = await VendorAuth.login(email, password);
+    button.disabled = true;
+    button.textContent = 'Signing in…';
+    const result = await StaffAuth.login(email, password);
     if (result.success) {
-      errEl.classList.remove('show');
-      if (result.isAdmin) {
-        window.location.href = 'admin-dashboard.html';
-      } else {
-        window.location.href = 'vendor-dashboard.html';
-      }
-    } else {
-      errEl.textContent = '❌ ' + result.error;
-      errEl.classList.add('show');
+      window.location.href = result.isAdmin ? 'admin-dashboard.html' : 'vendor-dashboard.html';
+      return;
+    }
+    errEl.textContent = '❌ ' + result.error;
+    errEl.classList.add('show');
+    button.disabled = false;
+    button.textContent = 'Sign In to Dashboard';
+  }
+
+  async function doGoogleLogin() {
+    const result = await StaffAuth.loginWithGoogle();
+    if (!result.success) {
+      const err = document.getElementById('errorMsg');
+      err.textContent = '❌ ' + result.error;
+      err.classList.add('show');
     }
   }
+
+  routeSignedInStaff();
 </script>
 </body>
 </html>
