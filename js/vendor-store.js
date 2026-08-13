@@ -248,44 +248,63 @@ function vendorPayload(vendorId, info) {
 }
 
 const AdminVendors = {
-  async create(vendorId, info) {
-    if (!window.supabaseClient) return { success: false, error: 'Database unavailable.' };
-    const { data, error } = await window.supabaseClient
-      .from('vendors')
-      .insert(vendorPayload(vendorId, info))
-      .select()
-      .single();
-    if (error) return { success: false, error: error.message };
-    window.VENDORS[vendorId] = mapVendor(data);
-    localStorage.setItem('vendors_registry', JSON.stringify(window.VENDORS));
-    localStorage.setItem('vendor_products_' + vendorId, '[]');
-    PRODUCTS[vendorId] = [];
-    return { success: true };
+  async call(action, payload = {}) {
+    if (!window.supabaseClient) return { success: false, error: 'Vendor management is unavailable.' };
+
+    const { data, error } = await window.supabaseClient.functions.invoke('manage-vendor-access', {
+      body: { action, payload }
+    });
+
+    if (error) {
+      let message = error.message || 'Vendor details could not be saved.';
+      try {
+        const responseBody = await error.context?.json();
+        message = responseBody?.error || message;
+      } catch (_) {
+        // The Supabase client already provided the safest available message.
+      }
+      return { success: false, error: message };
+    }
+
+    return { success: true, data: data?.data ?? data };
   },
-  async update(vendorId, info) {
-    if (!window.supabaseClient) return { success: false, error: 'Database unavailable.' };
-    const payload = vendorPayload(vendorId, { ...window.VENDORS[vendorId], ...info });
-    delete payload.id;
-    const { data, error } = await window.supabaseClient
-      .from('vendors')
-      .update(payload)
-      .eq('id', vendorId)
-      .select()
-      .single();
-    if (error) return { success: false, error: error.message };
-    window.VENDORS[vendorId] = mapVendor(data);
-    localStorage.setItem('vendors_registry', JSON.stringify(window.VENDORS));
-    return { success: true };
+
+  async listAccess() {
+    return this.call('list');
   },
+
+  async create(vendorId, info, email, whatsapp) {
+    const result = await this.call('upsert', {
+      ...info,
+      id: vendorId,
+      email,
+      whatsapp
+    });
+    if (!result.success) return result;
+    await initVendorProducts();
+    return result;
+  },
+
+  async update(vendorId, info, email, whatsapp) {
+    const current = window.VENDORS[vendorId] || {};
+    const result = await this.call('upsert', {
+      ...current,
+      ...info,
+      id: vendorId,
+      email,
+      whatsapp
+    });
+    if (!result.success) return result;
+    await initVendorProducts();
+    return result;
+  },
+
   async delete(vendorId) {
-    if (!window.supabaseClient) return { success: false, error: 'Database unavailable.' };
-    const { error } = await window.supabaseClient.from('vendors').delete().eq('id', vendorId);
-    if (error) return { success: false, error: error.message };
-    delete window.VENDORS[vendorId];
-    delete PRODUCTS[vendorId];
-    localStorage.setItem('vendors_registry', JSON.stringify(window.VENDORS));
+    const result = await this.call('delete', { id: vendorId });
+    if (!result.success) return result;
+    await initVendorProducts();
     localStorage.removeItem('vendor_products_' + vendorId);
-    return { success: true };
+    return result;
   }
 };
 
