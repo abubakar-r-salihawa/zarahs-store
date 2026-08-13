@@ -483,6 +483,7 @@
   const user = Auth.getUser();
   if (user) {
     document.getElementById('email').value = user.email || '';
+    document.getElementById('phone').value = user.phone || '';
     const parts = (user.name || '').split(' ');
     document.getElementById('firstName').value = parts[0] || '';
     document.getElementById('lastName').value = parts.slice(1).join(' ') || '';
