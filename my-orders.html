@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders — Zarah's Store</title>
+  <meta name="description" content="Track your Zarah's Store boutique orders and contact vendors through WhatsApp.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body { background: var(--bg); }
+    .orders-page { max-width: 1050px; margin: 0 auto; padding: 110px 20px 60px; }
+    .orders-heading { margin-bottom: 24px; }
+    .orders-heading h1 { font-size: clamp(1.6rem, 4vw, 2.35rem); margin-bottom: 8px; }
+    .orders-heading p { color: var(--text-3); line-height: 1.6; }
+    .payment-note { padding: 14px 16px; border: 1px solid rgba(37,211,102,.28); background: rgba(37,211,102,.08); border-radius: 8px; color: var(--text-2); margin-bottom: 22px; font-size: .84rem; }
+    .order-card { border: 1px solid var(--border); background: var(--bg-2); border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
+    .order-card-head { display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; padding:16px; border-bottom:1px solid var(--border); }
+    .order-card-body { display:grid; grid-template-columns: 1fr auto; gap:20px; padding:16px; }
+    .order-item { display:flex; justify-content:space-between; gap:14px; padding:7px 0; color:var(--text-2); font-size:.84rem; }
+    .status-pill { display:inline-flex; padding:6px 10px; border-radius:100px; font-size:.72rem; font-weight:800; text-transform:capitalize; background:rgba(255,185,0,.12); color:var(--fk-yellow); }
+    .status-delivered { background:rgba(37,211,102,.12); color:#25D366; }
+    .status-cancelled { background:rgba(239,68,68,.12); color:#ef4444; }
+    .whatsapp-link { display:inline-block; padding:10px 14px; background:#25D366; color:#062d16; font-weight:800; border-radius:6px; text-align:center; font-size:.8rem; margin-top:10px; }
+    .empty-orders { padding:55px 20px; text-align:center; border:1px dashed var(--border); border-radius:10px; color:var(--text-3); }
+    @media(max-width:700px){ .order-card-body{grid-template-columns:1fr}.orders-page{padding-top:90px}.whatsapp-link{display:block} }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="nav-top">
+    <a href="index.html" class="nav-logo">Zarah's Store<span class="nav-logo-sub">Premium Marketplace</span></a>
+    <div class="nav-right">
+      <a href="index.html" class="nav-btn">Home</a>
+      <a href="cart.html" class="nav-btn cart">🛒 Cart<span class="nav-cart-count cart-count">0</span></a>
+      <button class="nav-btn" onclick="Auth.logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<main class="orders-page">
+  <div class="orders-heading">
+    <h1>My Orders</h1>
+    <p>Track each boutique separately and continue your payment or delivery conversation through WhatsApp.</p>
+  </div>
+  <div class="payment-note">💬 Zarah's Store does not collect online payments. Confirm the amount and bank details directly with each boutique on WhatsApp before transferring money.</div>
+  <div id="ordersList"><div class="empty-orders">Loading your orders…</div></div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script src="js/vendor-store.js"></script>
+<script>
+  const ORDER_STATUS_LABELS = {
+    pending: 'Pending',
+    confirmed: 'Confirmed',
+    paid: 'Paid',
+    shipped: 'Shipped',
+    delivered: 'Delivered',
+    cancelled: 'Cancelled'
+  };
+
+  function escapeOrderText(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
+  }
+
+  function vendorWhatsAppUrl(order) {
+    const boutique = window.VENDORS[order.vendor_id] || {};
+    const registry = JSON.parse(localStorage.getItem('vendors_registry') || '{}');
+    const current = registry[order.vendor_id] || boutique;
+    let digits = String(current.whatsapp || WHATSAPP_NUMBER).replace(/\D/g, '');
+    if (digits.startsWith('0')) digits = '234' + digits.slice(1);
+    const message = encodeURIComponent(
+      `Hello ${current.name || 'Zarah\'s Store'}, I am contacting you about my order ${order.order_id}.`
+    );
+    return `https://wa.me/${digits}?text=${message}`;
+  }
+
+  function renderOrders(orders) {
+    const list = document.getElementById('ordersList');
+    if (!orders.length) {
+      list.innerHTML = '<div class="empty-orders"><div style="font-size:2.5rem;margin-bottom:10px">📦</div><strong>No orders yet</strong><br><span style="font-size:.82rem">Products you order will appear here.</span></div>';
+      return;
+    }
+
+    list.innerHTML = orders.map(order => {
+      const boutique = window.VENDORS[order.vendor_id]?.name || order.vendor_id;
+      const items = Array.isArray(order.items) ? order.items.map(item =>
+        `<div class="order-item"><span>${escapeOrderText(item.name)} × ${Number(item.qty || 1)}</span><strong>${formatNaira(Number(item.price) * Number(item.qty || 1))}</strong></div>`
+      ).join('') : '';
+      const statusClass = order.status === 'delivered' ? 'status-delivered' : order.status === 'cancelled' ? 'status-cancelled' : '';
+
+      return `<article class="order-card">
+        <div class="order-card-head">
+          <div><strong>${escapeOrderText(order.order_id)}</strong><div style="font-size:.74rem;color:var(--text-3);margin-top:4px">${new Date(order.created_at).toLocaleString('en-NG')} · ${escapeOrderText(boutique)}</div></div>
+          <span class="status-pill ${statusClass}">${ORDER_STATUS_LABELS[order.status] || escapeOrderText(order.status)}</span>
+        </div>
+        <div class="order-card-body">
+          <div>${items}${order.status_note ? `<div style="margin-top:10px;padding:9px;background:var(--bg-3);border-radius:6px;font-size:.78rem;color:var(--text-2)">Seller update: ${escapeOrderText(order.status_note)}</div>` : ''}</div>
+          <div style="min-width:190px;text-align:right">
+            <div style="font-size:.72rem;color:var(--text-3)">Boutique subtotal</div>
+            <strong style="font-size:1.15rem;color:var(--fk-yellow)">${formatNaira(order.subtotal)}</strong>
+            <a class="whatsapp-link" href="${vendorWhatsAppUrl(order)}" target="_blank" rel="noopener">WhatsApp Boutique</a>
+          </div>
+        </div>
+      </article>`;
+    }).join('');
+  }
+
+  async function loadMyOrders() {
+    if (!window.supabaseClient) {
+      document.getElementById('ordersList').innerHTML = '<div class="empty-orders">Orders are temporarily unavailable.</div>';
+      return;
+    }
+    const { data: { user }, error: authError } = await window.supabaseClient.auth.getUser();
+    if (authError || !user) {
+      sessionStorage.setItem('returnAfterAuth', 'my-orders.html');
+      window.location.href = 'auth.html';
+      return;
+    }
+    const { data, error } = await window.supabaseClient
+      .from('vendor_orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      document.getElementById('ordersList').innerHTML = '<div class="empty-orders">Your orders could not be loaded. Please try again.</div>';
+      return;
+    }
+    renderOrders(data || []);
+  }
+
+  loadMyOrders();
+</script>
+</body>
+</html>
