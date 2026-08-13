@@ -207,6 +207,9 @@
       <div class="sidebar-link" id="nav-products" onclick="showTab('products')">
         <span class="link-icon">📦</span> Products
       </div>
+      <div class="sidebar-link" id="nav-orders" onclick="showTab('orders')">
+        <span class="link-icon">🛍️</span> Orders
+      </div>
       <div class="sidebar-link" id="nav-settings" onclick="showTab('settings')">
         <span class="link-icon">⚙️</span> Store Settings
       </div>
@@ -283,6 +286,42 @@
           <tbody id="productTableBody"></tbody>
         </table>
         <div class="no-products" id="noProducts" style="display:none">No products found. <span style="cursor:pointer;color:#C4B5FD" onclick="openAddModal()">Add one →</span></div>
+      </div>
+    </div>
+
+    <!-- ========== TAB: ORDERS ========== -->
+    <div class="tab-panel" id="panel-orders">
+      <div class="section-header-row">
+        <div>
+          <h2>Boutique Orders</h2>
+          <p style="font-size:.82rem;color:var(--text-muted);margin-top:5px">Confirm payment and delivery progress after speaking with each customer on WhatsApp.</p>
+        </div>
+        <select class="filter-select" id="vendorOrderFilter" onchange="renderVendorOrders()" style="min-width:150px">
+          <option value="all">All statuses</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="paid">Paid</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table class="product-table">
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Customer</th>
+              <th>My Items</th>
+              <th>Subtotal</th>
+              <th>Status</th>
+              <th>Contact</th>
+            </tr>
+          </thead>
+          <tbody id="vendorOrdersTableBody">
+            <tr><td colspan="6" style="text-align:center;color:var(--text-muted)">Loading orders...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -407,6 +446,16 @@
   const session = VendorAuth.getSession();
   const vendorId = session.vendorId;
   const vendor = VENDORS[vendorId];
+  let vendorOrders = [];
+
+  const ORDER_STATUS_LABELS = {
+    pending: 'Pending',
+    confirmed: 'Confirmed',
+    paid: 'Paid',
+    shipped: 'Shipped',
+    delivered: 'Delivered',
+    cancelled: 'Cancelled'
+  };
 
   // ---- INIT UI ----
   document.getElementById('sidebarVendorName').textContent = session.name;
@@ -434,10 +483,11 @@
     document.getElementById('panel-' + tab).classList.add('active');
     document.getElementById('nav-' + tab).classList.add('active');
 
-    const titles = { dashboard: 'Dashboard', products: 'My Products', settings: 'Store Settings' };
+    const titles = { dashboard: 'Dashboard', products: 'My Products', orders: 'Boutique Orders', settings: 'Store Settings' };
     document.getElementById('pageTitle').textContent = titles[tab] || tab;
 
     if (tab === 'products') renderProductTable();
+    if (tab === 'orders') renderVendorOrders();
     if (tab === 'settings') populateSettings();
     if (tab === 'dashboard') renderDashboard();
   }
@@ -467,6 +517,12 @@
         <div class="stat-card-label">Out of Stock</div>
         <div class="stat-card-value" style="color:#EF4444">${products.length - inStock}</div>
         <div class="stat-card-change positive">Requires restocking</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon">🛍️</div>
+        <div class="stat-card-label">Orders to Process</div>
+        <div class="stat-card-value" style="color:#8B5CF6">${vendorOrders.filter(order => !['delivered','cancelled'].includes(order.status)).length}</div>
+        <div class="stat-card-change positive">${vendorOrders.length} total boutique orders</div>
       </div>`;
 
     // Recent products
@@ -491,6 +547,98 @@
         </div>
         <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.5;margin:0">${r.comment.substring(0, 90)}${r.comment.length > 90 ? '…' : ''}</p>
       </div>`).join('');
+  }
+
+  // ---- BOUTIQUE ORDERS ----
+  function escapeOrderText(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
+  }
+
+  function customerWhatsAppUrl(order) {
+    let digits = String(order.customer_phone || '').replace(/\D/g, '');
+    if (digits.startsWith('0')) digits = '234' + digits.slice(1);
+    const message = encodeURIComponent(
+      `Hello ${order.customer_name}, this is ${vendor.name} regarding your Zarah's Store order ${order.order_id}.`
+    );
+    return `https://wa.me/${digits}?text=${message}`;
+  }
+
+  async function loadVendorOrders() {
+    const { data, error } = await window.supabaseClient
+      .from('vendor_orders')
+      .select('*')
+      .eq('vendor_id', vendorId)
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.error('Vendor orders could not be loaded:', error);
+      vendorOrders = [];
+      return;
+    }
+    vendorOrders = data || [];
+  }
+
+  function renderVendorOrders() {
+    const tbody = document.getElementById('vendorOrdersTableBody');
+    const selectedStatus = document.getElementById('vendorOrderFilter')?.value || 'all';
+    const orders = selectedStatus === 'all'
+      ? vendorOrders
+      : vendorOrders.filter(order => order.status === selectedStatus);
+
+    if (!orders.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">No orders in this status yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = orders.map(order => {
+      const items = Array.isArray(order.items) ? order.items.map(item =>
+        `<div style="font-size:.78rem">• ${escapeOrderText(item.name)} (×${Number(item.qty || 1)})</div>`
+      ).join('') : '';
+      const options = Object.entries(ORDER_STATUS_LABELS).map(([value, label]) =>
+        `<option value="${value}" ${order.status === value ? 'selected' : ''}>${label}</option>`
+      ).join('');
+
+      return `<tr>
+        <td><strong>${escapeOrderText(order.order_id)}</strong><br><span style="font-size:.7rem;color:var(--text-muted)">${new Date(order.created_at).toLocaleString('en-NG')}</span></td>
+        <td><strong>${escapeOrderText(order.customer_name)}</strong><br><span style="font-size:.72rem;color:var(--text-muted)">${escapeOrderText(order.customer_phone)}</span><br><span style="font-size:.7rem;color:var(--text-muted)">${escapeOrderText(order.customer_address)}</span></td>
+        <td>${items}</td>
+        <td><strong>₦${Number(order.subtotal).toLocaleString('en-NG')}</strong></td>
+        <td><select class="filter-select" onchange="updateVendorOrderStatus('${order.id}', this.value)" style="min-width:120px">${options}</select>
+          ${order.status_note ? `<div style="font-size:.7rem;color:var(--text-muted);margin-top:6px">${escapeOrderText(order.status_note)}</div>` : ''}
+          <button onclick="saveVendorOrderNote('${order.id}')" style="display:block;margin-top:6px;border:0;background:transparent;color:#8B5CF6;cursor:pointer;font-size:.72rem">Add note</button></td>
+        <td><a href="${customerWhatsAppUrl(order)}" target="_blank" rel="noopener" style="color:#059669;font-weight:700;font-size:.78rem">WhatsApp customer</a></td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function updateVendorOrderStatus(id, status) {
+    const { error } = await window.supabaseClient
+      .from('vendor_orders')
+      .update({ status })
+      .eq('id', id)
+      .eq('vendor_id', vendorId);
+    if (error) {
+      alert('Status could not be updated: ' + error.message);
+    }
+    await loadVendorOrders();
+    renderVendorOrders();
+    renderDashboard();
+  }
+
+  async function saveVendorOrderNote(id) {
+    const order = vendorOrders.find(item => item.id === id);
+    if (!order) return;
+    const note = prompt('Add a short customer-visible update:', order.status_note || '');
+    if (note === null) return;
+    const { error } = await window.supabaseClient
+      .from('vendor_orders')
+      .update({ status_note: note.trim() || null })
+      .eq('id', id)
+      .eq('vendor_id', vendorId);
+    if (error) alert('Note could not be saved: ' + error.message);
+    await loadVendorOrders();
+    renderVendorOrders();
   }
 
   // ---- PRODUCT TABLE ----
@@ -706,7 +854,8 @@
 
 
   // ---- INIT ----
-  function initAllDashboard() {
+  async function initAllDashboard() {
+    await loadVendorOrders();
     // Update topbar avatar / settings in case vendor info changed in DB
     const currentVendor = VENDORS[vendorId] || vendor;
     document.getElementById('topbarAvatar').textContent = currentVendor.logo;
