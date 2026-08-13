@@ -1371,7 +1371,7 @@ input, select, textarea { font-family: inherit; }
   .nav-sub-link {
     box-sizing: border-box;
     flex: 0 0 20%;
-    min-width: 72px;
+    min-width: 56px;
     min-height: 56px;
     padding: 6px 3px;
     border-radius: 0;
