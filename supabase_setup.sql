@@ -835,3 +835,336 @@ create trigger promotions_set_updated_at
 before update on public.promotions
 for each row execute function private.set_promotion_updated_at();
 
+
+
+-- ============================================================
+-- VENDOR SUBSCRIPTIONS AND MANUAL BANK-TRANSFER RENEWALS
+-- ============================================================
+
+create table public.vendor_subscriptions (
+  vendor_id text primary key references public.vendors(id) on update cascade on delete cascade,
+  plan text not null default 'trial',
+  status text not null default 'trial',
+  access_started_at timestamptz not null default now(),
+  current_period_start timestamptz not null default now(),
+  access_ends_at timestamptz not null,
+  last_payment_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint vendor_subscriptions_plan_check check (plan in ('trial','launch','monthly','annual')),
+  constraint vendor_subscriptions_status_check check (status in ('trial','active','suspended','cancelled')),
+  constraint vendor_subscriptions_period_check check (access_ends_at > current_period_start)
+);
+
+create table public.subscription_payments (
+  id uuid primary key default gen_random_uuid(),
+  vendor_id text not null references public.vendors(id) on update cascade on delete cascade,
+  plan text not null,
+  amount numeric(12,2) not null,
+  period_start timestamptz not null,
+  period_end timestamptz not null,
+  payment_status text not null default 'paid',
+  notes text,
+  confirmed_by uuid references auth.users(id) on delete set null default auth.uid(),
+  confirmed_at timestamptz not null default now(),
+  created_at timestamptz not null default now(),
+  constraint subscription_payments_plan_check check (plan in ('launch','monthly','annual')),
+  constraint subscription_payments_amount_check check (amount > 0),
+  constraint subscription_payments_period_check check (period_end > period_start),
+  constraint subscription_payments_status_check check (payment_status in ('paid','refunded')),
+  constraint subscription_payments_notes_check check (notes is null or char_length(notes) <= 500)
+);
+
+create index vendor_subscriptions_access_idx
+  on public.vendor_subscriptions (status, access_ends_at);
+create index subscription_payments_vendor_idx
+  on public.subscription_payments (vendor_id, confirmed_at desc);
+create index subscription_payments_confirmed_by_idx
+  on public.subscription_payments (confirmed_by)
+  where confirmed_by is not null;
+
+alter table public.vendor_subscriptions enable row level security;
+alter table public.subscription_payments enable row level security;
+
+create policy "Public sees active vendor access and staff see their records"
+on public.vendor_subscriptions
+for select
+to anon, authenticated
+using (
+  (status in ('trial','active') and access_ends_at > now())
+  or coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') = 'admin'
+  or vendor_id = coalesce((select auth.jwt()) -> 'app_metadata' ->> 'vendor_id', '')
+);
+
+create policy "Admins create vendor subscriptions"
+on public.vendor_subscriptions
+for insert
+to authenticated
+with check (coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') = 'admin');
+
+create policy "Admins update vendor subscriptions"
+on public.vendor_subscriptions
+for update
+to authenticated
+using (coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') = 'admin')
+with check (coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') = 'admin');
+
+create policy "Admins delete vendor subscriptions"
+on public.vendor_subscriptions
+for delete
+to authenticated
+using (coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') = 'admin');
+
+create policy "Admins and vendors view subscription payments"
+on public.subscription_payments
+for select
+to authenticated
+using (
+  coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') = 'admin'
+  or vendor_id = coalesce((select auth.jwt()) -> 'app_metadata' ->> 'vendor_id', '')
+);
+
+create policy "Admins record subscription payments"
+on public.subscription_payments
+for insert
+to authenticated
+with check (
+  coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') = 'admin'
+  and confirmed_by = (select auth.uid())
+);
+
+create policy "Admins update subscription payments"
+on public.subscription_payments
+for update
+to authenticated
+using (coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') = 'admin')
+with check (coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') = 'admin');
+
+create policy "Admins delete subscription payments"
+on public.subscription_payments
+for delete
+to authenticated
+using (coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') = 'admin');
+
+revoke all on table public.vendor_subscriptions from public, anon, authenticated;
+grant select on table public.vendor_subscriptions to anon, authenticated;
+grant insert, update, delete on table public.vendor_subscriptions to authenticated;
+
+revoke all on table public.subscription_payments from public, anon, authenticated;
+grant select, insert, update, delete on table public.subscription_payments to authenticated;
+
+create or replace function private.set_vendor_subscription_updated_at()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+revoke all on function private.set_vendor_subscription_updated_at() from public, anon, authenticated;
+
+create trigger vendor_subscriptions_set_updated_at
+before update on public.vendor_subscriptions
+for each row execute function private.set_vendor_subscription_updated_at();
+
+create or replace function private.start_vendor_subscription_trial()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  insert into public.vendor_subscriptions (
+    vendor_id, plan, status, access_started_at, current_period_start, access_ends_at
+  ) values (
+    new.id, 'trial', 'trial', now(), now(), now() + interval '30 days'
+  ) on conflict (vendor_id) do nothing;
+  return new;
+end;
+$$;
+revoke all on function private.start_vendor_subscription_trial() from public, anon, authenticated;
+
+create trigger vendors_start_subscription_trial
+after insert on public.vendors
+for each row execute function private.start_vendor_subscription_trial();
+
+insert into public.vendor_subscriptions (
+  vendor_id, plan, status, access_started_at, current_period_start, access_ends_at
+)
+select id, 'trial', 'trial', now(), now(), now() + interval '30 days'
+from public.vendors
+on conflict (vendor_id) do nothing;
+
+create policy "Subscribed boutiques remain visible"
+on public.vendors
+as restrictive
+for select
+to anon, authenticated
+using (
+  coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') = 'admin'
+  or id = coalesce((select auth.jwt()) -> 'app_metadata' ->> 'vendor_id', '')
+  or exists (
+    select 1
+    from public.vendor_subscriptions subscription
+    where subscription.vendor_id = vendors.id
+      and subscription.status in ('trial','active')
+      and subscription.access_ends_at > now()
+  )
+);
+
+create policy "Subscribed products remain visible"
+on public.products
+as restrictive
+for select
+to anon, authenticated
+using (
+  coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') = 'admin'
+  or vendor = coalesce((select auth.jwt()) -> 'app_metadata' ->> 'vendor_id', '')
+  or exists (
+    select 1
+    from public.vendor_subscriptions subscription
+    where subscription.vendor_id = products.vendor
+      and subscription.status in ('trial','active')
+      and subscription.access_ends_at > now()
+  )
+);
+
+create or replace function public.record_vendor_subscription_payment(
+  p_vendor_id text,
+  p_plan text,
+  p_notes text default null
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_amount numeric(12,2);
+  v_duration interval;
+  v_existing_end timestamptz;
+  v_period_start timestamptz;
+  v_period_end timestamptz;
+  v_payment_id uuid;
+  v_launch_count integer;
+begin
+  if coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') <> 'admin' then
+    raise exception 'Admin access is required';
+  end if;
+
+  if p_plan = 'launch' then
+    v_amount := 5000;
+    v_duration := interval '30 days';
+    select count(*) into v_launch_count
+    from public.subscription_payments
+    where vendor_id = p_vendor_id
+      and plan = 'launch'
+      and payment_status = 'paid';
+    if v_launch_count >= 3 then
+      raise exception 'This boutique has already used all three launch-rate renewals';
+    end if;
+  elsif p_plan = 'monthly' then
+    v_amount := 10000;
+    v_duration := interval '30 days';
+  elsif p_plan = 'annual' then
+    v_amount := 100000;
+    v_duration := interval '365 days';
+  else
+    raise exception 'Invalid subscription plan';
+  end if;
+
+  select access_ends_at into v_existing_end
+  from public.vendor_subscriptions
+  where vendor_id = p_vendor_id
+  for update;
+
+  if not found then
+    raise exception 'Subscription record not found';
+  end if;
+
+  v_period_start := greatest(v_existing_end, now());
+  v_period_end := v_period_start + v_duration;
+
+  insert into public.subscription_payments (
+    vendor_id, plan, amount, period_start, period_end, payment_status, notes, confirmed_by
+  ) values (
+    p_vendor_id, p_plan, v_amount, v_period_start, v_period_end, 'paid',
+    nullif(trim(p_notes), ''), (select auth.uid())
+  )
+  returning id into v_payment_id;
+
+  update public.vendor_subscriptions
+  set plan = p_plan,
+      status = 'active',
+      current_period_start = v_period_start,
+      access_ends_at = v_period_end,
+      last_payment_at = now()
+  where vendor_id = p_vendor_id;
+
+  return jsonb_build_object(
+    'paymentId', v_payment_id,
+    'vendorId', p_vendor_id,
+    'plan', p_plan,
+    'amount', v_amount,
+    'periodStart', v_period_start,
+    'periodEnd', v_period_end
+  );
+end;
+$$;
+
+revoke all on function public.record_vendor_subscription_payment(text,text,text) from public, anon;
+grant execute on function public.record_vendor_subscription_payment(text,text,text) to authenticated;
+
+create or replace function public.manage_vendor_subscription(
+  p_vendor_id text,
+  p_action text,
+  p_days integer default null
+)
+returns public.vendor_subscriptions
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_result public.vendor_subscriptions;
+begin
+  if coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') <> 'admin' then
+    raise exception 'Admin access is required';
+  end if;
+
+  if p_action = 'suspend' then
+    update public.vendor_subscriptions set status = 'suspended'
+    where vendor_id = p_vendor_id returning * into v_result;
+  elsif p_action = 'resume' then
+    update public.vendor_subscriptions
+    set status = case when plan = 'trial' then 'trial' else 'active' end
+    where vendor_id = p_vendor_id returning * into v_result;
+  elsif p_action = 'grant_days' then
+    if p_days is null or p_days < 1 or p_days > 365 then
+      raise exception 'Days must be between 1 and 365';
+    end if;
+    update public.vendor_subscriptions
+    set access_ends_at = greatest(access_ends_at, now()) + make_interval(days => p_days),
+        status = case
+          when status = 'suspended' then 'suspended'
+          when plan = 'trial' then 'trial'
+          else 'active'
+        end
+    where vendor_id = p_vendor_id returning * into v_result;
+  else
+    raise exception 'Invalid subscription action';
+  end if;
+
+  if v_result.vendor_id is null then
+    raise exception 'Subscription record not found';
+  end if;
+  return v_result;
+end;
+$$;
+
+revoke all on function public.manage_vendor_subscription(text,text,integer) from public, anon;
+grant execute on function public.manage_vendor_subscription(text,text,integer) to authenticated;
+
