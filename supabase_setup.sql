@@ -772,6 +772,8 @@ create index promotions_vendor_idx on public.promotions (vendor_id, created_at d
   where vendor_id is not null;
 create index promotions_product_idx on public.promotions (product_id, created_at desc)
   where product_id is not null;
+create index promotions_created_by_idx on public.promotions (created_by)
+  where created_by is not null;
 
 alter table public.promotions enable row level security;
 
@@ -786,7 +788,7 @@ using (
     and starts_at <= now()
     and ends_at > now()
   )
-  or coalesce((select auth.jwt() -> 'app_metadata' ->> 'role'), '') = 'admin'
+  or coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') = 'admin'
 );
 
 create policy "Admins can create promotions"
@@ -794,7 +796,7 @@ on public.promotions
 for insert
 to authenticated
 with check (
-  coalesce((select auth.jwt() -> 'app_metadata' ->> 'role'), '') = 'admin'
+  coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') = 'admin'
   and created_by = (select auth.uid())
 );
 
@@ -802,15 +804,16 @@ create policy "Admins can update promotions"
 on public.promotions
 for update
 to authenticated
-using (coalesce((select auth.jwt() -> 'app_metadata' ->> 'role'), '') = 'admin')
-with check (coalesce((select auth.jwt() -> 'app_metadata' ->> 'role'), '') = 'admin');
+using (coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') = 'admin')
+with check (coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') = 'admin');
 
 create policy "Admins can delete promotions"
 on public.promotions
 for delete
 to authenticated
-using (coalesce((select auth.jwt() -> 'app_metadata' ->> 'role'), '') = 'admin');
+using (coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') = 'admin');
 
+revoke all on table public.promotions from public, anon, authenticated;
 grant select on table public.promotions to anon, authenticated;
 grant insert, update, delete on table public.promotions to authenticated;
 
