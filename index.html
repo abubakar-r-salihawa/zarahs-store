@@ -72,6 +72,15 @@
       </div>
     </div>
 
+    <!-- PAID ADVERTISING BANNERS -->
+    <section class="sponsored-banner-section" id="sponsoredBannerSection" hidden aria-label="Sponsored offers">
+      <div class="sponsored-banner-header">
+        <span class="sponsored-disclosure">Paid placement</span>
+        <span style="font-size:.72rem;color:rgba(255,255,255,.68)">Promoted offers from marketplace businesses</span>
+      </div>
+      <div class="sponsored-banner-track" id="sponsoredBannerSlot"></div>
+    </section>
+
     <!-- CATEGORY STRIP -->
     <div class="cat-strip-wrap">
       <div class="cat-strip">
@@ -231,6 +240,64 @@
 <script>
   initVendorProducts();
   
+
+  function escapePromotionText(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
+  }
+
+  function safePromotionUrl(value, fallback = 'index.html') {
+    const url = String(value || '').trim();
+    if (!url) return fallback;
+    if (/^(https?:\/\/|[a-z0-9][a-z0-9._/-]*(?:\?[^\s]*)?$)/i.test(url)) return url;
+    return fallback;
+  }
+
+  function activePromotions(type) {
+    return (window.PROMOTIONS || [])
+      .filter(item => item.promotion_type === type)
+      .sort((a, b) => Number(b.placement_level || 1) - Number(a.placement_level || 1));
+  }
+
+  function getHomepageVendorIds() {
+    const promoted = activePromotions('boutique').map(item => item.vendor_id);
+    return [...new Set([...promoted, ...Object.keys(VENDORS)])].filter(id => VENDORS[id]);
+  }
+
+  function getSponsoredProductIds() {
+    return new Set(activePromotions('product').map(item => item.product_id));
+  }
+
+  function renderSponsoredBanners() {
+    const section = document.getElementById('sponsoredBannerSection');
+    const slot = document.getElementById('sponsoredBannerSlot');
+    if (!section || !slot) return;
+    const banners = activePromotions('banner');
+    section.hidden = banners.length === 0;
+    if (!banners.length) {
+      slot.innerHTML = '';
+      return;
+    }
+
+    slot.innerHTML = banners.map(banner => {
+      const vendor = banner.vendor_id ? VENDORS[banner.vendor_id] : null;
+      const fallbackLink = vendor?.page || (banner.vendor_id ? `store.html?vendor=${banner.vendor_id}` : 'index.html#stores-section');
+      const link = safePromotionUrl(banner.link_url, fallbackLink);
+      const image = safePromotionUrl(banner.image_url, 'images/perfume/zahra-collection-oils.jpg');
+      return `<a class="sponsored-banner" href="${escapePromotionText(link)}">
+        <div class="sponsored-banner-copy">
+          <span class="sponsored-disclosure">Sponsored advertisement</span>
+          <h3>${escapePromotionText(banner.title)}</h3>
+          <p>${escapePromotionText(banner.subtitle || 'Discover this promoted offer on Zarah\'s Store.')}</p>
+          <span class="sponsored-banner-cta">View offer →</span>
+        </div>
+        <img class="sponsored-banner-image" src="${escapePromotionText(image)}" alt="${escapePromotionText(banner.title)}" loading="lazy">
+      </a>`;
+    }).join('');
+  }
+
+
   // Render Dynamic Navigation Links
   function renderBoutiquesMenu() {
     const subnav = document.getElementById('navSubLinks');
@@ -254,7 +321,8 @@
     if (!showcase) return;
     showcase.innerHTML = '';
 
-    Object.keys(VENDORS).forEach(id => {
+    const featuredBoutiques = new Set(activePromotions('boutique').map(item => item.vendor_id));
+    getHomepageVendorIds().forEach(id => {
       const v = VENDORS[id];
       const pageLink = v.page || `store.html?vendor=${id}`;
 
@@ -272,6 +340,7 @@
 
       showcase.innerHTML += `
       <div class="boutique-card" onclick="window.location.href='${pageLink}'">
+        ${featuredBoutiques.has(id) ? '<span class="paid-placement-badge">Featured boutique · Paid</span>' : ''}
         <img src="${imgUrl}" alt="${v.name}" onerror="this.style.background='${v.primaryColor || '#8B5A2B'}'">
         <div class="boutique-overlay">
           <div class="boutique-glass-plate">
@@ -330,6 +399,7 @@
         ${!p.inStock ? '<div class="oos-overlay"><span>Out of Stock</span></div>' : ''}
       </div>
       <div class="minimal-card-body">
+        ${getSponsoredProductIds().has(p.id) ? '<span class="minimal-card-sponsored">Sponsored product · Paid</span>' : ''}
         <div class="minimal-card-brand">${v.name}</div>
         <div class="minimal-card-title">${p.name}</div>
         <div class="minimal-card-rating">
@@ -350,8 +420,12 @@
   function renderAll() {
     renderBoutiquesMenu();
     renderBoutiquesShowcase();
+    renderSponsoredBanners();
 
-    const featured = getFeaturedProducts(8);
+    const sponsoredIds = [...getSponsoredProductIds()];
+    const sponsoredProducts = sponsoredIds.map(getProductById).filter(Boolean);
+    const organicFeatured = getFeaturedProducts(8).filter(product => !sponsoredIds.includes(product.id));
+    const featured = [...sponsoredProducts, ...organicFeatured].slice(0, 8);
     const gridF = document.getElementById('featuredGrid');
     if (gridF) gridF.innerHTML = featured.map(renderFkCard).join('');
 
