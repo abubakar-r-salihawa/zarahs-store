@@ -373,7 +373,43 @@
     @media(max-width:960px){.subscription-layout{grid-template-columns:1fr}.subscription-summary{grid-template-columns:1fr}}
     @media(max-width:560px){.subscription-form-panel{padding:16px}}
 
-  </style>
+  
+    /* Mobile safety and accessible subscription actions */
+    .admin-grid,
+    .admin-card,
+    .promotion-card,
+    .subscription-card,
+    .promotion-layout,
+    .subscription-layout,
+    .promotion-form-panel,
+    .subscription-form-panel { min-width:0; }
+
+    .btn-admin-primary {
+      min-height:44px;
+      padding:12px 18px;
+      border:1px solid #93C5FD;
+      border-radius:6px;
+      background:#93C5FD;
+      color:#0B1220;
+      font:700 .78rem/1 var(--font-sans);
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      cursor:pointer;
+      touch-action:manipulation;
+    }
+    .btn-admin-primary:hover { background:#BFDBFE; border-color:#BFDBFE; }
+    .btn-admin-primary:disabled { opacity:.55; cursor:not-allowed; }
+
+    @media (max-width:560px) {
+      .admin-container { padding:24px 12px; }
+      .admin-header { align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px; }
+      .admin-title-wrap h1 { font-size:1.8rem; }
+      .admin-card { width:100%;max-width:100%;padding:20px 16px; }
+      .promotion-table-wrap,
+      .subscription-table-wrap,
+      .admin-card > div[style*="overflow-x"] { max-width:100%; }
+    }
+</style>
 </head>
 <body>
 
