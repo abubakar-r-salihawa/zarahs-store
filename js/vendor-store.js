@@ -19,6 +19,8 @@ Object.keys(window.VENDORS).forEach(vendorId => {
 
 // These were legacy demo rows from the original setup script. They remain
 // archived in the database for safety, but are not shown in the live catalog.
+window.PROMOTIONS = [];
+
 const LEGACY_DEMO_PRODUCT_IDS = new Set([
   'perfume-1', 'perfume-2', 'perfume-3', 'perfume-4', 'perfume-5', 'perfume-6',
   'kitchen-1', 'kitchen-2', 'kitchen-3', 'kitchen-4', 'kitchen-5',
@@ -73,14 +75,22 @@ async function initVendorProducts() {
   if (!window.supabaseClient) return;
 
   try {
-    const [{ data: dbVendors, error: vendorError }, { data: dbProducts, error: productError }] =
-      await Promise.all([
-        window.supabaseClient.from('vendors').select('*'),
-        window.supabaseClient.from('products').select('*')
-      ]);
+    const [
+      { data: dbVendors, error: vendorError },
+      { data: dbProducts, error: productError },
+      { data: dbPromotions, error: promotionError }
+    ] = await Promise.all([
+      window.supabaseClient.from('vendors').select('*'),
+      window.supabaseClient.from('products').select('*'),
+      window.supabaseClient.from('promotions').select('*')
+        .order('placement_level', { ascending: false })
+        .order('created_at', { ascending: false })
+    ]);
 
     if (vendorError) throw vendorError;
     if (productError) throw productError;
+    if (promotionError) console.error('Promotions could not be loaded.', promotionError);
+    window.PROMOTIONS = promotionError ? [] : (dbPromotions || []);
 
     if (dbVendors && dbVendors.length) {
       const registry = {};
