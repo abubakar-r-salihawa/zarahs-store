@@ -316,6 +316,39 @@
       margin-bottom: 20px;
       display: none;
     }
+
+    .promotion-card { margin-top: 40px; }
+    .promotion-summary { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0 24px; }
+    .promotion-stat { border:1px solid rgba(212,175,55,.24);background:rgba(212,175,55,.06);padding:16px;border-radius:10px; }
+    .promotion-stat strong { display:block;color:var(--gold);font-size:1.25rem;margin-top:5px; }
+    .promotion-stat span { color:var(--text-muted);font-size:.75rem; }
+    .promotion-layout { display:grid;grid-template-columns:minmax(280px,.85fr) minmax(420px,1.4fr);gap:24px;align-items:start; }
+    .promotion-form-panel { border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:20px;background:rgba(255,255,255,.02); }
+    .promotion-fields-row { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+    .promotion-fee { padding:14px;border-radius:8px;background:rgba(212,175,55,.09);border:1px solid rgba(212,175,55,.25);color:var(--text-light);font-size:.82rem; }
+    .promotion-fee strong { display:block;color:var(--gold);font-size:1.2rem;margin-top:4px; }
+    .promotion-help { color:var(--text-muted);font-size:.75rem;line-height:1.55;margin-top:6px; }
+    .promotion-checkbox { display:flex;align-items:flex-start;gap:10px;color:var(--text-light);font-size:.82rem;line-height:1.4; }
+    .promotion-checkbox input { width:18px;height:18px;margin-top:1px;accent-color:var(--gold); }
+    .promotion-status { display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em; }
+    .promotion-status.active { color:#80e6a2;background:rgba(37,211,102,.12); }
+    .promotion-status.pending,.promotion-status.draft { color:#f2d477;background:rgba(212,175,55,.12); }
+    .promotion-status.paused { color:#b8c4d9;background:rgba(148,163,184,.13); }
+    .promotion-status.expired,.promotion-status.cancelled,.promotion-status.refunded { color:#ff9393;background:rgba(239,68,68,.12); }
+    .promotion-actions { display:flex;gap:6px;flex-wrap:wrap;margin-top:8px; }
+    .promotion-actions button { min-height:36px;border-radius:6px;border:1px solid rgba(255,255,255,.16);background:transparent;color:var(--text-light);padding:6px 9px;cursor:pointer;font-size:.7rem; }
+    .promotion-actions button:hover { border-color:var(--gold);color:var(--gold); }
+    .promotion-table-wrap { overflow-x:auto; }
+    .promotion-empty { text-align:center;color:var(--text-muted);padding:24px!important; }
+    @media (max-width: 900px) {
+      .promotion-layout { grid-template-columns:1fr; }
+      .promotion-summary { grid-template-columns:1fr; }
+    }
+    @media (max-width: 560px) {
+      .promotion-fields-row { grid-template-columns:1fr; }
+      .promotion-form-panel { padding:16px; }
+    }
+
   </style>
 </head>
 <body>
@@ -432,6 +465,110 @@
     </div>
 
   </div>
+
+
+  <!-- PAID PROMOTIONS -->
+  <div class="admin-card promotion-card">
+    <div>
+      <p style="text-transform:uppercase;letter-spacing:.14em;color:var(--gold);font-size:.68rem;margin-bottom:7px">Revenue tools</p>
+      <h2 class="card-title" style="margin-bottom:8px">Paid Homepage Promotions</h2>
+      <p style="font-size:.8rem;color:var(--text-muted);line-height:1.55">Create featured boutiques, sponsored products, and advertising banners after confirming the advertiser's bank transfer. Unpaid and expired promotions never appear publicly.</p>
+    </div>
+
+    <div class="promotion-summary">
+      <div class="promotion-stat"><span>Promotion revenue received</span><strong id="promotionRevenue">₦0</strong></div>
+      <div class="promotion-stat"><span>Live placements</span><strong id="promotionLiveCount">0</strong></div>
+      <div class="promotion-stat"><span>Awaiting payment</span><strong id="promotionPendingCount">0</strong></div>
+    </div>
+
+    <div class="promotion-layout">
+      <div class="promotion-form-panel">
+        <h3 style="font-size:1rem;margin-bottom:18px;color:var(--text-light)">Create a promotion</h3>
+        <div class="error-banner" id="promotionError"></div>
+        <form class="admin-form" id="promotionForm" onsubmit="event.preventDefault(); createPromotion();">
+          <div class="form-group">
+            <label class="form-label" for="promotionType">Promotion type</label>
+            <select class="form-input" id="promotionType" onchange="syncPromotionForm(true)">
+              <option value="boutique">Featured boutique — ₦1,000/week</option>
+              <option value="product">Featured product — ₦500/week</option>
+              <option value="banner">Homepage banner — ₦5,000–₦15,000/month</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="promotionVendorGroup">
+            <label class="form-label" for="promotionVendor">Boutique</label>
+            <select class="form-input" id="promotionVendor" onchange="populatePromotionProducts()"></select>
+          </div>
+
+          <div class="form-group" id="promotionProductGroup" style="display:none">
+            <label class="form-label" for="promotionProduct">Product</label>
+            <select class="form-input" id="promotionProduct"></select>
+          </div>
+
+          <div id="promotionBannerFields" style="display:none">
+            <div class="form-group">
+              <label class="form-label" for="promotionBannerTier">Banner package</label>
+              <select class="form-input" id="promotionBannerTier" onchange="calculatePromotionFee()">
+                <option value="5000">Starter — ₦5,000/month</option>
+                <option value="10000">Spotlight — ₦10,000/month</option>
+                <option value="15000">Premium — ₦15,000/month</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="promotionTitle">Banner headline</label>
+              <input class="form-input" id="promotionTitle" maxlength="100" placeholder="e.g. New Eid Collection">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="promotionSubtitle">Short description</label>
+              <textarea class="form-input" id="promotionSubtitle" maxlength="240" rows="3" placeholder="Tell shoppers what makes this offer special"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="promotionImage">Banner image URL</label>
+              <input class="form-input" id="promotionImage" type="url" placeholder="https://example.com/banner.jpg">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="promotionLink">Destination link</label>
+              <input class="form-input" id="promotionLink" placeholder="store.html?vendor=... or https://...">
+              <div class="promotion-help">Use a store page, product page, or a trusted external website.</div>
+            </div>
+          </div>
+
+          <div class="promotion-fields-row">
+            <div class="form-group">
+              <label class="form-label" for="promotionStart">Starts</label>
+              <input class="form-input" id="promotionStart" type="date" required onchange="calculatePromotionFee()">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="promotionEnd">Ends</label>
+              <input class="form-input" id="promotionEnd" type="date" required onchange="calculatePromotionFee()">
+            </div>
+          </div>
+
+          <div class="promotion-fee">
+            Fee calculated from the selected dates
+            <strong id="promotionCalculatedFee">₦0</strong>
+            <span id="promotionBillingNote" class="promotion-help"></span>
+          </div>
+
+          <label class="promotion-checkbox">
+            <input type="checkbox" id="promotionPaymentReceived">
+            <span>I have confirmed the bank transfer. Publish this promotion during its scheduled dates.</span>
+          </label>
+
+          <button type="submit" class="btn-admin-primary" id="promotionSubmit">Save promotion</button>
+          <div id="promotionSuccess" style="display:none;color:#80e6a2;font-size:.8rem">Promotion saved successfully.</div>
+        </form>
+      </div>
+
+      <div class="promotion-table-wrap">
+        <table class="vendor-table">
+          <thead><tr><th>Placement</th><th>Schedule</th><th>Fee</th><th>Status / Actions</th></tr></thead>
+          <tbody id="promotionTableBody"><tr><td colspan="4" class="promotion-empty">Loading promotions...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
 
   <!-- CUSTOMER ORDERS CARD -->
   <div class="admin-card" style="margin-top: 40px;">
@@ -650,6 +787,260 @@
     }
   }
 
+
+  let adminPromotions = [];
+
+  function promotionDateValue(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function setPromotionDates() {
+    const type = document.getElementById('promotionType').value;
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(end.getDate() + (type === 'banner' ? 30 : 7));
+    document.getElementById('promotionStart').value = promotionDateValue(start);
+    document.getElementById('promotionEnd').value = promotionDateValue(end);
+  }
+
+  function populatePromotionVendors() {
+    const select = document.getElementById('promotionVendor');
+    const current = select.value;
+    select.innerHTML = Object.values(window.VENDORS).map(v =>
+      `<option value="${escapeOrderText(v.id)}">${escapeOrderText(v.name)}</option>`
+    ).join('');
+    if (current && window.VENDORS[current]) select.value = current;
+    populatePromotionProducts();
+  }
+
+  function populatePromotionProducts() {
+    const vendorId = document.getElementById('promotionVendor').value;
+    const select = document.getElementById('promotionProduct');
+    const products = (window.PRODUCTS?.[vendorId] || PRODUCTS?.[vendorId] || []);
+    select.innerHTML = products.map(product =>
+      `<option value="${escapeOrderText(product.id)}">${escapeOrderText(product.name)}</option>`
+    ).join('');
+  }
+
+  function syncPromotionForm(resetDates = false) {
+    const type = document.getElementById('promotionType').value;
+    document.getElementById('promotionVendorGroup').style.display = type === 'banner' ? 'none' : '';
+    document.getElementById('promotionProductGroup').style.display = type === 'product' ? '' : 'none';
+    document.getElementById('promotionBannerFields').style.display = type === 'banner' ? '' : 'none';
+    if (resetDates) setPromotionDates();
+    calculatePromotionFee();
+  }
+
+  function calculatePromotionFee() {
+    const type = document.getElementById('promotionType').value;
+    const startText = document.getElementById('promotionStart').value;
+    const endText = document.getElementById('promotionEnd').value;
+    let fee = 0;
+    let note = '';
+    if (startText && endText) {
+      const days = Math.ceil((new Date(endText + 'T00:00:00') - new Date(startText + 'T00:00:00')) / 86400000);
+      if (days > 0) {
+        if (type === 'banner') {
+          const months = Math.ceil(days / 30);
+          const rate = Number(document.getElementById('promotionBannerTier').value);
+          fee = months * rate;
+          note = `${months} month block${months === 1 ? '' : 's'} × ${formatNaira(rate)}`;
+        } else {
+          const weeks = Math.ceil(days / 7);
+          const rate = type === 'boutique' ? 1000 : 500;
+          fee = weeks * rate;
+          note = `${weeks} week${weeks === 1 ? '' : 's'} × ${formatNaira(rate)}`;
+        }
+      }
+    }
+    document.getElementById('promotionCalculatedFee').textContent = formatNaira(fee);
+    document.getElementById('promotionCalculatedFee').dataset.amount = String(fee);
+    document.getElementById('promotionBillingNote').textContent = note;
+    return fee;
+  }
+
+  function promotionDisplayStatus(promotion) {
+    const now = Date.now();
+    if (promotion.payment_status === 'refunded') return 'refunded';
+    if (promotion.status === 'cancelled') return 'cancelled';
+    if (promotion.status === 'paused') return 'paused';
+    if (promotion.payment_status !== 'paid') return 'pending';
+    if (new Date(promotion.ends_at).getTime() <= now) return 'expired';
+    if (new Date(promotion.starts_at).getTime() > now) return 'scheduled';
+    return promotion.status === 'active' ? 'active' : 'draft';
+  }
+
+  function promotionTargetName(promotion) {
+    if (promotion.promotion_type === 'banner') return promotion.title || 'Homepage banner';
+    if (promotion.promotion_type === 'boutique') return window.VENDORS[promotion.vendor_id]?.name || promotion.vendor_id;
+    const product = Object.values(PRODUCTS).flat().find(item => item.id === promotion.product_id);
+    return product?.name || promotion.product_id;
+  }
+
+  async function createPromotion() {
+    const errorBox = document.getElementById('promotionError');
+    const successBox = document.getElementById('promotionSuccess');
+    const submit = document.getElementById('promotionSubmit');
+    const type = document.getElementById('promotionType').value;
+    const start = document.getElementById('promotionStart').value;
+    const end = document.getElementById('promotionEnd').value;
+    const paid = document.getElementById('promotionPaymentReceived').checked;
+    const amount = calculatePromotionFee();
+
+    errorBox.style.display = 'none';
+    successBox.style.display = 'none';
+
+    if (!start || !end || new Date(end) <= new Date(start)) {
+      errorBox.textContent = 'The end date must be after the start date.';
+      errorBox.style.display = 'block';
+      return;
+    }
+    if (amount <= 0) {
+      errorBox.textContent = 'Choose valid promotion dates.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    const payload = {
+      promotion_type: type,
+      vendor_id: type === 'banner' ? null : document.getElementById('promotionVendor').value,
+      product_id: type === 'product' ? document.getElementById('promotionProduct').value : null,
+      title: type === 'banner' ? document.getElementById('promotionTitle').value.trim() : null,
+      subtitle: type === 'banner' ? document.getElementById('promotionSubtitle').value.trim() || null : null,
+      image_url: type === 'banner' ? document.getElementById('promotionImage').value.trim() || null : null,
+      link_url: type === 'banner' ? document.getElementById('promotionLink').value.trim() || null : null,
+      placement_level: type === 'banner' ? Math.max(1, [5000,10000,15000].indexOf(Number(document.getElementById('promotionBannerTier').value)) + 1) : 1,
+      amount_paid: amount,
+      payment_status: paid ? 'paid' : 'pending',
+      status: paid ? 'active' : 'draft',
+      starts_at: new Date(start + 'T00:00:00').toISOString(),
+      ends_at: new Date(end + 'T00:00:00').toISOString()
+    };
+
+    if (type === 'product' && !payload.product_id) {
+      errorBox.textContent = 'Choose a product to feature.';
+      errorBox.style.display = 'block';
+      return;
+    }
+    if (type === 'banner' && (!payload.title || !payload.image_url)) {
+      errorBox.textContent = 'A banner headline and image URL are required.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    submit.disabled = true;
+    submit.textContent = 'Saving...';
+    const { error } = await window.supabaseClient.from('promotions').insert(payload);
+    submit.disabled = false;
+    submit.textContent = 'Save promotion';
+
+    if (error) {
+      errorBox.textContent = 'Promotion could not be saved: ' + error.message;
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    document.getElementById('promotionForm').reset();
+    document.getElementById('promotionType').value = 'boutique';
+    populatePromotionVendors();
+    syncPromotionForm(true);
+    successBox.style.display = 'block';
+    await refreshPromotions();
+  }
+
+  async function updatePromotion(id, updates) {
+    const { error } = await window.supabaseClient.from('promotions').update(updates).eq('id', id);
+    if (error) alert('Promotion could not be updated: ' + error.message);
+    await refreshPromotions();
+  }
+
+  async function markPromotionPaid(id) {
+    await updatePromotion(id, { payment_status: 'paid', status: 'active' });
+  }
+
+  async function togglePromotion(id, shouldActivate) {
+    await updatePromotion(id, { status: shouldActivate ? 'active' : 'paused' });
+  }
+
+  async function refundPromotion(id) {
+    if (!confirm('Mark this promotion as refunded and remove it from the homepage?')) return;
+    await updatePromotion(id, { payment_status: 'refunded', status: 'cancelled' });
+  }
+
+  async function deletePromotion(id) {
+    if (!confirm('Permanently delete this promotion record?')) return;
+    const { error } = await window.supabaseClient.from('promotions').delete().eq('id', id);
+    if (error) alert('Promotion could not be deleted: ' + error.message);
+    await refreshPromotions();
+  }
+
+  function renderPromotionTable() {
+    const tbody = document.getElementById('promotionTableBody');
+    const now = Date.now();
+    const paidRevenue = adminPromotions
+      .filter(p => p.payment_status === 'paid')
+      .reduce((sum, p) => sum + Number(p.amount_paid || 0), 0);
+    const liveCount = adminPromotions.filter(p =>
+      p.status === 'active' && p.payment_status === 'paid' &&
+      new Date(p.starts_at).getTime() <= now && new Date(p.ends_at).getTime() > now
+    ).length;
+    const pendingCount = adminPromotions.filter(p => p.payment_status === 'pending').length;
+
+    document.getElementById('promotionRevenue').textContent = formatNaira(paidRevenue);
+    document.getElementById('promotionLiveCount').textContent = String(liveCount);
+    document.getElementById('promotionPendingCount').textContent = String(pendingCount);
+
+    if (!adminPromotions.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="promotion-empty">No promotions created yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = adminPromotions.map(promotion => {
+      const displayStatus = promotionDisplayStatus(promotion);
+      const start = new Date(promotion.starts_at).toLocaleDateString('en-NG');
+      const end = new Date(promotion.ends_at).toLocaleDateString('en-NG');
+      const typeLabel = { boutique: 'Featured boutique', product: 'Featured product', banner: 'Homepage banner' }[promotion.promotion_type];
+      let actions = '';
+      if (promotion.payment_status === 'pending') {
+        actions += `<button onclick="markPromotionPaid('${promotion.id}')">Mark paid & activate</button>`;
+      } else if (promotion.payment_status === 'paid' && promotion.status === 'active') {
+        actions += `<button onclick="togglePromotion('${promotion.id}', false)">Pause</button>`;
+      } else if (promotion.payment_status === 'paid' && promotion.status === 'paused') {
+        actions += `<button onclick="togglePromotion('${promotion.id}', true)">Activate</button>`;
+      }
+      if (promotion.payment_status === 'paid') {
+        actions += `<button onclick="refundPromotion('${promotion.id}')">Refund</button>`;
+      }
+      actions += `<button onclick="deletePromotion('${promotion.id}')">Delete</button>`;
+
+      return `<tr>
+        <td><strong>${escapeOrderText(typeLabel)}</strong><br><span class="vendor-row-tagline">${escapeOrderText(promotionTargetName(promotion))}</span></td>
+        <td>${escapeOrderText(start)}<br><span class="vendor-row-tagline">until ${escapeOrderText(end)}</span></td>
+        <td><strong style="color:var(--gold)">${formatNaira(promotion.amount_paid)}</strong><br><span class="vendor-row-tagline">${escapeOrderText(promotion.payment_status)}</span></td>
+        <td><span class="promotion-status ${displayStatus}">${escapeOrderText(displayStatus)}</span><div class="promotion-actions">${actions}</div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function refreshPromotions() {
+    const { data, error } = await window.supabaseClient
+      .from('promotions')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      document.getElementById('promotionTableBody').innerHTML =
+        '<tr><td colspan="4" class="promotion-empty" style="color:#ff9393">Promotions could not be loaded.</td></tr>';
+      return;
+    }
+    adminPromotions = data || [];
+    renderPromotionTable();
+  }
+
+
   const ORDER_STATUS_LABELS = {
     pending: 'Pending',
     confirmed: 'Confirmed',
@@ -731,7 +1122,9 @@
   async function refreshAdminDashboard() {
     await refreshVendorAccess();
     renderVendors();
-    await renderOrders();
+    populatePromotionVendors();
+    syncPromotionForm(true);
+    await Promise.all([renderOrders(), refreshPromotions()]);
   }
 
   hideLegacyCredentialControls();
@@ -739,6 +1132,7 @@
   window.addEventListener('db_synced', async () => {
     await refreshVendorAccess();
     renderVendors();
+    populatePromotionVendors();
   });
 </script>
 </body>
