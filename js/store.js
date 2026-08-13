@@ -68,15 +68,27 @@ const Auth = {
   getUser() {
     return JSON.parse(localStorage.getItem('user') || 'null');
   },
-  async register(name, email, password) {
+  normalizePhone(value) {
+    const input = String(value || '').trim();
+    let digits = input.replace(/\D/g, '');
+    if (digits.startsWith('00')) digits = digits.slice(2);
+    if (digits.startsWith('0') && digits.length === 11) digits = '234' + digits.slice(1);
+    if (digits.startsWith('234') && digits.length === 13) return '+' + digits;
+    if (input.startsWith('+') && digits.length >= 8 && digits.length <= 15) return '+' + digits;
+    return null;
+  },
+  async register(name, email, password, phone) {
     if (!window.supabaseClient) return { success: false, error: 'Supabase not initialized.' };
     try {
+      const normalizedPhone = Auth.normalizePhone(phone);
+      if (!normalizedPhone) return { success: false, error: 'Enter a valid phone number.' };
       const { data, error } = await window.supabaseClient.auth.signUp({
         email: email.trim(),
         password: password,
         options: {
           data: {
-            display_name: name.trim()
+            display_name: name.trim(),
+            phone_number: normalizedPhone
           }
         }
       });
@@ -169,11 +181,14 @@ if (window.supabaseClient) {
     console.log("Supabase Auth Event:", event);
     if (session && session.user) {
       const metadata = session.user.user_metadata || {};
+      const accountIdentifier = session.user.email || session.user.phone || 'Shopper';
+      const displayName = metadata.display_name || metadata.name || accountIdentifier.split('@')[0];
       const user = {
         id: session.user.id,
-        name: metadata.display_name || metadata.name || session.user.email.split('@')[0],
-        email: session.user.email,
-        avatar: (metadata.display_name || metadata.name || session.user.email)[0].toUpperCase(),
+        name: displayName,
+        email: session.user.email || '',
+        phone: metadata.phone_number || session.user.phone || '',
+        avatar: displayName[0].toUpperCase(),
         joinDate: session.user.created_at
       };
       localStorage.setItem('user', JSON.stringify(user));
