@@ -6,13 +6,14 @@
 // Global fallback number (used if a vendor has no specific WhatsApp set)
 const WHATSAPP_NUMBER = '2348147923724';
 
-function buildWhatsAppOrderMessage(items, total, customerInfo) {
+function buildWhatsAppOrderMessage(items, total, customerInfo, vendorName = '') {
   const itemLines = items.map(i =>
     `  • ${i.name} (×${i.qty}) — ${formatNaira(i.price * i.qty)}`
   ).join('\n');
+  const sellerLine = vendorName ? `\n*Boutique:* ${vendorName}\n` : '\n';
   const msg =
 `🛍️ *NEW ORDER — Zarah's Store*
-
+${sellerLine}
 *Customer Details:*
 👤 Name: ${customerInfo.name}
 📍 Address: ${customerInfo.address}
@@ -30,17 +31,48 @@ Thank you! 🙏`;
   return encodeURIComponent(msg);
 }
 
-// Route WhatsApp orders to the correct vendor's number
+function getVendorWhatsAppDetails(vendorId) {
+  const registry = JSON.parse(localStorage.getItem('vendors_registry') || '{}');
+  const vendor = registry[vendorId] || window.VENDORS?.[vendorId] || {};
+  const number = String(vendor.whatsapp || WHATSAPP_NUMBER).replace(/\D/g, '');
+  return {
+    vendorId,
+    vendorName: vendor.name || 'Zarah\'s Store',
+    number
+  };
+}
+
+function buildWhatsAppOrderUrl(items, total, customerInfo, vendorId) {
+  const vendor = getVendorWhatsAppDetails(vendorId);
+  const message = buildWhatsAppOrderMessage(items, total, customerInfo, vendor.vendorName);
+  return {
+    ...vendor,
+    total,
+    items,
+    url: `https://wa.me/${vendor.number}?text=${message}`
+  };
+}
+
+function buildVendorWhatsAppOrders(items, customerInfo) {
+  const groupedItems = items.reduce((groups, item) => {
+    const vendorId = item.vendor || 'store';
+    if (!groups[vendorId]) groups[vendorId] = [];
+    groups[vendorId].push(item);
+    return groups;
+  }, {});
+
+  return Object.entries(groupedItems).map(([vendorId, vendorItems]) => {
+    const total = vendorItems.reduce((sum, item) => sum + (Number(item.price) * Number(item.qty || 1)), 0);
+    return buildWhatsAppOrderUrl(vendorItems, total, customerInfo, vendorId);
+  });
+}
+
+// Route a single-vendor WhatsApp order to that vendor's saved number.
 function redirectToWhatsApp(items, total, customerInfo, vendorId) {
-  const msg = buildWhatsAppOrderMessage(items, total, customerInfo);
-  let number = WHATSAPP_NUMBER; // fallback
-  if (vendorId) {
-    const registry = JSON.parse(localStorage.getItem('vendors_registry') || '{}');
-    const vendor = registry[vendorId];
-    if (vendor && vendor.whatsapp) number = vendor.whatsapp;
-  }
-  const url = `https://wa.me/${number}?text=${msg}`;
-  window.open(url, '_blank');
+  const resolvedVendorId = vendorId || items[0]?.vendor || 'store';
+  const route = buildWhatsAppOrderUrl(items, total, customerInfo, resolvedVendorId);
+  window.open(route.url, '_blank', 'noopener');
+  return route;
 }
 
 // Per-product WhatsApp order (reads vendor from product object)
