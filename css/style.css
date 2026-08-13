@@ -1341,3 +1341,74 @@ input, select, textarea { font-family: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .sponsored-banner-image { transition:none; }
 }
+
+
+/* ======================================================
+   PERSISTENT MOBILE BOUTIQUE NAVIGATION
+   Keeps the storefront destinations visible without desktop mode.
+   ====================================================== */
+@media (max-width: 768px) {
+  .nav-sub {
+    display: flex !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-sub::-webkit-scrollbar { display: none; }
+
+  .nav-sub-inner {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0 4px;
+    display: flex;
+    align-items: stretch;
+  }
+
+  .nav-sub-link {
+    box-sizing: border-box;
+    flex: 0 0 20%;
+    min-width: 72px;
+    min-height: 56px;
+    padding: 6px 3px;
+    border-radius: 0;
+    border-bottom: 3px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,.88);
+    font-size: clamp(.58rem, 2.35vw, .7rem);
+    font-weight: 600;
+    line-height: 1.15;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    touch-action: manipulation;
+  }
+
+  .nav-sub-link.active {
+    border-bottom-color: var(--fk-yellow);
+    background: rgba(255,255,255,.08);
+  }
+
+  .nav-sub-link:focus-visible {
+    outline: 3px solid var(--fk-yellow);
+    outline-offset: -3px;
+  }
+
+  .hamburger,
+  .mobile-menu {
+    display: none !important;
+  }
+
+  .page {
+    padding-top: 116px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-sub { scroll-behavior: auto; }
+}
