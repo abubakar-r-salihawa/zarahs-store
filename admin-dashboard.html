@@ -435,16 +435,28 @@
 
   <!-- CUSTOMER ORDERS CARD -->
   <div class="admin-card" style="margin-top: 40px;">
-    <h2 class="card-title">🛍️ Customer Orders (Live from Cloud Database)</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <h2 class="card-title" style="margin:0">🛍️ Boutique Orders</h2>
+      <select id="adminOrderFilter" class="form-input" onchange="renderOrders()" style="width:auto;min-width:170px">
+        <option value="all">All statuses</option>
+        <option value="pending">Pending</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="paid">Paid</option>
+        <option value="shipped">Shipped</option>
+        <option value="delivered">Delivered</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+    <p style="font-size:.8rem;color:var(--text-muted);margin:10px 0 18px">Payments are confirmed manually after the vendor and customer agree through WhatsApp.</p>
     <div style="overflow-x: auto;">
       <table class="vendor-table">
         <thead>
           <tr>
-            <th>Order ID</th>
-            <th>Customer Info</th>
-            <th>Items Ordered</th>
-            <th>Total Price</th>
-            <th>Status</th>
+            <th>Order / Boutique</th>
+            <th>Customer</th>
+            <th>Boutique Items</th>
+            <th>Subtotal</th>
+            <th>Status / Contact</th>
           </tr>
         </thead>
         <tbody id="ordersTableBody">
@@ -638,26 +650,81 @@
     }
   }
 
+  const ORDER_STATUS_LABELS = {
+    pending: 'Pending',
+    confirmed: 'Confirmed',
+    paid: 'Paid',
+    shipped: 'Shipped',
+    delivered: 'Delivered',
+    cancelled: 'Cancelled'
+  };
+
+  function escapeOrderText(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
+  }
+
+  function customerWhatsAppUrl(order) {
+    let digits = String(order.customer_phone || '').replace(/\D/g, '');
+    if (digits.startsWith('0')) digits = '234' + digits.slice(1);
+    const message = encodeURIComponent(
+      `Hello ${order.customer_name}, this is Zarah's Store regarding order ${order.order_id} for ${window.VENDORS[order.vendor_id]?.name || order.vendor_id}.`
+    );
+    return `https://wa.me/${digits}?text=${message}`;
+  }
+
+  async function updateAdminOrderStatus(id, status) {
+    const { error } = await window.supabaseClient
+      .from('vendor_orders')
+      .update({ status })
+      .eq('id', id);
+    if (error) {
+      alert('Status could not be updated: ' + error.message);
+      await renderOrders();
+    }
+  }
+
   async function renderOrders() {
     const tbody = document.getElementById('ordersTableBody');
-    const { data: orders, error } = await window.supabaseClient
-      .from('orders').select('*').order('created_at', { ascending: false });
+    const selectedStatus = document.getElementById('adminOrderFilter')?.value || 'all';
+    let query = window.supabaseClient
+      .from('vendor_orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (selectedStatus !== 'all') query = query.eq('status', selectedStatus);
+    const { data: orders, error } = await query;
+
     if (error) {
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#ff6b6b">Orders could not be loaded.</td></tr>';
       return;
     }
     if (!orders?.length) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No orders placed yet.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No boutique orders in this status yet.</td></tr>';
       return;
     }
-    tbody.innerHTML = orders.map(o => {
-      const items = Array.isArray(o.items) ? o.items.map(i =>
-        `<div style="font-size:.78rem">• ${i.name} (x${i.qty || 1})</div>`).join('') : '';
+
+    tbody.innerHTML = orders.map(order => {
+      const items = Array.isArray(order.items) ? order.items.map(item =>
+        `<div style="font-size:.78rem">• ${escapeOrderText(item.name)} (×${Number(item.qty || 1)})</div>`
+      ).join('') : '';
+      const boutique = window.VENDORS[order.vendor_id]?.name || order.vendor_id;
+      const options = Object.entries(ORDER_STATUS_LABELS).map(([value, label]) =>
+        `<option value="${value}" ${order.status === value ? 'selected' : ''}>${label}</option>`
+      ).join('');
+
       return `<tr>
-        <td><strong style="color:var(--gold)">${o.id}</strong><br><span style="font-size:.7rem;color:var(--text-muted)">${new Date(o.created_at).toLocaleString('en-NG')}</span></td>
-        <td><div>${o.customer_name}</div><div style="font-size:.75rem;color:var(--text-muted)">📞 ${o.customer_phone}</div><div style="font-size:.75rem;color:var(--text-muted)">📍 ${o.customer_address}</div></td>
-        <td>${items}</td><td><strong style="color:var(--gold)">${formatNaira(o.total)}</strong></td>
-        <td>${o.status || 'pending'}</td></tr>`;
+        <td><strong style="color:var(--gold)">${escapeOrderText(order.order_id)}</strong><br>
+          <span style="font-size:.72rem;color:var(--text-muted)">${escapeOrderText(boutique)}</span><br>
+          <span style="font-size:.68rem;color:var(--text-muted)">${new Date(order.created_at).toLocaleString('en-NG')}</span></td>
+        <td><div>${escapeOrderText(order.customer_name)}</div>
+          <div style="font-size:.75rem;color:var(--text-muted)">📞 ${escapeOrderText(order.customer_phone)}</div>
+          <div style="font-size:.75rem;color:var(--text-muted)">📍 ${escapeOrderText(order.customer_address)}</div></td>
+        <td>${items}</td>
+        <td><strong style="color:var(--gold)">${formatNaira(order.subtotal)}</strong></td>
+        <td><select class="form-input" onchange="updateAdminOrderStatus('${order.id}', this.value)" style="padding:7px;min-width:125px">${options}</select>
+          <a href="${customerWhatsAppUrl(order)}" target="_blank" rel="noopener" style="display:block;margin-top:8px;color:#25D366;font-size:.76rem;font-weight:700">Message customer</a></td>
+      </tr>`;
     }).join('');
   }
 
