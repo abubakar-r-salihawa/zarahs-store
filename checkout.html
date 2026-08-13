@@ -302,6 +302,7 @@
         </div>
         <div style="display:flex;flex-direction:column;gap:10px">
           <a href="store-perfume.html" style="display:block;padding:13px;background:var(--fk-yellow);color:#333;font-weight:700;border-radius:4px;text-align:center;font-size:0.88rem">Continue Shopping →</a>
+          <a href="my-orders.html" style="display:block;padding:11px;border:1.5px solid var(--fk-yellow);color:var(--fk-yellow);font-weight:700;border-radius:4px;text-align:center;font-size:0.84rem">Track My Order</a>
           <a href="index.html" style="display:block;padding:11px;border:1.5px solid var(--border);color:var(--text-2);font-weight:600;border-radius:4px;text-align:center;font-size:0.84rem">Back to Home</a>
         </div>
       </div>
@@ -412,37 +413,41 @@
       address: `${ad}, ${ct}, ${st}, Nigeria${lm ? ' (Landmark: ' + lm + ')' : ''}`
     };
 
-    const orderId = 'ZS-' + Math.floor(100000 + Math.random() * 900000);
+    let savedOrder;
 
     try {
-      const { error } = await window.supabaseClient.from('orders').insert({
-        id: orderId,
-        user_id: user.id,
-        customer_name: customerInfo.name,
-        customer_email: customerInfo.email,
-        customer_phone: customerInfo.phone,
-        customer_address: customerInfo.address,
-        items,
-        total: subtotal,
-        status: 'pending'
+      const { data, error } = await window.supabaseClient.rpc('place_whatsapp_order', {
+        p_customer_name: customerInfo.name,
+        p_customer_email: customerInfo.email,
+        p_customer_phone: customerInfo.phone,
+        p_customer_address: customerInfo.address,
+        p_items: items.map(item => ({ id: item.id, qty: item.qty }))
       });
       if (error) throw error;
+      savedOrder = data;
     } catch (error) {
       console.error('Order save failed:', error);
-      alert('We could not save your order securely. Please try again.');
+      alert(error.message || 'We could not save your order securely. Please try again.');
       orderButton.disabled = false;
       orderButton.style.opacity = '1';
       orderButton.textContent = 'Order via WhatsApp';
       return;
     }
 
-    const vendorRoutes = buildVendorWhatsAppOrders(items, customerInfo);
+    const vendorRoutes = (savedOrder.vendorOrders || []).map(vendorOrder =>
+      buildWhatsAppOrderUrl(
+        vendorOrder.items,
+        Number(vendorOrder.total),
+        customerInfo,
+        vendorOrder.vendorId
+      )
+    );
 
     // Clear cart and show every vendor's WhatsApp payment route.
     Cart.clearCart();
     document.getElementById('checkoutPage').style.display = 'none';
     document.getElementById('orderSuccess').style.display = 'block';
-    document.getElementById('orderNum').textContent = 'Order ' + orderId;
+    document.getElementById('orderNum').textContent = 'Order ' + savedOrder.orderId;
     renderVendorWhatsAppLinks(vendorRoutes);
     if (vendorRoutes[0]) window.open(vendorRoutes[0].url, '_blank', 'noopener');
     window.scrollTo({ top: 0, behavior: 'smooth' });
