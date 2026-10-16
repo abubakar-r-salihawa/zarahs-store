@@ -27,14 +27,22 @@
       </div>
       <a href="cart.html" class="nav-btn cart" style="background:rgba(255,255,255,0.15)">🛒 Cart<span class="nav-cart-count cart-count">0</span></a>
     </div>
+    <div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
   </div>
   <div class="nav-sub">
-    <div class="nav-sub-inner">
+    <div class="nav-sub-inner" id="navSubLinks">
       <a href="index.html" class="nav-sub-link">🏠 Home</a>
       <a href="store-perfume.html" class="nav-sub-link">🌸 Zarah's Perfume</a>
       <a href="store-kitchen.html" class="nav-sub-link">🍳 Zarah's Kitchen</a>
       <a href="store-variety.html" class="nav-sub-link">💎 Teemerh Collection</a>
+      <a href="vendor-login.html" class="nav-sub-link">🏪 Vendor Portal</a>
     </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html" class="mobile-link">🏠 Home</a>
+    <div id="mobileNavLinks"></div>
+    <a href="cart.html" class="mobile-link">🛒 Cart</a>
+    <a href="vendor-login.html" class="mobile-link">🏪 Vendor Portal</a>
   </div>
 </nav>
 
@@ -86,9 +94,13 @@
             <span>Price (<span id="itemCountText">0 items</span>)</span>
             <span id="subtotal">₦0</span>
           </div>
+          <div class="summary-row-fk" id="discountRow" style="display:none;color:var(--fk-green)">
+            <span>Promo Discount (10%)</span>
+            <span id="discountVal">−₦0</span>
+          </div>
           <div class="summary-row-fk">
             <span>Delivery Charges</span>
-            <span id="shipping" style="color:var(--fk-green)">₦2,500</span>
+            <span id="shipping" style="color:var(--fk-green)">Discuss on WhatsApp</span>
           </div>
           <div class="summary-row-fk total">
             <span>Total Amount</span>
@@ -115,10 +127,17 @@
   </div>
 </footer>
 
+<!-- Supabase Integration Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
+<script src="js/vendor-store.js"></script>
 <script>
-  let promoApplied = false;
+  initVendorProducts();
+  function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
+
+  let promoApplied = sessionStorage.getItem('zarah_promo_applied') === 'true';
 
   function renderCart() {
     const items = Cart.getItems();
@@ -136,7 +155,7 @@
 
     const container = document.getElementById('cartItemsContainer');
     container.innerHTML = items.map(item => {
-      const vendor = VENDORS[item.vendor];
+      const vendor = VENDORS[item.vendor] || { logo: '🏪', name: 'Verified Store' };
       const discPct = item.originalPrice ? Math.round((1 - item.price / item.originalPrice) * 100) : 0;
       return `
         <div class="cart-item-fk">
@@ -167,10 +186,21 @@
 
   function updateSummary(items) {
     const subtotal = Cart.getTotal();
-    const total = subtotal;
-    const savings = items.reduce((s, i) => s + ((i.originalPrice || i.price) - i.price) * i.qty, 0);
+    const discount = promoApplied ? Math.round(subtotal * 0.10) : 0;
+    const total = Math.max(0, subtotal - discount);
+    const savings = items.reduce((s, i) => s + ((i.originalPrice || i.price) - i.price) * i.qty, 0) + discount;
 
     document.getElementById('subtotal').textContent = formatNaira(subtotal);
+    
+    const discRow = document.getElementById('discountRow');
+    const discVal = document.getElementById('discountVal');
+    if (promoApplied && discount > 0) {
+      discRow.style.display = 'flex';
+      discVal.textContent = '−' + formatNaira(discount);
+    } else {
+      discRow.style.display = 'none';
+    }
+
     document.getElementById('shipping').textContent = 'Discuss on WhatsApp';
     document.getElementById('shipping').style.color = 'var(--text-2)';
     document.getElementById('shipping').style.fontWeight = '500';
@@ -191,8 +221,9 @@
     msg.style.display = 'block';
     if (code === 'SAVE10') {
       promoApplied = true;
+      sessionStorage.setItem('zarah_promo_applied', 'true');
       msg.style.color = 'var(--fk-green)';
-      msg.textContent = '✅ Promo applied! 10% discount added.';
+      msg.textContent = '✅ Promo applied! 10% discount subtracted from total.';
       updateSummary(Cart.getItems());
     } else {
       msg.style.color = 'var(--fk-red)';
@@ -206,6 +237,9 @@
   }
 
   renderCart();
+
+  // Listen for Supabase live data sync
+  window.addEventListener('db_synced', renderCart);
 </script>
 </body>
 </html>

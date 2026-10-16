@@ -294,23 +294,7 @@
     if (q) window.location.href = 'store.html?vendor=perfume&search=' + encodeURIComponent(q);
   }
 
-  // Buy Now direct from homepage
-  function buyNowDirect(productId) {
-    const product = getProductById(productId);
-    if (product) {
-      Cart.addItem(product, 1);
-      window.location.href = 'checkout.html';
-    }
-  }
 
-  // Add Item to Cart direct from homepage
-  function addToCart(productId) {
-    const product = getProductById(productId);
-    if (product) {
-      Cart.addItem(product, 1);
-      alert(`🛒 ${product.name} added to cart!`);
-    }
-  }
 
   // Luxury minimalist product card renderer
   function renderFkCard(p) {

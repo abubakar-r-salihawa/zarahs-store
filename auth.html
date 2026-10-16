@@ -290,9 +290,16 @@
 
   // Google Login Action
   async function doGoogleLogin() {
+    const err = document.getElementById('loginErr');
+    err.classList.remove('show');
     const res = await Auth.loginWithGoogle();
     if (!res.success) {
-      alert("Google login error: " + res.error);
+      if (res.error && (res.error.includes('provider is not enabled') || res.error.includes('Unsupported provider'))) {
+        err.textContent = 'ℹ️ Google Sign-In is not yet activated in your Supabase dashboard. Please sign in with your email or password.';
+      } else {
+        err.textContent = '⚠️ Google sign-in note: ' + res.error;
+      }
+      err.classList.add('show');
     }
   }
 
@@ -327,7 +334,14 @@
         return; 
       }
       
+      const submitBtn = document.getElementById('loginSubmitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Verifying...';
+
       const result = await Auth.login(email, password);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Login →';
+
       if (result.success) {
         window.location.href = 'index.html';
       } else {
@@ -350,6 +364,14 @@
     
     const result = await Auth.register(name, email, password);
     if (result.success) {
+      // If session exists or local account was created, no OTP prompt required
+      if (result.localOnly || (result.data && result.data.session)) {
+        ok.textContent = `✅ Account created! Welcome, ${name.split(' ')[0]}! Redirecting...`;
+        ok.classList.add('show');
+        setTimeout(() => window.location.href = 'index.html', 1200);
+        return;
+      }
+      // If email confirmation is required by Supabase
       activeEmail = email;
       activeVerificationType = 'signup';
       openOtpModal(email);
@@ -358,6 +380,19 @@
       err.classList.add('show');
     }
   }
+
+  // Handle Enter key in input fields
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.form-input-fk').forEach(input => {
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          const form = input.closest('#loginForm, #registerForm');
+          if (form && form.id === 'loginForm') doLogin();
+          else if (form && form.id === 'registerForm') doRegister();
+        }
+      });
+    });
+  });
 
   // --- OTP MODAL FLOWS ---
   function openOtpModal(email) {

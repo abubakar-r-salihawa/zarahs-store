@@ -82,7 +82,14 @@
 <script>
   initVendorProducts();
   function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
-  function doSearch() { const q = document.getElementById('navSearch').value.trim(); if (q) window.location.href = 'store-perfume.html?search=' + encodeURIComponent(q); }
+  function doSearch() {
+    const q = document.getElementById('navSearch').value.trim();
+    if (q) {
+      const p = getProductById(productId);
+      const targetVendor = (p && p.vendor) ? p.vendor : 'perfume';
+      window.location.href = `store.html?vendor=${targetVendor}&search=${encodeURIComponent(q)}`;
+    }
+  }
 
   const urlParams = new URLSearchParams(window.location.search);
   const productId = urlParams.get('id');
@@ -93,7 +100,7 @@
     const product = getProductById(productId);
     if (!product) { window.location.href = 'index.html'; return; }
 
-    const vendor = VENDORS[product.vendor];
+    const vendor = VENDORS[product.vendor] || { logo: '🏪', name: 'Verified Store', page: 'index.html' };
     document.title = `${product.name} — Zarah's Store`;
 
     // Breadcrumb
@@ -135,7 +142,7 @@
             <button class="btn-addcart-lg" onclick="addToCartWithQty('${product.id}')" ${!product.inStock ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
               🛒 ${product.inStock ? 'Add to Cart' : 'Out of Stock'}
             </button>
-            <button class="btn-buynow-lg" onclick="${product.inStock ? "window.location.href='checkout.html'" : ''}" ${!product.inStock ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
+            <button class="btn-buynow-lg" onclick="${product.inStock ? `buyNowWithQty('${product.id}')` : ''}" ${!product.inStock ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
               ⚡ Buy Now
             </button>
           </div>

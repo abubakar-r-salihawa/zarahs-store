@@ -69,35 +69,82 @@ const Auth = {
     return JSON.parse(localStorage.getItem('user') || 'null');
   },
   async register(name, email, password) {
-    if (!window.supabaseClient) return { success: false, error: 'Supabase not initialized.' };
-    try {
-      const { data, error } = await window.supabaseClient.auth.signUp({
-        email: email.trim(),
-        password: password,
-        options: {
-          data: {
-            display_name: name.trim()
+    const trimmedEmail = email.trim();
+    const trimmedName = name.trim();
+
+    // 1. Try Supabase Auth if client is available
+    if (window.supabaseClient) {
+      try {
+        const { data, error } = await window.supabaseClient.auth.signUp({
+          email: trimmedEmail,
+          password: password,
+          options: {
+            data: { display_name: trimmedName }
           }
+        });
+        if (error) throw error;
+        return { success: true, data };
+      } catch (e) {
+        console.warn("Supabase auth signUp unavailable or failed, checking local fallback:", e.message);
+        // If it's a genuine validation error like already registered, return it
+        if (e.message && e.message.toLowerCase().includes('already registered')) {
+          return { success: false, error: e.message };
         }
-      });
-      if (error) throw error;
-      return { success: true, data };
-    } catch (e) {
-      return { success: false, error: e.message };
+      }
     }
+
+    // 2. Resilient local fallback (works offline or when Supabase project is paused)
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    if (users.find(u => u.email.toLowerCase() === trimmedEmail.toLowerCase())) {
+      return { success: false, error: 'Email already registered' };
+    }
+    const newUser = {
+      id: 'usr_' + Date.now(),
+      name: trimmedName,
+      email: trimmedEmail,
+      password: btoa(password),
+      avatar: trimmedName[0].toUpperCase(),
+      joinDate: new Date().toISOString()
+    };
+    users.push(newUser);
+    localStorage.setItem('users', JSON.stringify(users));
+    const { password: _, ...safeUser } = newUser;
+    localStorage.setItem('user', JSON.stringify(safeUser));
+    Auth.updateUI();
+    return { success: true, localOnly: true, user: safeUser };
   },
   async login(email, password) {
-    if (!window.supabaseClient) return { success: false, error: 'Supabase not initialized.' };
-    try {
-      const { data, error } = await window.supabaseClient.auth.signInWithPassword({
-        email: email.trim(),
-        password: password
-      });
-      if (error) throw error;
-      return { success: true, data };
-    } catch (e) {
-      return { success: false, error: e.message };
+    const trimmedEmail = email.trim();
+
+    // 1. Try Supabase Auth if client is available
+    if (window.supabaseClient) {
+      try {
+        const { data, error } = await window.supabaseClient.auth.signInWithPassword({
+          email: trimmedEmail,
+          password: password
+        });
+        if (error) throw error;
+        return { success: true, data };
+      } catch (e) {
+        console.warn("Supabase signInWithPassword unavailable or failed, checking local fallback:", e.message);
+        if (e.message && (e.message.toLowerCase().includes('invalid login') || e.message.toLowerCase().includes('invalid credentials'))) {
+          // Check local users before failing completely
+        }
+      }
     }
+
+    // 2. Resilient local fallback (checks locally registered users)
+    const encodedPass = btoa(password);
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const user = users.find(u => u.email.toLowerCase() === trimmedEmail.toLowerCase() && u.password === encodedPass);
+    if (user) {
+      const { password: _, ...safeUser } = user;
+      localStorage.setItem('user', JSON.stringify(safeUser));
+      Auth.updateUI();
+      return { success: true, localOnly: true, user: safeUser };
+    }
+
+    return { success: false, error: 'Invalid email or password. Please verify your credentials.' };
   },
   async loginWithOTP(email) {
     if (!window.supabaseClient) return { success: false, error: 'Supabase not initialized.' };
@@ -267,16 +314,68 @@ function renderReviewCard(review) {
   </div>`;
 }
 
-// ---- GLOBAL ACTIONS ----
-function addToCart(productId) {
-  const product = getProductById(productId);
-  if (product) Cart.addItem(product);
+// ---- TOAST & GLOBAL ACTIONS ----
+function showToast(message) {
+  let toast = document.getElementById('zarahToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'zarahToast';
+    toast.style.cssText = `
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 100000;
+      background: #18181B;
+      color: #FFFFFF;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      font-size: 0.88rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      max-width: 90vw;
+    `;
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = message;
+  toast.style.transform = 'translateY(0)';
+  toast.style.opacity = '1';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.style.transform = 'translateY(100px)';
+    toast.style.opacity = '0';
+  }, 2800);
+}
+
+function addToCart(productId, qty = 1) {
+  const product = typeof getProductById === 'function' ? getProductById(productId) : null;
+  if (product) {
+    Cart.addItem(product, qty);
+    showToast(`🛒 <strong>${product.name}</strong> added to cart!`);
+  }
+}
+
+function buyNowDirect(productId, qty = 1) {
+  const product = typeof getProductById === 'function' ? getProductById(productId) : null;
+  if (product) {
+    Cart.addItem(product, qty);
+    window.location.href = 'checkout.html';
+  }
 }
 
 function toggleWishlist(productId, btn) {
   const isNowWishlisted = Wishlist.toggle(productId);
-  btn.textContent = isNowWishlisted ? '❤️' : '🤍';
-  btn.classList.toggle('active', isNowWishlisted);
+  if (btn) {
+    btn.textContent = isNowWishlisted ? '❤️' : '🤍';
+    btn.classList.toggle('active', isNowWishlisted);
+  }
+  showToast(isNowWishlisted ? '❤️ Added to your wishlist!' : '🤍 Removed from wishlist');
 }
 
 // ---- INIT ON PAGE LOAD ----

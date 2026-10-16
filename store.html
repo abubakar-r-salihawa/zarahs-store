@@ -26,7 +26,7 @@
       <button class="nav-search-btn" onclick="filterAndRender()">🔍</button>
     </div>
     <div class="nav-right">
-      <div class="auth-logged-out" style="display:flex"><a href="vendor-login.html" class="nav-btn login">Sign In</a></div>
+      <div class="auth-logged-out" style="display:flex"><a href="auth.html" class="nav-btn login">Sign In</a></div>
       <div class="auth-logged-in" style="display:none;align-items:center;gap:8px">
         <div class="user-avatar-nav"><span class="user-avatar"></span></div>
         <span class="user-greeting">Hi, <span class="user-name"></span></span>
@@ -153,13 +153,18 @@
   initVendorProducts();
   // Get vendor parameter
   const urlParams = new URLSearchParams(window.location.search);
-  const vendorId = urlParams.get('vendor');
+  let vendorId = urlParams.get('vendor');
+  const allVendors = window.VENDORS || JSON.parse(localStorage.getItem('vendors_registry') || '{}');
+
+  if (!vendorId || !allVendors[vendorId]) {
+    vendorId = Object.keys(allVendors)[0] || 'perfume';
+  }
 
   // Verify vendor exists
-  const v = VENDORS[vendorId];
-  if (!v) {
-    window.location.href = 'index.html';
-  }
+  const v = allVendors[vendorId] || {
+    id: 'perfume', name: "Zarah's Store", tagline: "Curated collection",
+    logo: '🏪', gradient: 'linear-gradient(90deg, #1A120B, #3E2715)', primaryColor: '#C4952A'
+  };
 
   // Populate vendor information
   document.getElementById('storePageTitle').textContent = `${v.name} — Zarah's Store`;
@@ -167,12 +172,10 @@
   document.getElementById('bcStoreName').textContent = v.name;
   document.getElementById('storeTagline').textContent = v.tagline;
   document.getElementById('storeLogo').textContent = v.logo || '🏪';
-  
-  
-  
+
   // Set theme color variables
-  document.documentElement.style.setProperty('--vendor-gradient', v.gradient);
-  document.documentElement.style.setProperty('--fk-yellow', v.primaryColor);
+  document.documentElement.style.setProperty('--vendor-gradient', v.gradient || 'linear-gradient(90deg, #1A120B, #3E2715)');
+  document.documentElement.style.setProperty('--fk-yellow', v.primaryColor || '#C4952A');
 
   // Initialize
   initVendorProducts();

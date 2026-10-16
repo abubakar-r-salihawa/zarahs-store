@@ -33,7 +33,7 @@
     <div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
   </div>
   <div class="nav-sub">
-    <div class="nav-sub-inner">
+    <div class="nav-sub-inner" id="navSubLinks">
       <a href="index.html" class="nav-sub-link">← Marketplace</a>
       <a href="store-perfume.html" class="nav-sub-link">🌸 Zarah's Perfume</a>
       <a href="store-kitchen.html" class="nav-sub-link">🍳 Zarah's Kitchen</a>
@@ -42,9 +42,7 @@
   </div>
   <div class="mobile-menu" id="mobileMenu">
     <a href="index.html" class="mobile-link">← Marketplace</a>
-    <a href="store-perfume.html" class="mobile-link">🌸 Zarah's Perfume</a>
-    <a href="store-kitchen.html" class="mobile-link">🍳 Zarah's Kitchen</a>
-    <a href="store-variety.html" class="mobile-link">💎 Teemerh Collection</a>
+    <div id="mobileNavLinks"></div>
     <a href="cart.html" class="mobile-link">🛒 Cart</a>
   </div>
 </nav>
@@ -187,7 +185,7 @@
         <div class="product-price-fk">${formatNaira(p.price)}</div>
         <div class="product-btns" onclick="event.stopPropagation()">
           <button class="btn-addcart-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`addToCart('${p.id}')`:''}" ${!p.inStock?'disabled':''}>🛒 Add to Cart</button>
-          <button class="btn-buynow-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`window.location.href='product.html?id=${p.id}'`:''}" ${!p.inStock?'disabled':''}>Buy Now</button>
+          <button class="btn-buynow-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`buyNowDirect('${p.id}')`:''}" ${!p.inStock?'disabled':''}>Buy Now</button>
         </div>
       </div>
     </div>`;

@@ -111,6 +111,13 @@
       </div>
       <a href="cart.html" class="nav-btn cart">🛒 Cart<span class="nav-cart-count cart-count">0</span></a>
     </div>
+    <div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html" class="mobile-link">🏠 Home</a>
+    <div id="mobileNavLinks"></div>
+    <a href="cart.html" class="mobile-link">🛒 Cart</a>
+    <a href="vendor-login.html" class="mobile-link">🏪 Vendor Portal</a>
   </div>
 </nav>
 
@@ -281,7 +288,7 @@
         <div class="success-orderno" id="orderNum">Order #000000</div>
         <p class="success-msg">
           Thank you for shopping with Zarah's Store! 🎉<br>
-          Your order details have been sent to Zahra's Perfume on WhatsApp.<br>
+          Your order details have been sent to <strong id="successVendorName">the seller</strong> on WhatsApp.<br>
           The seller will contact you shortly with the bank account number for payment.<br>
           <strong>Check your WhatsApp now!</strong>
         </p>
@@ -300,7 +307,7 @@
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:10px">
-          <a href="store-perfume.html" style="display:block;padding:13px;background:var(--fk-yellow);color:#333;font-weight:700;border-radius:4px;text-align:center;font-size:0.88rem">Continue Shopping →</a>
+          <a href="index.html" style="display:block;padding:13px;background:var(--fk-yellow);color:#333;font-weight:700;border-radius:4px;text-align:center;font-size:0.88rem">Continue Shopping →</a>
           <a href="index.html" style="display:block;padding:11px;border:1.5px solid var(--border);color:var(--text-2);font-weight:600;border-radius:4px;text-align:center;font-size:0.84rem">Back to Home</a>
         </div>
       </div>
@@ -313,6 +320,7 @@
 <script src="js/supabase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
+<script src="js/vendor-store.js"></script>
 <script>
   function setStep(n) {
     [1, 2].forEach(i => {
@@ -385,6 +393,9 @@
     const lm = document.getElementById('landmark').value.trim();
 
     const subtotal = Cart.getTotal();
+    const promoApplied = sessionStorage.getItem('zarah_promo_applied') === 'true';
+    const discount = promoApplied ? Math.round(subtotal * 0.10) : 0;
+    const finalTotal = Math.max(0, subtotal - discount);
 
     const customerInfo = {
       name: `${fn} ${ln}`,
@@ -395,7 +406,32 @@
 
     const orderId = 'ZS-' + Math.floor(100000 + Math.random() * 900000);
 
+    // Identify vendor to route WhatsApp message accurately
+    const primaryVendorId = (items.length > 0 && items[0].vendor) ? items[0].vendor : 'perfume';
+    const vendorObj = (window.VENDORS && window.VENDORS[primaryVendorId]) || (typeof VENDORS !== 'undefined' ? VENDORS[primaryVendorId] : null);
+    const vendorDisplayName = vendorObj ? vendorObj.name : "the seller";
+
     // Save order details to Supabase if client is available
+    // 1. Resilient local backup for immediate dashboard visibility
+    try {
+      const localOrders = JSON.parse(localStorage.getItem('orders_history') || '[]');
+      localOrders.unshift({
+        id: orderId,
+        customer_name: customerInfo.name,
+        customer_email: customerInfo.email,
+        customer_phone: customerInfo.phone,
+        customer_address: customerInfo.address,
+        items: items,
+        total: finalTotal,
+        status: 'pending',
+        created_at: new Date().toISOString()
+      });
+      localStorage.setItem('orders_history', JSON.stringify(localOrders.slice(0, 50)));
+    } catch (err) {
+      console.warn("Could not save to local orders_history:", err);
+    }
+
+    // 2. Save order details to Supabase cloud if client is available
     if (window.supabaseClient) {
       (async () => {
         try {
@@ -406,7 +442,7 @@
             customer_phone: customerInfo.phone,
             customer_address: customerInfo.address,
             items: items,
-            total: subtotal,
+            total: finalTotal,
             status: 'pending'
           });
           if (error) throw error;
@@ -417,21 +453,26 @@
       })();
     }
 
-    // Open WhatsApp
-    redirectToWhatsApp(items, subtotal, customerInfo);
+    // Open WhatsApp routed to the specific vendor
+    redirectToWhatsApp(items, finalTotal, customerInfo, primaryVendorId);
 
     // Clear cart and show success
     Cart.clearCart();
+    sessionStorage.removeItem('zarah_promo_applied');
     document.getElementById('checkoutPage').style.display = 'none';
     document.getElementById('orderSuccess').style.display = 'block';
     document.getElementById('orderNum').textContent = 'Order ' + orderId;
+    const vNameEl = document.getElementById('successVendorName');
+    if (vNameEl) vNameEl.textContent = vendorDisplayName;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function initSummary() {
     const items = Cart.getItems();
     const subtotal = Cart.getTotal();
-    const total = subtotal;
+    const promoApplied = sessionStorage.getItem('zarah_promo_applied') === 'true';
+    const discount = promoApplied ? Math.round(subtotal * 0.10) : 0;
+    const total = Math.max(0, subtotal - discount);
 
     document.getElementById('sumSubtotal').textContent = formatNaira(subtotal);
     document.getElementById('sumShipping').textContent = 'Discuss on WhatsApp';
@@ -443,6 +484,11 @@
         <span style="color:var(--text-2);flex:1;margin-right:8px">${i.name} × ${i.qty}</span>
         <span style="font-weight:600">${formatNaira(i.price * i.qty)}</span>
       </div>`).join('');
+  }
+
+  function toggleMenu() {
+    const m = document.getElementById('mobileMenu');
+    if (m) m.classList.toggle('open');
   }
 
   // Pre-fill if logged in
