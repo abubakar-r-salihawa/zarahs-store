@@ -7,8 +7,9 @@
   <meta name="description" content="Shop signature fragrances at Zarah's Perfume. Floral, Oriental, Woody & Fresh scents. Delivered nationwide in Nigeria.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Playfair+Display:wght@400;600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/improvements.css">
 </head>
 <body>
 
@@ -86,11 +87,11 @@
 
         <div class="filter-section">
           <h4>Category</h4>
-          <label class="filter-option"><input type="checkbox" value="Floral" onchange="filterAndRender()"><label>Floral</label></label>
-          <label class="filter-option"><input type="checkbox" value="Fresh" onchange="filterAndRender()"><label>Fresh</label></label>
-          <label class="filter-option"><input type="checkbox" value="Oriental" onchange="filterAndRender()"><label>Oriental</label></label>
-          <label class="filter-option"><input type="checkbox" value="Woody" onchange="filterAndRender()"><label>Woody</label></label>
-          <label class="filter-option"><input type="checkbox" value="Cologne" onchange="filterAndRender()"><label>Cologne</label></label>
+          <label class="filter-option"><input type="checkbox" value="Floral" onchange="filterAndRender()"><span>Floral</span></label>
+          <label class="filter-option"><input type="checkbox" value="Fresh" onchange="filterAndRender()"><span>Fresh</span></label>
+          <label class="filter-option"><input type="checkbox" value="Oriental" onchange="filterAndRender()"><span>Oriental</span></label>
+          <label class="filter-option"><input type="checkbox" value="Woody" onchange="filterAndRender()"><span>Woody</span></label>
+          <label class="filter-option"><input type="checkbox" value="Cologne" onchange="filterAndRender()"><span>Cologne</span></label>
         </div>
 
         <div class="filter-section">
@@ -106,7 +107,7 @@
 
         <div class="filter-section">
           <h4>Availability</h4>
-          <label class="filter-option"><input type="checkbox" id="inStockOnly" onchange="filterAndRender()"><label>In Stock Only</label></label>
+          <label class="filter-option"><input type="checkbox" id="inStockOnly" onchange="filterAndRender()"><span>In Stock Only</span></label>
         </div>
       </aside>
 
@@ -190,7 +191,7 @@
     </div>
     <div>
       <h4>Help</h4>
-      <a href="#">Help Center</a>
+      <a href="https://wa.me/2348147923724" target="_blank" rel="noopener">Contact support</a>
     </div>
   </div>
   <div class="fk-footer-bottom">
@@ -201,6 +202,7 @@
 
 <!-- Supabase Integration Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/common.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
@@ -283,20 +285,20 @@
     return `
     <div class="product-card-fk" onclick="window.location.href='product.html?id=${p.id}'">
       <div class="product-img-fk">
-        <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/300/300'">
-        ${p.badge ? `<span class="product-badge-fk badge-${p.badge.toLowerCase().replace(' ','-')}">${p.badge}</span>` : ''}
-        <button class="wishlist-fk ${inWish?'active':''}" onclick="event.stopPropagation();toggleWishlist('${p.id}',this)">${inWish?'❤️':'🤍'}</button>
+        <img src="${escapeHTML(safeURL(p.image))}" alt="${escapeHTML(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='https://picsum.photos/seed/${p.id}/300/300'">
+        ${p.badge ? `<span class="product-badge-fk badge-${badgeClass(p.badge)}">${escapeHTML(p.badge)}</span>` : ''}
+        <button class="wishlist-fk ${inWish?'active':''}" onclick="event.stopPropagation();toggleWishlist(${inlineArg(p.id)},this)">${inWish?'❤️':'🤍'}</button>
         ${!p.inStock ? '<div class="oos-overlay"><span>Out of Stock</span></div>' : ''}
       </div>
       <div class="product-info-fk">
-        <div class="product-name-fk">${p.name}</div>
+        <div class="product-name-fk">${escapeHTML(p.name)}</div>
         <div class="product-rating-fk">
-          <span class="assured-badge" style="margin-left:0">✔ Zarah's Store Assured</span>
+          <span class="assured-badge" style="margin-left:0">Direct from boutique</span>
         </div>
         <div class="product-price-fk">${formatNaira(p.price)}</div>
         <div class="product-btns" onclick="event.stopPropagation()">
-          <button class="btn-addcart-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`addToCart('${p.id}')`:''}" ${!p.inStock?'disabled':''}>🛒 Add to Cart</button>
-          <button class="btn-buynow-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`buyNowDirect('${p.id}')`:''}" ${!p.inStock?'disabled':''}>Buy Now</button>
+          <button class="btn-addcart-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`addToCart(${inlineArg(p.id)})`:''}" ${!p.inStock?'disabled':''}>🛒 Add to Cart</button>
+          <button class="btn-buynow-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`buyNowDirect(${inlineArg(p.id)})`:''}" ${!p.inStock?'disabled':''}>Buy Now</button>
         </div>
       </div>
     </div>`;

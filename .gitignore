@@ -1,0 +1,4 @@
+.test-runtime/
+test-results/*.png
+test-results/*.json
+node_modules/

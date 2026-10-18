@@ -7,8 +7,9 @@
   <meta name="description" content="Zarah's Store — Nigeria's trusted multi-vendor marketplace. Shop from Zarah's Perfume, Zarah's Kitchen, and Teemerh Collection. Fast nationwide delivery.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Playfair+Display:wght@400;600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/improvements.css">
 </head>
 <body>
 
@@ -66,9 +67,9 @@
         <button class="luxury-hero-btn" onclick="document.getElementById('stores-section').scrollIntoView({behavior: 'smooth'})">Explore Boutiques →</button>
       </div>
       <div class="luxury-hero-collage">
-        <img class="collage-img collage-img-1" src="images/perfume/zahra-white-square-bottles.jpg" alt="White Cream Perfume Oil" onerror="this.src='https://picsum.photos/seed/zarah1/300/400'">
-        <img class="collage-img collage-img-2" src="images/perfume/zahra-apy-collection.jpg" alt="Apy Collection Red Frosted Bottle" onerror="this.src='https://picsum.photos/seed/zarah2/300/400'">
-        <img class="collage-img collage-img-3" src="images/perfume/zahra-amber-spray.jpg" alt="Amber Spray Bottle" onerror="this.src='https://picsum.photos/seed/zarah3/200/300'">
+        <img class="collage-img collage-img-1" src="images/perfume/zahra-white-square-bottles.jpg" alt="White Cream Perfume Oil" onerror="this.onerror=null;this.src='https://picsum.photos/seed/zarah1/300/400'">
+        <img class="collage-img collage-img-2" src="images/perfume/zahra-apy-collection.jpg" alt="Apy Collection Red Frosted Bottle" onerror="this.onerror=null;this.src='https://picsum.photos/seed/zarah2/300/400'">
+        <img class="collage-img collage-img-3" src="images/perfume/zahra-amber-spray.jpg" alt="Amber Spray Bottle" onerror="this.onerror=null;this.src='https://picsum.photos/seed/zarah3/200/300'">
       </div>
     </div>
 
@@ -209,11 +210,11 @@
     </div>
     <div>
       <h4>Help</h4>
-      <a href="#">Help Center</a>
+      <a href="https://wa.me/2348147923724" target="_blank" rel="noopener">Contact support</a>
     </div>
     <div>
       <h4>Payments & Orders</h4>
-      <a href="#">Order via WhatsApp</a>
+      <a href="cart.html">Order via WhatsApp</a>
     </div>
   </div>
   <div class="fk-footer-bottom">
@@ -224,26 +225,27 @@
 
 <!-- Supabase Integration Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/common.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
 <script src="js/vendor-store.js"></script>
 <script>
   initVendorProducts();
-  
+
   // Render Dynamic Navigation Links
   function renderBoutiquesMenu() {
     const subnav = document.getElementById('navSubLinks');
     subnav.innerHTML = '<a href="index.html" class="nav-sub-link active">🏠 Home</a>';
-    
+
     const mobileLinks = document.getElementById('mobileNavLinks');
     mobileLinks.innerHTML = '';
 
     Object.keys(VENDORS).forEach(id => {
       const vendor = VENDORS[id];
       const pageLink = vendor.page || `store.html?vendor=${id}`;
-      subnav.innerHTML += `<a href="${pageLink}" class="nav-sub-link">${vendor.logo} ${vendor.name}</a>`;
-      mobileLinks.innerHTML += `<a href="${pageLink}" class="mobile-link">${vendor.logo} ${vendor.name}</a>`;
+      subnav.innerHTML += `<a href="${escapeHTML(safeURL(pageLink))}" class="nav-sub-link">${escapeHTML(vendor.logo)} ${escapeHTML(vendor.name)}</a>`;
+      mobileLinks.innerHTML += `<a href="${escapeHTML(safeURL(pageLink))}" class="mobile-link">${escapeHTML(vendor.logo)} ${escapeHTML(vendor.name)}</a>`;
     });
     subnav.innerHTML += '<a href="vendor-login.html" class="nav-sub-link">🏪 Vendor Portal</a>';
   }
@@ -271,15 +273,15 @@
       }
 
       showcase.innerHTML += `
-      <div class="boutique-card" onclick="window.location.href='${pageLink}'">
-        <img src="${imgUrl}" alt="${v.name}" onerror="this.style.background='${v.primaryColor || '#8B5A2B'}'">
+      <div class="boutique-card" onclick="window.location.href=${inlineArg(safeURL(pageLink))}">
+        <img src="${escapeHTML(safeURL(imgUrl))}" alt="${escapeHTML(v.name)}" onerror="this.style.background='${v.primaryColor || '#8B5A2B'}'">
         <div class="boutique-overlay">
           <div class="boutique-glass-plate">
             <span class="boutique-emoji">${v.logo || '🏪'}</span>
-            <h3 class="boutique-title">${v.name}</h3>
-            <p class="boutique-tagline">${v.tagline}</p>
+            <h3 class="boutique-title">${escapeHTML(v.name)}</h3>
+            <p class="boutique-tagline">${escapeHTML(v.tagline)}</p>
             <div class="boutique-meta">
-              <span>✔ Verified Boutique</span>
+              <span>Shop this boutique</span>
               <span class="boutique-shop-link">Enter Boutique →</span>
             </div>
           </div>
@@ -291,7 +293,7 @@
   function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
   function doSearch() {
     const q = document.getElementById('globalSearch').value.trim();
-    if (q) window.location.href = 'store.html?vendor=perfume&search=' + encodeURIComponent(q);
+    if (q) window.location.href = 'store.html?search=' + encodeURIComponent(q);
   }
 
 
@@ -308,23 +310,23 @@
     return `
     <div class="minimal-card" onclick="window.location.href='product.html?id=${p.id}'">
       <div class="minimal-card-img-wrap">
-        <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/300/300'">
-        ${p.badge ? `<span class="minimal-card-badge">${p.badge}</span>` : ''}
-        <button class="minimal-card-wishlist" onclick="event.stopPropagation();toggleWishlist('${p.id}',this)">${inWish ? '❤️' : '🤍'}</button>
+        <img src="${escapeHTML(safeURL(p.image))}" alt="${escapeHTML(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='https://picsum.photos/seed/${p.id}/300/300'">
+        ${p.badge ? `<span class="minimal-card-badge">${escapeHTML(p.badge)}</span>` : ''}
+        <button class="minimal-card-wishlist" onclick="event.stopPropagation();toggleWishlist(${inlineArg(p.id)},this)">${inWish ? '❤️' : '🤍'}</button>
         ${!p.inStock ? '<div class="oos-overlay"><span>Out of Stock</span></div>' : ''}
       </div>
       <div class="minimal-card-body">
-        <div class="minimal-card-brand">${v.name}</div>
-        <div class="minimal-card-title">${p.name}</div>
+        <div class="minimal-card-brand">${escapeHTML(v.name)}</div>
+        <div class="minimal-card-title">${escapeHTML(p.name)}</div>
         <div class="minimal-card-rating">
-          <span class="assured-badge" style="margin-left:0">✔ Zarah's Store Assured</span>
+          <span class="assured-badge" style="margin-left:0">Direct from boutique</span>
         </div>
         <div class="minimal-card-price-row">
           <span class="minimal-price-current">${formatNaira(p.price)}</span>
         </div>
         <div class="minimal-card-actions" onclick="event.stopPropagation()">
-          <button class="minimal-btn-cart" onclick="${p.inStock ? `addToCart('${p.id}')` : ''}" ${!p.inStock ? 'disabled' : ''}>🛒 Add</button>
-          <button class="minimal-btn-buy" onclick="${p.inStock ? `buyNowDirect('${p.id}')` : ''}" ${!p.inStock ? 'disabled' : ''}>Buy Now</button>
+          <button class="minimal-btn-cart" onclick="${p.inStock ? `addToCart(${inlineArg(p.id)})` : ''}" ${!p.inStock ? 'disabled' : ''}>🛒 Add</button>
+          <button class="minimal-btn-buy" onclick="${p.inStock ? `buyNowDirect(${inlineArg(p.id)})` : ''}" ${!p.inStock ? 'disabled' : ''}>Buy Now</button>
         </div>
       </div>
     </div>`;

@@ -5,7 +5,11 @@
 // ---- CART STORE ----
 const Cart = {
   getItems() {
-    return JSON.parse(localStorage.getItem('cart') || '[]');
+    const items = StoreStorage.read('cart', []);
+    return Array.isArray(items) ? items.filter(i => i && typeof i.id === 'string' && Number.isFinite(i.price) && i.price >= 0 && Number.isInteger(i.qty) && i.qty > 0 && i.qty <= 99).map(i => {
+      const selectedSize=i.selectedSize || i.sizes?.[0] || i.size || null;
+      return {...i,selectedSize,cartKey:i.cartKey || i.id+(selectedSize ? ':'+encodeURIComponent(selectedSize) : '')};
+    }) : [];
   },
   saveItems(items) {
     localStorage.setItem('cart', JSON.stringify(items));
@@ -13,23 +17,27 @@ const Cart = {
   },
   addItem(product, qty = 1) {
     const items = Cart.getItems();
-    const existing = items.find(i => i.id === product.id);
+    if (!product?.inStock || !Number.isInteger(qty) || qty < 1 || qty > 99) return false;
+    const selectedSize = product.selectedSize || product.sizes?.[0] || product.size || null;
+    const cartKey = product.id + (selectedSize ? ':' + encodeURIComponent(selectedSize) : '');
+    const existing = items.find(i => i.cartKey === cartKey);
     if (existing) {
-      existing.qty += qty;
+      existing.qty = Math.min(99, existing.qty + qty);
     } else {
-      items.push({ ...product, qty });
+      items.push({ ...product, selectedSize, cartKey, qty });
     }
     Cart.saveItems(items);
     Cart.showNotification(product.name);
   },
   removeItem(productId) {
-    const items = Cart.getItems().filter(i => i.id !== productId);
+    const items = Cart.getItems().filter(i => i.cartKey !== productId);
     Cart.saveItems(items);
   },
   updateQty(productId, qty) {
+    if (!Number.isInteger(qty) || qty > 99) return;
     if (qty <= 0) { Cart.removeItem(productId); return; }
     const items = Cart.getItems();
-    const item = items.find(i => i.id === productId);
+    const item = items.find(i => i.cartKey === productId);
     if (item) item.qty = qty;
     Cart.saveItems(items);
   },
@@ -56,95 +64,39 @@ const Cart = {
     const toast = document.createElement('div');
     toast.id = 'cart-toast';
     toast.className = 'cart-toast';
-    toast.innerHTML = `<span class="toast-icon">🛒</span><span>Added to cart: <strong>${name}</strong></span>`;
+    toast.innerHTML = `<span class="toast-icon">🛒</span><span>Added to cart: <strong>${escapeHTML(name)}</strong></span>`;
     document.body.appendChild(toast);
     setTimeout(() => toast.classList.add('show'), 10);
     setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
   }
 };
 
+localStorage.removeItem('user');
+localStorage.removeItem('users');
 // ---- AUTH STORE ----
 const Auth = {
   getUser() {
-    return JSON.parse(localStorage.getItem('user') || 'null');
+    return Auth.user || null;
   },
   async register(name, email, password) {
     const trimmedEmail = email.trim();
     const trimmedName = name.trim();
 
-    // 1. Try Supabase Auth if client is available
-    if (window.supabaseClient) {
-      try {
-        const { data, error } = await window.supabaseClient.auth.signUp({
-          email: trimmedEmail,
-          password: password,
-          options: {
-            data: { display_name: trimmedName }
-          }
-        });
-        if (error) throw error;
-        return { success: true, data };
-      } catch (e) {
-        console.warn("Supabase auth signUp unavailable or failed, checking local fallback:", e.message);
-        // If it's a genuine validation error like already registered, return it
-        if (e.message && e.message.toLowerCase().includes('already registered')) {
-          return { success: false, error: e.message };
-        }
-      }
-    }
-
-    // 2. Resilient local fallback (works offline or when Supabase project is paused)
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    if (users.find(u => u.email.toLowerCase() === trimmedEmail.toLowerCase())) {
-      return { success: false, error: 'Email already registered' };
-    }
-    const newUser = {
-      id: 'usr_' + Date.now(),
-      name: trimmedName,
-      email: trimmedEmail,
-      password: btoa(password),
-      avatar: trimmedName[0].toUpperCase(),
-      joinDate: new Date().toISOString()
-    };
-    users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
-    const { password: _, ...safeUser } = newUser;
-    localStorage.setItem('user', JSON.stringify(safeUser));
-    Auth.updateUI();
-    return { success: true, localOnly: true, user: safeUser };
+    try {
+      if (!trimmedName || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail) || password.length < 8) throw new Error('Enter your name, a valid email, and a password of at least 8 characters.');
+      if (!window.supabaseClient) throw new Error('Sign-up is unavailable. Check your connection and try again.');
+      const {data,error} = await window.supabaseClient.auth.signUp({email:trimmedEmail,password,options:{data:{display_name:trimmedName}}});
+      if(error) throw error;
+      return {success:true,data};
+    } catch(e) { return {success:false,error:e.message}; }
   },
-  async login(email, password) {
-    const trimmedEmail = email.trim();
-
-    // 1. Try Supabase Auth if client is available
-    if (window.supabaseClient) {
-      try {
-        const { data, error } = await window.supabaseClient.auth.signInWithPassword({
-          email: trimmedEmail,
-          password: password
-        });
-        if (error) throw error;
-        return { success: true, data };
-      } catch (e) {
-        console.warn("Supabase signInWithPassword unavailable or failed, checking local fallback:", e.message);
-        if (e.message && (e.message.toLowerCase().includes('invalid login') || e.message.toLowerCase().includes('invalid credentials'))) {
-          // Check local users before failing completely
-        }
-      }
-    }
-
-    // 2. Resilient local fallback (checks locally registered users)
-    const encodedPass = btoa(password);
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const user = users.find(u => u.email.toLowerCase() === trimmedEmail.toLowerCase() && u.password === encodedPass);
-    if (user) {
-      const { password: _, ...safeUser } = user;
-      localStorage.setItem('user', JSON.stringify(safeUser));
-      Auth.updateUI();
-      return { success: true, localOnly: true, user: safeUser };
-    }
-
-    return { success: false, error: 'Invalid email or password. Please verify your credentials.' };
+  async login(email,password) {
+    try {
+      if (!window.supabaseClient) throw new Error('Sign-in is unavailable. Check your connection and try again.');
+      const {data,error}=await window.supabaseClient.auth.signInWithPassword({email:email.trim(),password});
+      if(error) throw error;
+      return {success:true,data};
+    } catch(e) {return {success:false,error:e.message};}
   },
   async loginWithOTP(email) {
     if (!window.supabaseClient) return { success: false, error: 'Supabase not initialized.' };
@@ -161,7 +113,7 @@ const Auth = {
       return { success: false, error: e.message };
     }
   },
-  async verifyOTP(email, token, type = 'signup') {
+  async verifyOTP(email, token, type = 'email') {
     if (!window.supabaseClient) return { success: false, error: 'Supabase not initialized.' };
     try {
       const { data, error } = await window.supabaseClient.auth.verifyOtp({
@@ -181,7 +133,7 @@ const Auth = {
       const { error } = await window.supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + window.location.pathname
+          redirectTo: new URL('auth.html', window.location.href).href
         }
       });
       if (error) throw error;
@@ -223,17 +175,19 @@ if (window.supabaseClient) {
         avatar: (metadata.display_name || metadata.name || session.user.email)[0].toUpperCase(),
         joinDate: session.user.created_at
       };
-      localStorage.setItem('user', JSON.stringify(user));
-    } else if (event === 'SIGNED_OUT') {
+      Auth.user = user;
+    } else {
+      Auth.user = null;
       localStorage.removeItem('user');
     }
     Auth.updateUI();
+    window.dispatchEvent(new Event('auth_ready'));
   });
 }
 
 // ---- WISHLIST ----
 const Wishlist = {
-  getItems() { return JSON.parse(localStorage.getItem('wishlist') || '[]'); },
+  getItems() { const value=StoreStorage.read('wishlist',[]); return Array.isArray(value) ? value : []; },
   toggle(productId) {
     let items = Wishlist.getItems();
     if (items.includes(productId)) {
@@ -250,6 +204,7 @@ const Wishlist = {
     document.querySelectorAll('[data-wish-id]').forEach(btn => {
       const id = btn.dataset.wishId;
       btn.classList.toggle('active', Wishlist.has(id));
+      btn.setAttribute('aria-pressed',String(Wishlist.has(id)));
     });
   }
 };
@@ -269,21 +224,21 @@ function renderStars(rating, size = 16) {
 
 function renderProductCard(product, vendorInfo) {
   const inWishlist = Wishlist.has(product.id);
-  const badgeHtml = product.badge ? `<span class="product-badge badge-${product.badge.toLowerCase().replace(' ','-')}">${product.badge}</span>` : '';
+  const badgeHtml = product.badge ? `<span class="product-badge badge-${badgeClass(product.badge)}">${escapeHTML(product.badge)}</span>` : '';
   const stockHtml = !product.inStock ? '<div class="out-of-stock-overlay"><span>Out of Stock</span></div>' : '';
   return `
   <div class="product-card" onclick="window.location.href='product.html?id=${product.id}'" style="--vendor-color:${vendorInfo.primaryColor}">
     ${stockHtml}
     <div class="product-img-wrap">
-      <img src="${product.image}" alt="${product.name}" loading="lazy" onerror="this.src='https://picsum.photos/400/400'">
+      <img src="${escapeHTML(safeURL(product.image))}" alt="${escapeHTML(product.name)}" loading="lazy" onerror="this.src='https://picsum.photos/400/400'">
       ${badgeHtml}
-      <button class="wishlist-btn ${inWishlist ? 'active' : ''}" data-wish-id="${product.id}" onclick="event.stopPropagation(); toggleWishlist('${product.id}', this)" title="Add to Wishlist">
+      <button class="wishlist-btn ${inWishlist ? 'active' : ''}" data-wish-id="${product.id}" onclick="event.stopPropagation(); toggleWishlist(${inlineArg(product.id)}, this)" title="Add to Wishlist">
         ${inWishlist ? '❤️' : '🤍'}
       </button>
     </div>
     <div class="product-info">
-      <div class="product-category">${product.category}</div>
-      <h3 class="product-name">${product.name}</h3>
+      <div class="product-category">${escapeHTML(product.category)}</div>
+      <h3 class="product-name">${escapeHTML(product.name)}</h3>
       <div class="product-rating">
         ${renderStars(product.rating)}
         <span class="rating-count">(${product.reviewCount})</span>
@@ -292,7 +247,7 @@ function renderProductCard(product, vendorInfo) {
         <span class="product-price">${formatNaira(product.price)}</span>
         ${product.originalPrice ? `<span class="product-original-price">${formatNaira(product.originalPrice)}</span>` : ''}
       </div>
-      <button class="btn-add-cart ${!product.inStock ? 'disabled' : ''}" onclick="event.stopPropagation(); ${product.inStock ? `addToCart('${product.id}')` : ''}" ${!product.inStock ? 'disabled' : ''}>
+      <button class="btn-add-cart ${!product.inStock ? 'disabled' : ''}" onclick="event.stopPropagation(); ${product.inStock ? `addToCart(${inlineArg(product.id)})` : ''}" ${!product.inStock ? 'disabled' : ''}>
         ${product.inStock ? '🛒 Add to Cart' : 'Out of Stock'}
       </button>
     </div>
@@ -303,14 +258,14 @@ function renderReviewCard(review) {
   return `
   <div class="review-card">
     <div class="review-header">
-      <div class="reviewer-avatar">${review.avatar}</div>
+      <div class="reviewer-avatar">${escapeHTML(review.avatar)}</div>
       <div class="reviewer-info">
-        <strong>${review.user}</strong>
+        <strong>${escapeHTML(review.user)}</strong>
         <span class="review-date">${new Date(review.date).toLocaleDateString('en-NG', {year:'numeric',month:'long',day:'numeric'})}</span>
       </div>
       <div class="review-stars">${renderStars(review.rating, 14)}</div>
     </div>
-    <p class="review-comment">${review.comment}</p>
+    <p class="review-comment">${escapeHTML(review.comment)}</p>
   </div>`;
 }
 
@@ -343,7 +298,8 @@ function showToast(message) {
     `;
     document.body.appendChild(toast);
   }
-  toast.innerHTML = message;
+  toast.textContent = message;
+  toast.setAttribute('role','status');
   toast.style.transform = 'translateY(0)';
   toast.style.opacity = '1';
   clearTimeout(toast._timer);
@@ -357,7 +313,7 @@ function addToCart(productId, qty = 1) {
   const product = typeof getProductById === 'function' ? getProductById(productId) : null;
   if (product) {
     Cart.addItem(product, qty);
-    showToast(`🛒 <strong>${product.name}</strong> added to cart!`);
+
   }
 }
 
@@ -365,7 +321,7 @@ function buyNowDirect(productId, qty = 1) {
   const product = typeof getProductById === 'function' ? getProductById(productId) : null;
   if (product) {
     Cart.addItem(product, qty);
-    window.location.href = 'checkout.html';
+    if (product.inStock) window.location.href = 'checkout.html';
   }
 }
 

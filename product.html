@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product Details — MarketHub Nigeria</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Playfair+Display:wght@400;600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/improvements.css">
 </head>
 <body>
 
@@ -75,12 +76,14 @@
 
 <!-- Supabase Integration Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/common.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
 <script src="js/vendor-store.js"></script>
 <script>
-  initVendorProducts();
+  let catalogLoaded = false;
+  initVendorProducts().finally(() => { catalogLoaded = true; renderAllProductPage(); });
   function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
   function doSearch() {
     const q = document.getElementById('navSearch').value.trim();
@@ -98,7 +101,12 @@
 
   function renderDetail() {
     const product = getProductById(productId);
-    if (!product) { window.location.href = 'index.html'; return; }
+    if (!product) {
+      document.getElementById('detailContent').innerHTML = catalogLoaded
+        ? '<div class="empty-fk"><h1>Product unavailable</h1><p>This item could not be loaded. <a href="index.html">Browse the stores</a> or refresh to retry.</p></div>'
+        : '<p role="status">Loading product…</p>';
+      return;
+    }
 
     const vendor = VENDORS[product.vendor] || { logo: '🏪', name: 'Verified Store', page: 'index.html' };
     document.title = `${product.name} — Zarah's Store`;
@@ -106,17 +114,18 @@
     // Breadcrumb
     document.getElementById('breadcrumb').innerHTML = `
       <a href="index.html">Home</a> ›
-      <a href="${vendor.page}">${vendor.logo} ${vendor.name}</a> ›
-      <span>${product.name}</span>`;
+      <a href="${escapeHTML(safeURL(vendor.page))}">${escapeHTML(vendor.logo)} ${escapeHTML(vendor.name)}</a> ›
+      <span>${escapeHTML(product.name)}</span>`;
 
     const savingsPct = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0;
     const savings = product.originalPrice ? product.originalPrice - product.price : 0;
 
-    const sizesHtml = product.sizes ? `
+    if (!product.sizes?.includes(selectedSize)) selectedSize = product.sizes?.[0] || null;
+    const sizesHtml = product.sizes?.length ? `
       <div style="margin-bottom:16px">
         <div style="font-size:0.82rem;font-weight:600;margin-bottom:8px">Select Size:</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
-          ${product.sizes.map(s => `<button class="sort-btn ${s === selectedSize ? 'active' : ''}" onclick="selectSize('${s}',this)">${s}</button>`).join('')}
+          ${product.sizes.map(s => `<button class="sort-btn ${s === selectedSize ? 'active' : ''}" onclick="selectSize(${inlineArg(s)},this)">${escapeHTML(s)}</button>`).join('')}
         </div>
       </div>` : '';
 
@@ -124,30 +133,30 @@
       <div style="margin-bottom:16px">
         <div style="font-size:0.82rem;font-weight:700;margin-bottom:8px;color:var(--text)">Fragrance Notes</div>
         <div class="detail-notes">
-          <div class="detail-note"><div class="detail-note-key">Top Notes</div><div class="detail-note-val">${product.notes.top}</div></div>
-          <div class="detail-note"><div class="detail-note-key">Heart Notes</div><div class="detail-note-val">${product.notes.heart}</div></div>
-          <div class="detail-note"><div class="detail-note-key">Base Notes</div><div class="detail-note-val">${product.notes.base}</div></div>
+          <div class="detail-note"><div class="detail-note-key">Top Notes</div><div class="detail-note-val">${escapeHTML(product.notes.top)}</div></div>
+          <div class="detail-note"><div class="detail-note-key">Heart Notes</div><div class="detail-note-val">${escapeHTML(product.notes.heart)}</div></div>
+          <div class="detail-note"><div class="detail-note-key">Base Notes</div><div class="detail-note-val">${escapeHTML(product.notes.base)}</div></div>
         </div>
       </div>` : '';
 
-    
+
     const inWish = Wishlist.has(product.id);
 
     document.getElementById('detailContent').innerHTML = `
       <div class="detail-layout">
         <!-- IMAGE PANEL -->
         <div class="detail-img-panel">
-          <img src="${product.image}" alt="${product.name}" onerror="this.src='https://picsum.photos/400/400'">
+          <img src="${escapeHTML(safeURL(product.image))}" alt="${escapeHTML(product.name)}" onerror="this.onerror=null;this.src='https://picsum.photos/400/400'">
           <div class="detail-img-panel-btns">
-            <button class="btn-addcart-lg" onclick="addToCartWithQty('${product.id}')" ${!product.inStock ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
+            <button class="btn-addcart-lg" onclick="addToCartWithQty(${inlineArg(product.id)})" ${!product.inStock ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
               🛒 ${product.inStock ? 'Add to Cart' : 'Out of Stock'}
             </button>
-            <button class="btn-buynow-lg" onclick="${product.inStock ? `buyNowWithQty('${product.id}')` : ''}" ${!product.inStock ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
+            <button class="btn-buynow-lg" onclick="${product.inStock ? `buyNowWithQty(${inlineArg(product.id)})` : ''}" ${!product.inStock ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
               ⚡ Buy Now
             </button>
           </div>
           <div style="margin-top:12px;text-align:center">
-            <button id="wishBtn" onclick="toggleWishlist('${product.id}', this)" style="background:none;border:1px solid var(--border);border-radius:4px;padding:8px 16px;cursor:pointer;font-size:0.82rem;width:100%;transition:var(--t)" data-wish-id="${product.id}">
+            <button id="wishBtn" onclick="toggleWishlist(${inlineArg(product.id)}, this)" style="background:none;border:1px solid var(--border);border-radius:4px;padding:8px 16px;cursor:pointer;font-size:0.82rem;width:100%;transition:var(--t)" data-wish-id="${product.id}">
               ${inWish ? '❤️ Wishlisted' : '🤍 Add to Wishlist'}
             </button>
           </div>
@@ -156,10 +165,10 @@
         <!-- DETAIL PANEL -->
         <div class="detail-main">
           <div class="detail-vendor-chip">
-            ${vendor.logo} <a href="${vendor.page}" style="color:var(--fk-blue)">${vendor.name}</a>
-            <span class="assured-badge" style="margin-left:6px">✔ Zarah's Store Assured</span>
+            ${escapeHTML(vendor.logo)} <a href="${escapeHTML(safeURL(vendor.page))}" style="color:var(--fk-blue)">${escapeHTML(vendor.name)}</a>
+            <span class="assured-badge" style="margin-left:6px">Direct from boutique</span>
           </div>
-          <h1 class="detail-title">${product.name}</h1>
+          <h1 class="detail-title">${escapeHTML(product.name)}</h1>
 
 
 
@@ -171,6 +180,7 @@
             </div>
 
 
+          </div>
           ${sizesHtml}
           ${notesHtml}
 
@@ -187,25 +197,25 @@
 
           <!-- ACTIONS -->
           <div class="detail-actions">
-            <button class="btn-addcart-lg" onclick="addToCartWithQty('${product.id}')" ${!product.inStock ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
+            <button class="btn-addcart-lg" onclick="addToCartWithQty(${inlineArg(product.id)})" ${!product.inStock ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
               🛒 ${product.inStock ? 'Add to Cart' : 'Out of Stock'}
             </button>
-            <button class="btn-buynow-lg" onclick="buyNowWithQty('${product.id}')" ${!product.inStock ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
+            <button class="btn-buynow-lg" onclick="buyNowWithQty(${inlineArg(product.id)})" ${!product.inStock ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
               ⚡ Buy Now
             </button>
           </div>
-          <button onclick="orderProductViaWhatsApp('${product.id}')" style="width:100%;margin-top:10px;padding:12px;background:#25D366;color:#fff;border:none;border-radius:6px;font-size:0.95rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <button onclick="orderProductViaWhatsApp(${inlineArg(product.id)})" style="width:100%;margin-top:10px;padding:12px;background:#25D366;color:#fff;border:none;border-radius:6px;font-size:0.95rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
             💬 Order via WhatsApp
           </button>
 
           <!-- SPECS -->
           <div style="border-top:1px solid var(--border);padding-top:14px">
             <div style="font-size:0.88rem;font-weight:700;margin-bottom:10px">Product Details</div>
-            ${product.size ? `<div class="detail-spec-row"><span class="detail-spec-key">Size</span><span class="detail-spec-val">${product.size}</span></div>` : ''}
-            ${product.material ? `<div class="detail-spec-row"><span class="detail-spec-key">Material</span><span class="detail-spec-val">${product.material}</span></div>` : ''}
-            ${product.origin ? `<div class="detail-spec-row"><span class="detail-spec-key">Origin</span><span class="detail-spec-val">${product.origin}</span></div>` : ''}
-            <div class="detail-spec-row"><span class="detail-spec-key">Category</span><span class="detail-spec-val">${product.category}</span></div>
-            <div class="detail-spec-row"><span class="detail-spec-key">Vendor</span><span class="detail-spec-val">${vendor.logo} <a href="${vendor.page}" style="color:var(--fk-blue)">${vendor.name}</a></span></div>
+            ${product.size ? `<div class="detail-spec-row"><span class="detail-spec-key">Size</span><span class="detail-spec-val">${escapeHTML(product.size)}</span></div>` : ''}
+            ${product.material ? `<div class="detail-spec-row"><span class="detail-spec-key">Material</span><span class="detail-spec-val">${escapeHTML(product.material)}</span></div>` : ''}
+            ${product.origin ? `<div class="detail-spec-row"><span class="detail-spec-key">Origin</span><span class="detail-spec-val">${escapeHTML(product.origin)}</span></div>` : ''}
+            <div class="detail-spec-row"><span class="detail-spec-key">Category</span><span class="detail-spec-val">${escapeHTML(product.category)}</span></div>
+            <div class="detail-spec-row"><span class="detail-spec-key">Vendor</span><span class="detail-spec-val">${escapeHTML(vendor.logo)} <a href="${escapeHTML(safeURL(vendor.page))}" style="color:var(--fk-blue)">${escapeHTML(vendor.name)}</a></span></div>
 
             <div class="detail-spec-row"><span class="detail-spec-key">Warranty</span><span class="detail-spec-val">Seller warranty applicable</span></div>
           </div>
@@ -213,16 +223,16 @@
           <!-- DESCRIPTION -->
           <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
             <div style="font-size:0.88rem;font-weight:700;margin-bottom:8px">Description</div>
-            <p class="detail-desc">${product.description}</p>
+            <p class="detail-desc">${escapeHTML(product.description)}</p>
           </div>
 
           <!-- VENDOR STRIP -->
           <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px">
-            <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--fk-blue-light);border-radius:6px;cursor:pointer" onclick="window.location.href='${vendor.page}'">
-              <div style="font-size:2rem">${vendor.logo}</div>
+            <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--fk-blue-light);border-radius:6px;cursor:pointer" onclick="window.location.href=${inlineArg(safeURL(vendor.page))}">
+              <div style="font-size:2rem">${escapeHTML(vendor.logo)}</div>
               <div style="flex:1">
-                <div style="font-weight:700;font-size:0.88rem">${vendor.name}</div>
-                <div style="font-size:0.75rem;color:var(--text-3);margin-top:2px">${vendor.tagline}</div>
+                <div style="font-weight:700;font-size:0.88rem">${escapeHTML(vendor.name)}</div>
+                <div style="font-size:0.75rem;color:var(--text-3);margin-top:2px">${escapeHTML(vendor.tagline)}</div>
               </div>
               <div style="color:var(--fk-blue);font-size:0.82rem;font-weight:600">Visit Store →</div>
             </div>
@@ -245,13 +255,13 @@
 
   function addToCartWithQty(productId) {
     const product = getProductById(productId);
-    if (product) Cart.addItem(product, currentQty);
+    if (product) Cart.addItem({ ...product, selectedSize: selectedSize || product.sizes?.[0] || product.size || null }, currentQty);
   }
 
   function buyNowWithQty(productId) {
     const product = getProductById(productId);
     if (product) {
-      Cart.addItem(product, currentQty);
+      Cart.addItem({ ...product, selectedSize: selectedSize || product.sizes?.[0] || product.size || null }, currentQty);
       window.location.href = 'checkout.html';
     }
   }
@@ -260,16 +270,16 @@
     return `
     <div class="product-card-fk" onclick="window.location.href='product.html?id=${p.id}'">
       <div class="product-img-fk">
-        <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/300/300'">
-        ${p.badge ? `<span class="product-badge-fk badge-${p.badge.toLowerCase().replace(' ','-')}">${p.badge}</span>` : ''}
+        <img src="${escapeHTML(safeURL(p.image))}" alt="${escapeHTML(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='https://picsum.photos/seed/${p.id}/300/300'">
+        ${p.badge ? `<span class="product-badge-fk badge-${badgeClass(p.badge)}">${escapeHTML(p.badge)}</span>` : ''}
         ${!p.inStock ? '<div class="oos-overlay"><span>Out of Stock</span></div>' : ''}
       </div>
       <div class="product-info-fk">
-        <div class="product-name-fk">${p.name}</div>
-        <div class="product-rating-fk"><span class="assured-badge" style="margin-left:0">✔ Zarah's Store Assured</span></div>
+        <div class="product-name-fk">${escapeHTML(p.name)}</div>
+        <div class="product-rating-fk"><span class="assured-badge" style="margin-left:0">Direct from boutique</span></div>
         <div class="product-price-fk">${formatNaira(p.price)}</div>
         <div class="product-btns" onclick="event.stopPropagation()">
-          <button class="btn-addcart-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`addToCart('${p.id}')`:''}" ${!p.inStock?'disabled':''}>🛒 Add to Cart</button>
+          <button class="btn-addcart-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`addToCart(${inlineArg(p.id)})`:''}" ${!p.inStock?'disabled':''}>🛒 Add to Cart</button>
           <button class="btn-buynow-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`window.location.href='product.html?id=${p.id}'`:''}" ${!p.inStock?'disabled':''}>Buy Now</button>
         </div>
       </div>

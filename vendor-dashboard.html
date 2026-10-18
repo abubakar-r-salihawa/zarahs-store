@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vendor Dashboard — Zarah's Store</title>
   <meta name="description" content="Manage your Zarah's Store store products and settings.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Playfair+Display:wght@400;600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <style>
     /* ---- LAYOUT ---- */
@@ -183,6 +184,7 @@
       cursor: pointer;
     }
   </style>
+  <link rel="stylesheet" href="css/improvements.css">
 </head>
 <body>
 
@@ -313,15 +315,15 @@
           </div>
         </div>
         <div style="margin-top:20px;display:flex;align-items:center;gap:12px">
-          <button class="save-settings-btn" onclick="saveSettings()">💾 Save Changes</button>
+          <button class="save-settings-btn" onclick="runAction(this, () => saveSettings())">💾 Save Changes</button>
           <span class="setting-success" id="settingSuccess">✅ Saved successfully!</span>
         </div>
       </div>
 
       <div class="settings-card">
-        <h3>⚠️ Danger Zone</h3>
-        <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:16px">Reset your product catalog to the original demo data. This cannot be undone.</p>
-        <button onclick="confirmReset()" style="padding:10px 20px;border-radius:var(--radius-sm);background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#FCA5A5;font-weight:600;font-size:0.9rem;cursor:pointer">🔄 Reset Products to Default</button>
+        <h3>Refresh catalog</h3>
+        <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:16px">Reload the latest saved products from the database.</p>
+        <button onclick="confirmReset()" style="padding:10px 20px;border-radius:var(--radius-sm);background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#FCA5A5;font-weight:600;font-size:0.9rem;cursor:pointer">🔄 Refresh Products</button>
       </div>
     </div>
 
@@ -389,7 +391,7 @@
       <div class="error-message" id="modalError"></div>
       <div style="display:flex;gap:12px;margin-top:8px">
         <button class="modal-cancel" onclick="closeModal()">Cancel</button>
-        <button class="modal-submit" onclick="submitProduct()">💾 Save Product</button>
+        <button class="modal-submit" onclick="runAction(this, () => submitProduct())">💾 Save Product</button>
       </div>
     </div>
   </div>
@@ -397,13 +399,16 @@
 
 <!-- Supabase Integration Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/common.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
 <script src="js/vendor-store.js"></script>
-<script>
+<script src="js/staff.js"></script>
+<script type="module">
   // ---- AUTH GUARD ----
-  VendorAuth.requireAuth();
+  if (!await VendorAuth.requireAuth()) { await new Promise(() => {}); }
+  await initVendorProducts();
   const session = VendorAuth.getSession();
   const vendorId = session.vendorId;
   const vendor = VENDORS[vendorId];
@@ -420,7 +425,7 @@
     kitchen: { bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.25)', color: '#FDE68A' },
     variety: { bg: 'rgba(59,130,246,0.12)',  border: 'rgba(59,130,246,0.25)',  color: '#BAE6FD' }
   };
-  const bc = badgeColors[vendorId];
+  const bc = badgeColors[vendorId] || badgeColors.perfume;
   const badge = document.getElementById('sidebarBadge');
   badge.style.background = bc.bg;
   badge.style.border = `1px solid ${bc.border}`;
@@ -472,24 +477,25 @@
     // Recent products
     document.getElementById('recentProductsList').innerHTML = products.slice(0, 4).map(p => `
       <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
-        <img src="${p.image}" style="width:42px;height:42px;object-fit:cover;border-radius:8px" onerror="this.src='https://picsum.photos/50/50'">
+        <img src="${escapeHTML(safeURL(p.image))}" style="width:42px;height:42px;object-fit:cover;border-radius:8px" onerror="this.onerror=null;this.src='https://picsum.photos/50/50'">
         <div style="flex:1;min-width:0">
-          <div style="font-size:0.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
-          <div style="font-size:0.78rem;color:var(--text-muted)">₦${p.price.toLocaleString()} · ${p.category}</div>
+          <div style="font-size:0.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHTML(p.name)}</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">₦${p.price.toLocaleString()} · ${escapeHTML(p.category)}</div>
         </div>
         <span class="stock-badge ${p.inStock ? 'stock-in' : 'stock-out'}">${p.inStock ? '✓' : '✗'}</span>
       </div>`).join('');
 
     // Latest reviews
     const rev = getReviewsByVendor(vendorId);
-    document.getElementById('latestReviewsList').innerHTML = rev.slice(0, 3).map(r => `
+    const reviewsList = document.getElementById('latestReviewsList');
+    if (reviewsList) reviewsList.innerHTML = rev.slice(0, 3).map(r => `
       <div style="padding:10px 0;border-bottom:1px solid var(--border)">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#8B5CF6,#EC4899);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700">${r.avatar}</div>
-          <strong style="font-size:0.88rem">${r.user}</strong>
+          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#8B5CF6,#EC4899);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700">${escapeHTML(r.avatar)}</div>
+          <strong style="font-size:0.88rem">${escapeHTML(r.user)}</strong>
           <span style="color:#F59E0B;font-size:0.8rem">${'★'.repeat(r.rating)}</span>
         </div>
-        <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.5;margin:0">${r.comment.substring(0, 90)}${r.comment.length > 90 ? '…' : ''}</p>
+        <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.5;margin:0">${escapeHTML(r.comment.substring(0, 90))}${r.comment.length > 90 ? '…' : ''}</p>
       </div>`).join('');
   }
 
@@ -511,12 +517,12 @@
     document.getElementById('noProducts').style.display = 'none';
     tbody.innerHTML = products.map(p => `
       <tr>
-        <td><img class="table-img" src="${p.image}" alt="${p.name}" onerror="this.src='https://picsum.photos/60/60'"></td>
+        <td><img class="table-img" src="${escapeHTML(safeURL(p.image))}" alt="${escapeHTML(p.name)}" onerror="this.onerror=null;this.src='https://picsum.photos/60/60'"></td>
         <td>
-          <div class="table-product-name">${p.name}</div>
-          ${p.badge ? `<span class="product-badge badge-${p.badge.toLowerCase().replace(' ','-')}" style="position:static;margin-top:4px;display:inline-block">${p.badge}</span>` : ''}
+          <div class="table-product-name">${escapeHTML(p.name)}</div>
+          ${p.badge ? `<span class="product-badge badge-${badgeClass(p.badge)}" style="position:static;margin-top:4px;display:inline-block">${escapeHTML(p.badge)}</span>` : ''}
         </td>
-        <td style="color:var(--text-muted)">${p.category}</td>
+        <td style="color:var(--text-muted)">${escapeHTML(p.category)}</td>
         <td class="table-price">
           ₦${p.price.toLocaleString()}
           ${p.originalPrice ? `<div style="font-size:0.78rem;color:var(--text-muted);text-decoration:line-through">₦${p.originalPrice.toLocaleString()}</div>` : ''}
@@ -524,24 +530,24 @@
         <td><span class="stock-badge ${p.inStock ? 'stock-in' : 'stock-out'}">${p.inStock ? '✓ In Stock' : '✗ Out'}</span></td>
         <td>
           <div class="table-actions">
-            <button class="edit-btn" onclick="openEditModal('${p.id}')">✏️ Edit</button>
-            <button class="toggle-stock-btn" onclick="toggleStock('${p.id}')">${p.inStock ? '📤 Mark Out' : '📥 Mark In'}</button>
-            <button class="del-btn" onclick="deleteProduct('${p.id}')">🗑️</button>
+            <button class="edit-btn" onclick="openEditModal(${inlineArg(p.id)})">✏️ Edit</button>
+            <button class="toggle-stock-btn" onclick="toggleStock(${inlineArg(p.id)})">${p.inStock ? '📤 Mark Out' : '📥 Mark In'}</button>
+            <button class="del-btn" onclick="deleteProduct(${inlineArg(p.id)})">🗑️</button>
           </div>
         </td>
       </tr>`).join('');
   }
 
-  function toggleStock(productId) {
+  async function toggleStock(productId) {
     const products = VendorProducts.getAll(vendorId);
     const p = products.find(p => p.id === productId);
-    if (p) VendorProducts.update(vendorId, productId, { inStock: !p.inStock });
+    if (p) await VendorProducts.update(vendorId, productId, { inStock: !p.inStock });
     renderProductTable();
   }
 
-  function deleteProduct(productId) {
+  async function deleteProduct(productId) {
     if (confirm('Delete this product? This cannot be undone.')) {
-      VendorProducts.delete(vendorId, productId);
+      await VendorProducts.delete(vendorId, productId);
       renderProductTable();
       renderDashboard();
     }
@@ -601,8 +607,8 @@
       return;
     }
 
-    if (file.size > 1500000) {
-      errEl.textContent = '⚠️ Image is too large. Please select an image under 1.5 MB.';
+    if (!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type) || file.size > 1500000) {
+      errEl.textContent = '⚠️ Select a JPG, PNG, WebP or GIF under 1.5 MB.';
       errEl.classList.add('show');
       input.value = '';
       hiddenInput.value = '';
@@ -633,7 +639,7 @@
     }
   }
 
-  function submitProduct() {
+  async function submitProduct() {
     const errEl = document.getElementById('modalError');
     const name = document.getElementById('mName').value.trim();
     const price = document.getElementById('mPrice').value;
@@ -641,7 +647,7 @@
     const desc = document.getElementById('mDesc').value.trim();
     const image = document.getElementById('mImage').value.trim();
 
-    if (!name || !price || !category || !desc || !image) {
+    if (!name || !Number.isFinite(Number(price)) || Number(price)<=0 || !category || !desc || !image) {
       errEl.textContent = '⚠️ Please fill in all required fields.';
       errEl.classList.add('show'); return;
     }
@@ -658,9 +664,9 @@
     };
 
     if (editingId) {
-      VendorProducts.update(vendorId, editingId, data);
+      await VendorProducts.update(vendorId, editingId, data);
     } else {
-      VendorProducts.add(vendorId, data);
+      await VendorProducts.add(vendorId, data);
     }
 
     closeModal();
@@ -679,31 +685,24 @@
     document.getElementById('settingTagline').value = vendor.tagline;
     document.getElementById('settingDesc').value = vendor.description;
     document.getElementById('settingLogo').value = vendor.logo;
-    document.getElementById('settingEmail').value = VENDOR_CREDENTIALS[vendorId].email;
+    document.getElementById('settingEmail').value = session.email;
   }
 
-  function saveSettings() {
+  async function saveSettings() {
     const info = {
       name: document.getElementById('settingName').value.trim(),
       tagline: document.getElementById('settingTagline').value.trim(),
       description: document.getElementById('settingDesc').value.trim(),
       logo: document.getElementById('settingLogo').value.trim() || vendor.logo,
     };
-    VendorInfo.save(vendorId, info);
+    await VendorInfo.save(vendorId, info);
     document.getElementById('sidebarVendorName').textContent = info.name;
     const suc = document.getElementById('settingSuccess');
     suc.style.display = 'inline';
     setTimeout(() => suc.style.display = 'none', 3000);
   }
 
-  function confirmReset() {
-    if (confirm('This will reset ALL your products to the original demo data. Continue?')) {
-      localStorage.removeItem('vendor_products_' + vendorId);
-      location.reload();
-    }
-  }
-
-
+  async function confirmReset() { await initVendorProducts(); initAllDashboard(); renderProductTable(); }
 
   // ---- INIT ----
   function initAllDashboard() {
@@ -712,7 +711,7 @@
     document.getElementById('topbarAvatar').textContent = currentVendor.logo;
     document.getElementById('sidebarVendorName').textContent = currentVendor.name;
     document.getElementById('sidebarBadge').textContent = currentVendor.logo + ' ' + currentVendor.name;
-    
+
     renderDashboard();
     populateSettings();
   }
@@ -721,6 +720,8 @@
 
   // Listen for Supabase live data sync
   window.addEventListener('db_synced', initAllDashboard);
+
+  exposeActions({showTab, toggleSidebar, renderDashboard, renderProductTable, toggleStock, deleteProduct, openAddModal, openEditModal, closeModal, handleImageFileSelect, previewImage, submitProduct, populateSettings, saveSettings, confirmReset, initAllDashboard});
 </script>
 </body>
 </html>

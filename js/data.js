@@ -8,7 +8,7 @@ const WHATSAPP_NUMBER = '2348147923724';
 
 function buildWhatsAppOrderMessage(items, total, customerInfo) {
   const itemLines = items.map(i =>
-    `  • ${i.name} (×${i.qty}) — ${formatNaira(i.price * i.qty)}`
+    `  • ${i.name}${i.selectedSize ? " — " + i.selectedSize : ""} (×${i.qty}) — ${formatNaira(i.price * i.qty)}`
   ).join('\n');
   const msg =
 `🛍️ *NEW ORDER — Zarah's Store*
@@ -35,12 +35,12 @@ function redirectToWhatsApp(items, total, customerInfo, vendorId) {
   const msg = buildWhatsAppOrderMessage(items, total, customerInfo);
   let number = WHATSAPP_NUMBER; // fallback
   if (vendorId) {
-    const registry = JSON.parse(localStorage.getItem('vendors_registry') || '{}');
+    const registry = StoreStorage.read('vendors_registry', {});
     const vendor = registry[vendorId];
     if (vendor && vendor.whatsapp) number = vendor.whatsapp;
   }
   const url = `https://wa.me/${number}?text=${msg}`;
-  window.open(url, '_blank');
+  window.open(url, '_blank', 'noopener');
 }
 
 // Per-product WhatsApp order (reads vendor from product object)
@@ -48,7 +48,7 @@ function orderProductViaWhatsApp(productId) {
   const product = getProductById(productId);
   if (!product) return;
   const vendor = VENDORS[product.vendor];
-  const registry = JSON.parse(localStorage.getItem('vendors_registry') || '{}');
+  const registry = StoreStorage.read('vendors_registry', {});
   const v = registry[product.vendor] || vendor;
   const number = (v && v.whatsapp) ? v.whatsapp : WHATSAPP_NUMBER;
   const msg = encodeURIComponent(
@@ -59,7 +59,7 @@ function orderProductViaWhatsApp(productId) {
 *Vendor:* ${vendor ? vendor.name : ''}
 
 I would like to place an order. Please share delivery cost and payment details. Thank you!`);
-  window.open(`https://wa.me/${number}?text=${msg}`, '_blank');
+  window.open(`https://wa.me/${String(number).replace(/\D/g,'')}?text=${msg}`, '_blank', 'noopener');
 }
 
 const VENDORS = {
@@ -405,7 +405,7 @@ const REVIEWS = {
 
 // ---- DATA ACCESS FUNCTIONS ----
 function getAllProducts() {
-  return [...PRODUCTS.perfume, ...PRODUCTS.kitchen, ...PRODUCTS.variety];
+  return Object.values(PRODUCTS).flat();
 }
 
 function getFeaturedProducts(count = 6) {
@@ -422,7 +422,7 @@ function getVendor(id) {
 }
 
 function getProductsByVendor(vendorId) {
-  return PRODUCTS[vendorId] || [];
+  return [...(PRODUCTS[vendorId] || [])];
 }
 
 function getReviewsByVendor(vendorId) {

@@ -14,6 +14,7 @@
       color: #FFFFFF;
     }
   </style>
+  <link rel="stylesheet" href="css/improvements.css">
 </head>
 <body>
 
@@ -57,8 +58,8 @@
         <div class="store-banner-name" id="storeName">Boutique Store</div>
         <div class="store-banner-tag" id="storeTagline">Curated collection for you</div>
         <div class="store-banner-meta">
-          
-          
+
+
           <span class="store-badge">🚚 Delivery: Discuss on WhatsApp</span>
           <span class="store-badge">✅ Verified Seller</span>
         </div>
@@ -106,7 +107,7 @@
             <option value="popularity">Popularity</option>
             <option value="price-asc">Price: Low to High</option>
             <option value="price-desc">Price: High to Low</option>
-            
+
           </select>
         </div>
       </aside>
@@ -145,6 +146,7 @@
 
 <!-- Supabase Integration Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/common.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
@@ -153,15 +155,16 @@
   initVendorProducts();
   // Get vendor parameter
   const urlParams = new URLSearchParams(window.location.search);
+  const allStores = !urlParams.has('vendor');
   let vendorId = urlParams.get('vendor');
   const allVendors = window.VENDORS || JSON.parse(localStorage.getItem('vendors_registry') || '{}');
 
-  if (!vendorId || !allVendors[vendorId]) {
+  if (!vendorId) {
     vendorId = Object.keys(allVendors)[0] || 'perfume';
   }
 
   // Verify vendor exists
-  const v = allVendors[vendorId] || {
+  let v = (allStores ? {name:'All stores', tagline:'Search across our boutiques', categories: [...new Set(getAllProducts().map(p=>p.category))]} : allVendors[vendorId]) || {
     id: 'perfume', name: "Zarah's Store", tagline: "Curated collection",
     logo: '🏪', gradient: 'linear-gradient(90deg, #1A120B, #3E2715)', primaryColor: '#C4952A'
   };
@@ -178,9 +181,8 @@
   document.documentElement.style.setProperty('--fk-yellow', v.primaryColor || '#C4952A');
 
   // Initialize
-  initVendorProducts();
   renderDynamicSubnav();
-  Cart.updateHeaderCount();
+  Cart.updateUI();
 
   // Populate category filters in sidebar
   const catList = document.getElementById('categoryFiltersList');
@@ -189,7 +191,7 @@
   categories.forEach(cat => {
     const label = document.createElement('label');
     label.className = 'filter-option';
-    label.innerHTML = `<input type="checkbox" class="cat-checkbox" value="${cat}" onchange="filterAndRender()"><label>${cat}</label>`;
+    label.innerHTML = `<input type="checkbox" class="cat-checkbox" value="${escapeHTML(cat)}" onchange="filterAndRender()"><span>${escapeHTML(cat)}</span>`;
     catList.appendChild(label);
   });
 
@@ -197,7 +199,7 @@
   function renderDynamicSubnav() {
     const subnav = document.getElementById('navSubLinks');
     subnav.innerHTML = '<a href="index.html" class="nav-sub-link">← Marketplace</a>';
-    
+
     const mobileLinks = document.getElementById('mobileNavLinks');
     mobileLinks.innerHTML = '';
 
@@ -205,9 +207,9 @@
       const vendor = VENDORS[id];
       const pageLink = vendor.page || `store.html?vendor=${id}`;
       const isActive = (id === vendorId);
-      
-      subnav.innerHTML += `<a href="${pageLink}" class="nav-sub-link ${isActive ? 'active' : ''}">${vendor.logo} ${vendor.name}</a>`;
-      mobileLinks.innerHTML += `<a href="${pageLink}" class="mobile-link">${vendor.logo} ${vendor.name}</a>`;
+
+      subnav.innerHTML += `<a href="${escapeHTML(safeURL(pageLink))}" class="nav-sub-link ${isActive ? 'active' : ''}">${escapeHTML(vendor.logo)} ${escapeHTML(vendor.name)}</a>`;
+      mobileLinks.innerHTML += `<a href="${escapeHTML(safeURL(pageLink))}" class="mobile-link">${escapeHTML(vendor.logo)} ${escapeHTML(vendor.name)}</a>`;
     });
   }
 
@@ -237,8 +239,8 @@
     const product = getProductById(pId);
     if (product) {
       Cart.addItem(product, 1);
-      Cart.updateHeaderCount();
-      alert(`🛒 ${product.name} added to cart!`);
+      Cart.updateUI();
+
     }
   }
 
@@ -262,7 +264,7 @@
     const selectedCats = Array.from(document.querySelectorAll('.cat-checkbox:checked')).map(cb => cb.value);
 
     // Get vendor products
-    let products = VendorProducts.getAll(vendorId);
+    let products = allStores ? getAllProducts() : getProductsByVendor(vendorId);
 
     // Filter by search
     if (searchVal) {
@@ -303,40 +305,55 @@
     emptyState.style.display = 'none';
     grid.innerHTML = products.map(p => {
       const discPct = p.originalPrice ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
-      
+
 
 
       return `
       <div class="minimal-card" onclick="window.location.href='product.html?id=${p.id}'">
         <div class="minimal-card-img-wrap">
-          <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/300/300'">
-          ${p.badge ? `<span class="minimal-card-badge">${p.badge}</span>` : ''}
+          <img src="${escapeHTML(safeURL(p.image))}" alt="${escapeHTML(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='https://picsum.photos/seed/${p.id}/300/300'">
+          ${p.badge ? `<span class="minimal-card-badge">${escapeHTML(p.badge)}</span>` : ''}
           ${!p.inStock ? '<div class="oos-overlay"><span>Out of Stock</span></div>' : ''}
         </div>
         <div class="minimal-card-body">
-          <div class="minimal-card-brand">${v.name}</div>
-          <div class="minimal-card-title">${p.name}</div>
+          <div class="minimal-card-brand">${escapeHTML(v.name)}</div>
+          <div class="minimal-card-title">${escapeHTML(p.name)}</div>
           <div class="minimal-card-rating">
-            <span class="assured-badge" style="margin-left:0">✔ Zarah's Store Assured</span>
+            <span class="assured-badge" style="margin-left:0">Direct from boutique</span>
           </div>
           <div class="minimal-card-price-row">
             <span class="minimal-price-current">₦${p.price.toLocaleString()}</span>
             ${p.originalPrice ? `<span class="minimal-price-old">₦${p.originalPrice.toLocaleString()}</span><span class="minimal-price-disc">${discPct}% off</span>` : ''}
           </div>
           <div class="minimal-card-actions" onclick="event.stopPropagation()">
-            <button class="minimal-btn-cart" onclick="${p.inStock ? `addToCart('${p.id}')` : ''}" ${!p.inStock ? 'disabled' : ''}>🛒 Add</button>
-            <button class="minimal-btn-buy" onclick="${p.inStock ? `buyNowDirect('${p.id}')` : ''}" ${!p.inStock ? 'disabled' : ''}>Buy Now</button>
+            <button class="minimal-btn-cart" onclick="${p.inStock ? `addToCart(${inlineArg(p.id)})` : ''}" ${!p.inStock ? 'disabled' : ''}>🛒 Add</button>
+            <button class="minimal-btn-buy" onclick="${p.inStock ? `buyNowDirect(${inlineArg(p.id)})` : ''}" ${!p.inStock ? 'disabled' : ''}>Buy Now</button>
           </div>
         </div>
       </div>`;
     }).join('');
   }
 
+  document.getElementById('searchInput').value = urlParams.get('search') || '';
   // Initial render
   filterAndRender();
 
   // Listen for Supabase live data sync
-  window.addEventListener('db_synced', filterAndRender);
+  window.addEventListener('db_synced', () => {
+    if (!allStores) {
+      v=VENDORS[vendorId] || {name:'Store unavailable',tagline:'This store is no longer available.',categories:[]};
+      document.getElementById('storePageTitle').textContent=v.name+" — Zarah's Store";
+      document.getElementById('storeName').textContent=v.name;
+      document.getElementById('bcStoreName').textContent=v.name;
+      document.getElementById('storeTagline').textContent=v.tagline || '';
+      document.getElementById('storeLogo').textContent=v.logo || '🏪';
+      document.documentElement.style.setProperty('--vendor-gradient',v.gradient || 'linear-gradient(90deg,#1A120B,#3E2715)');
+    }
+    const checked=new Set([...document.querySelectorAll('.cat-checkbox:checked')].map(c=>c.value));
+    const categories=allStores ? [...new Set(getAllProducts().map(p=>p.category))] : (v.categories || []);
+    catList.innerHTML=categories.map(cat=>`<label class="filter-option"><input type="checkbox" class="cat-checkbox" value="${escapeHTML(cat)}" ${checked.has(cat)?'checked':''} onchange="filterAndRender()"><span>${escapeHTML(cat)}</span></label>`).join('');
+    renderDynamicSubnav();filterAndRender();
+  });
 </script>
 </body>
 </html>

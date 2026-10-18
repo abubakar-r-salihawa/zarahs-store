@@ -6,7 +6,7 @@
   <title>Checkout — Zarah's Store</title>
   <meta name="description" content="Complete your purchase securely at Zarah's Store.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Playfair+Display:wght@400;600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <style>
     /* ---- STEP TRACKER ---- */
@@ -97,6 +97,7 @@
       .fk-step-label { display: none; }
     }
   </style>
+  <link rel="stylesheet" href="css/improvements.css">
 </head>
 <body>
 
@@ -242,7 +243,8 @@
 
               <div class="step-actions">
                 <button class="btn-back-fk" onclick="goToStep1()">← Back</button>
-                <button class="btn-whatsapp" onclick="placeOrder()">
+                <p id="orderError" role="alert" class="order-error"></p>
+<button class="btn-whatsapp" onclick="placeOrder()">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.985-1.414A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18c-1.74 0-3.358-.473-4.742-1.297l-.34-.202-3.527.999.945-3.643-.22-.353A7.955 7.955 0 014 12c0-4.418 3.582-8 8-8s8 3.582 8 8-3.582 8-8 8z"/></svg>
                   Order via WhatsApp
                 </button>
@@ -292,10 +294,11 @@
           The seller will contact you shortly with the bank account number for payment.<br>
           <strong>Check your WhatsApp now!</strong>
         </p>
+        <div id="vendorOrderLinks"></div>
         <div class="success-steps">
           <div class="success-step">
             <div class="success-step-icon">✅</div>
-            <div class="success-step-label">Order Sent to Seller</div>
+            <div class="success-step-label">Send via WhatsApp</div>
           </div>
           <div class="success-step">
             <div class="success-step-icon">💳</div>
@@ -317,10 +320,12 @@
 
 <!-- Supabase Integration Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/common.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
 <script src="js/vendor-store.js"></script>
+<script src="js/orders.js"></script>
 <script>
   function setStep(n) {
     [1, 2].forEach(i => {
@@ -361,6 +366,9 @@
       return;
     }
 
+    if (!/^\+?[0-9 ()-]{7,25}$/.test(ph)) { alert('Enter a valid phone number.'); return; }
+    const emailField=document.getElementById('email');
+    if (!emailField.checkValidity()) { emailField.reportValidity(); return; }
     setStep(2);
     document.getElementById('formStep1').style.display = 'none';
     document.getElementById('formStep2').style.display = 'block';
@@ -369,102 +377,42 @@
     const items = Cart.getItems();
     document.getElementById('orderReviewItems').innerHTML = items.length ? items.map(i => `
       <div class="order-item-row">
-        <img class="order-item-img" src="${i.image}" alt="${i.name}" onerror="this.src='https://picsum.photos/60/60'">
-        <span class="order-item-name">${i.name} <span style="color:var(--text-3)">× ${i.qty}</span></span>
+        <img class="order-item-img" src="${escapeHTML(safeURL(i.image))}" alt="${escapeHTML(i.name)}" onerror="this.onerror=null;this.src='https://picsum.photos/60/60'">
+        <span class="order-item-name">${escapeHTML(i.name)} <span style="color:var(--text-3)">× ${i.qty}</span></span>
         <span class="order-item-price">${formatNaira(i.price * i.qty)}</span>
       </div>`).join('') : '<p style="color:var(--text-3);font-size:0.85rem">No items in cart.</p>';
 
     const lm = document.getElementById('landmark').value.trim();
     const addr = `${fn} ${ln}\n📞 ${ph}${document.getElementById('email').value.trim() ? '\n✉️ ' + document.getElementById('email').value.trim() : ''}\n📍 ${ad}, ${ct}, ${st}, Nigeria${lm ? '\nLandmark: ' + lm : ''}`;
-    document.getElementById('deliveryAddr').innerHTML = addr.replace(/\n/g, '<br>');
+    document.getElementById('deliveryAddr').textContent = addr;
+    document.getElementById('deliveryAddr').style.whiteSpace = 'pre-line';
   }
 
-  function placeOrder() {
-    const items = Cart.getItems();
-    if (!items.length) { alert('Your cart is empty!'); return; }
-
-    const fn = document.getElementById('firstName').value.trim();
-    const ln = document.getElementById('lastName').value.trim();
-    const ph = document.getElementById('phone').value.trim();
-    const em = document.getElementById('email').value.trim();
-    const ad = document.getElementById('address').value.trim();
-    const ct = document.getElementById('city').value.trim();
-    const st = document.getElementById('state').value;
-    const lm = document.getElementById('landmark').value.trim();
-
-    const subtotal = Cart.getTotal();
-    const promoApplied = sessionStorage.getItem('zarah_promo_applied') === 'true';
-    const discount = promoApplied ? Math.round(subtotal * 0.10) : 0;
-    const finalTotal = Math.max(0, subtotal - discount);
-
-    const customerInfo = {
-      name: `${fn} ${ln}`,
-      phone: ph,
-      email: em || 'Not provided',
-      address: `${ad}, ${ct}, ${st}, Nigeria${lm ? ' (Landmark: ' + lm + ')' : ''}`
-    };
-
-    const orderId = 'ZS-' + Math.floor(100000 + Math.random() * 900000);
-
-    // Identify vendor to route WhatsApp message accurately
-    const primaryVendorId = (items.length > 0 && items[0].vendor) ? items[0].vendor : 'perfume';
-    const vendorObj = (window.VENDORS && window.VENDORS[primaryVendorId]) || (typeof VENDORS !== 'undefined' ? VENDORS[primaryVendorId] : null);
-    const vendorDisplayName = vendorObj ? vendorObj.name : "the seller";
-
-    // Save order details to Supabase if client is available
-    // 1. Resilient local backup for immediate dashboard visibility
+  async function placeOrder() {
+    if (Orders.pending) return;
+    const items=Cart.getItems();
+    if(!items.length) { location.href='cart.html'; return; }
+    const get=id=>document.getElementById(id).value.trim();
+    const customer={name:get('firstName')+' '+get('lastName'),phone:get('phone'),email:get('email'),address:[get('address'),get('city'),get('state'),'Nigeria',get('landmark')].filter(Boolean).join(', ')};
+    const button=document.querySelector('[onclick="placeOrder()"]');
+    const error=document.getElementById('orderError');
+    Orders.pending=true; button.disabled=true; button.textContent='Saving your order…'; error.textContent='';
     try {
-      const localOrders = JSON.parse(localStorage.getItem('orders_history') || '[]');
-      localOrders.unshift({
-        id: orderId,
-        customer_name: customerInfo.name,
-        customer_email: customerInfo.email,
-        customer_phone: customerInfo.phone,
-        customer_address: customerInfo.address,
-        items: items,
-        total: finalTotal,
-        status: 'pending',
-        created_at: new Date().toISOString()
+      const orders=await Orders.submit(customer,items,sessionStorage.getItem('zarah_promo_applied')==='true'?'SAVE10':'');
+      const links=document.getElementById('vendorOrderLinks'); links.replaceChildren();
+      orders.forEach(order=>{
+        const a=document.createElement('a'); a.className='vendor-order-link'; a.href=Orders.whatsappURL(order,customer);
+        a.target='_blank'; a.rel='noopener'; a.textContent=`Message ${order.name} — ${formatNaira(order.total)}`; links.appendChild(a);
       });
-      localStorage.setItem('orders_history', JSON.stringify(localOrders.slice(0, 50)));
-    } catch (err) {
-      console.warn("Could not save to local orders_history:", err);
-    }
-
-    // 2. Save order details to Supabase cloud if client is available
-    if (window.supabaseClient) {
-      (async () => {
-        try {
-          const { error } = await window.supabaseClient.from('orders').insert({
-            id: orderId,
-            customer_name: customerInfo.name,
-            customer_email: customerInfo.email,
-            customer_phone: customerInfo.phone,
-            customer_address: customerInfo.address,
-            items: items,
-            total: finalTotal,
-            status: 'pending'
-          });
-          if (error) throw error;
-          console.log("Order saved to Supabase:", orderId);
-        } catch (e) {
-          console.error("Failed to save order to Supabase:", e);
-        }
-      })();
-    }
-
-    // Open WhatsApp routed to the specific vendor
-    redirectToWhatsApp(items, finalTotal, customerInfo, primaryVendorId);
-
-    // Clear cart and show success
-    Cart.clearCart();
-    sessionStorage.removeItem('zarah_promo_applied');
-    document.getElementById('checkoutPage').style.display = 'none';
-    document.getElementById('orderSuccess').style.display = 'block';
-    document.getElementById('orderNum').textContent = 'Order ' + orderId;
-    const vNameEl = document.getElementById('successVendorName');
-    if (vNameEl) vNameEl.textContent = vendorDisplayName;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+      Cart.clearCart(); sessionStorage.removeItem('zarah_promo_applied'); sessionStorage.removeItem('checkout_attempt');
+      document.getElementById('checkoutPage').style.display='none';
+      document.getElementById('orderSuccess').style.display='block';
+      document.getElementById('orderNum').textContent=orders.length===1 ? orders[0].id : orders.length+' vendor orders saved';
+      document.querySelector('.success-title').textContent='Order saved';
+      document.querySelector('.success-msg').textContent='Send each seller their order using the links below. Confirm delivery and payment details in WhatsApp. Payment is not yet collected.';
+      document.querySelector('.success-title').tabIndex=-1; document.querySelector('.success-title').focus();
+    } catch(e) {error.textContent=e.message+' Your cart has been kept. Please try again.';}
+    finally {Orders.pending=false;button.disabled=false;button.textContent='Save order & continue to WhatsApp';}
   }
 
   function initSummary() {
@@ -481,7 +429,7 @@
     document.getElementById('sumTotal').textContent = formatNaira(total);
     document.getElementById('summaryItems').innerHTML = items.map(i => `
       <div style="display:flex;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);font-size:0.82rem">
-        <span style="color:var(--text-2);flex:1;margin-right:8px">${i.name} × ${i.qty}</span>
+        <span style="color:var(--text-2);flex:1;margin-right:8px">${escapeHTML(i.name)} × ${i.qty}</span>
         <span style="font-weight:600">${formatNaira(i.price * i.qty)}</span>
       </div>`).join('');
   }
@@ -500,6 +448,8 @@
     document.getElementById('lastName').value = parts.slice(1).join(' ') || '';
   }
 
+  if (!Cart.getItems().length) location.replace('cart.html');
+  initVendorProducts();
   initSummary();
 </script>
 </body>

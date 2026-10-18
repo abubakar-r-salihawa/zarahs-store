@@ -6,7 +6,7 @@
   <title>Vendor Portal — Zarah's Store</title>
   <meta name="description" content="Zarah's Store Vendor Login — manage your store and products.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Playfair+Display:wght@400;600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <style>
     body {
@@ -133,7 +133,7 @@
       font-family: monospace;
       font-weight: 700;
     }
-    
+
     .vl-form {
       display: flex;
       flex-direction: column;
@@ -218,6 +218,7 @@
       .vendor-select-grid { grid-template-columns: 1fr; }
     }
   </style>
+  <link rel="stylesheet" href="css/improvements.css">
 </head>
 <body>
 
@@ -269,17 +270,14 @@
 
 <!-- Supabase Integration Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/common.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/vendor-store.js"></script>
+<script src="js/staff.js"></script>
 <script>
   initVendorProducts();
-  // Redirect if already logged in
-  if (AdminAuth.isLoggedIn()) {
-    window.location.href = 'admin-dashboard.html';
-  } else if (VendorAuth.isLoggedIn()) {
-    window.location.href = 'vendor-dashboard.html';
-  }
+  staffReady.then(() => { if(AdminAuth.isLoggedIn()) location.href='admin-dashboard.html'; else if(VendorAuth.isLoggedIn()) location.href='vendor-dashboard.html'; });
 
   let selectedVendor = null;
 
@@ -291,12 +289,6 @@
     });
     document.getElementById('vs-' + vendorId).classList.add('selected-' + vendorId);
 
-    // Autofill email only (no password) for security and convenience
-    const credsMap = JSON.parse(localStorage.getItem('vendor_credentials_registry') || '{}');
-    const creds = credsMap[vendorId];
-    if (creds) {
-      document.getElementById('vendorEmail').value = creds.email;
-    }
     document.getElementById('vendorPassword').value = '';
   }
 

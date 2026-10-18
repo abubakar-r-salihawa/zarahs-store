@@ -4,21 +4,8 @@
 -- (https://supabase.com/dashboard/project/hlodwqvkvudhfzbophwg/sql/new)
 -- ============================================================
 
--- 1. CLEANUP (If running multiple times)
-DROP TABLE IF EXISTS orders CASCADE;
-DROP TABLE IF EXISTS shoppers CASCADE;
-DROP TABLE IF EXISTS products CASCADE;
-DROP TABLE IF EXISTS vendor_credentials CASCADE;
-DROP TABLE IF EXISTS vendors CASCADE;
-DROP TABLE IF EXISTS admin_credentials CASCADE;
-
--- 2. CREATE TABLES
--- Admin Credentials Table
-CREATE TABLE admin_credentials (
-    email TEXT PRIMARY KEY,
-    password TEXT NOT NULL
-);
-
+-- Fresh installation only. For existing installations apply supabase/migrations instead.
+BEGIN;
 -- Vendors Table
 CREATE TABLE vendors (
     id TEXT PRIMARY KEY,
@@ -37,14 +24,6 @@ CREATE TABLE vendors (
     banner_image TEXT,
     whatsapp TEXT,
     page TEXT
-);
-
--- Vendor Credentials Table
-CREATE TABLE vendor_credentials (
-    vendor_id TEXT PRIMARY KEY REFERENCES vendors(id) ON DELETE CASCADE,
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    name TEXT NOT NULL
 );
 
 -- Products Table
@@ -66,16 +45,6 @@ CREATE TABLE products (
     notes JSONB
 );
 
--- Shoppers Table (Global Shopper Registration)
-CREATE TABLE shoppers (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    avatar TEXT,
-    join_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 -- Orders Table (Global Order Tracking)
 CREATE TABLE orders (
     id TEXT PRIMARY KEY,
@@ -89,19 +58,11 @@ CREATE TABLE orders (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 3. DISABLE RLS (For simple frontend client-side database access)
-ALTER TABLE admin_credentials DISABLE ROW LEVEL SECURITY;
-ALTER TABLE vendors DISABLE ROW LEVEL SECURITY;
-ALTER TABLE vendor_credentials DISABLE ROW LEVEL SECURITY;
-ALTER TABLE products DISABLE ROW LEVEL SECURITY;
-ALTER TABLE shoppers DISABLE ROW LEVEL SECURITY;
-ALTER TABLE orders DISABLE ROW LEVEL SECURITY;
-
--- 4. INSERT SEED DATA
--- Default Admin
-INSERT INTO admin_credentials (email, password)
-VALUES ('admin@zarahsstore.com', 'AdminPassword2026!');
-
+-- Deny browser access until the security migration is applied.
+ALTER TABLE vendors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON vendors,products,orders FROM anon,authenticated;
 -- Default Vendors
 INSERT INTO vendors (id, name, tagline, description, rating, review_count, logo, primary_color, secondary_color, gradient, card_gradient, accent_color, categories, banner_image, whatsapp, page)
 VALUES 
@@ -160,13 +121,6 @@ VALUES
   'store-variety.html'
 );
 
--- Default Vendor Credentials
-INSERT INTO vendor_credentials (vendor_id, email, password, name)
-VALUES
-('perfume', 'vendor@aura.com', 'Aura2026!', 'Zarah''s Perfume'),
-('kitchen', 'vendor@hearth.com', 'Hearth2026!', 'Zarah''s Kitchen'),
-('variety', 'vendor@globe.com', 'Globe2026!', 'Teemerh Collection');
-
 -- Default Products
 INSERT INTO products (id, vendor, name, description, price, original_price, image, in_stock, badge, category, size, material, origin, sizes, notes)
 VALUES
@@ -188,3 +142,6 @@ VALUES
 ('variety-3', 'variety', 'Zirconia Gold Layered Necklace Set', 'Hypoallergenic 18k gold-plated layered chain with AAA zirconia crystal pendants.', 12500, 16000, 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=600&auto=format&fit=crop', true, 'New', 'Jewelry', 'Adjustable', '18k Gold Plated', 'Italy', ARRAY['One Size'], null),
 ('variety-4', 'variety', 'Plastic Airtight Food Containers — 10 Pcs', 'BPA-free plastic storage containers with leak-proof locking lids.', 14500, 19000, 'https://images.unsplash.com/photo-1606168094336-48f205276929?q=80&w=600&auto=format&fit=crop', true, 'Popular', 'Plastics', 'Assorted Sizes', 'BPA-free Plastic', 'Nigeria', ARRAY['10-Piece Set'], null),
 ('variety-5', 'variety', 'Handcrafted Statement Beads', 'Traditional coral bead necklace set with brass accents.', 32000, 42000, 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=600&auto=format&fit=crop', true, 'Popular', 'Jewelry', 'Custom Fit', 'Coral & Brass', 'Nigeria', ARRAY['One Size'], null);
+
+COMMIT;
+-- Next apply supabase/migrations/202610160001_secure_marketplace.sql

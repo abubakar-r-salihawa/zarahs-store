@@ -6,8 +6,9 @@
   <title>Shopping Cart — Zarah's Store</title>
   <meta name="description" content="Review your cart and checkout securely.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Playfair+Display:wght@400;600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/improvements.css">
 </head>
 <body>
 
@@ -112,7 +113,7 @@
           <div id="shippingProgress" style="padding:10px 16px;font-size:0.78rem;color:var(--fk-orange);border-top:1px solid var(--border)"></div>
           <button class="cart-checkout-btn" onclick="goCheckout()">Proceed to Checkout →</button>
           <div style="padding:12px 16px;border-top:1px solid var(--border)">
-            <p style="font-size:0.75rem;color:var(--text-3);text-align:center">🔒 SSL Secure · WhatsApp Support · Verified Vendors</p>
+            <p style="font-size:0.75rem;color:var(--text-3);text-align:center">🔒 WhatsApp Support · Direct Seller Orders</p>
           </div>
         </div>
       </div>
@@ -129,6 +130,7 @@
 
 <!-- Supabase Integration Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/common.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
@@ -159,10 +161,10 @@
       const discPct = item.originalPrice ? Math.round((1 - item.price / item.originalPrice) * 100) : 0;
       return `
         <div class="cart-item-fk">
-          <img class="cart-item-img-fk" src="${item.image}" alt="${item.name}" onerror="this.src='https://picsum.photos/100/100'">
+          <img class="cart-item-img-fk" src="${escapeHTML(safeURL(item.image))}" alt="${escapeHTML(item.name)}" onerror="this.onerror=null;this.src='https://picsum.photos/100/100'">
           <div class="cart-item-info-fk">
-            <div class="cart-item-name-fk">${item.name}</div>
-            <div class="cart-item-vendor-fk">${vendor.logo} ${vendor.name} · ${item.category}</div>
+            <div class="cart-item-name-fk">${escapeHTML(item.name)}</div>
+            <div class="cart-item-vendor-fk">${escapeHTML(vendor.logo)} ${escapeHTML(vendor.name)} · ${escapeHTML(item.category)}${item.selectedSize ? " · " + escapeHTML(item.selectedSize) : ""}</div>
             <div class="cart-item-price-fk">${formatNaira(item.price * item.qty)}</div>
             ${item.originalPrice ? `
               <div style="display:flex;align-items:center;gap:8px">
@@ -171,11 +173,11 @@
               </div>` : ''}
             <div style="display:flex;align-items:center;gap:0;margin-top:10px">
               <div class="qty-controls-fk">
-                <button class="qty-btn-fk" onclick="updateQty('${item.id}', ${item.qty - 1})">−</button>
+                <button class="qty-btn-fk" onclick="updateQty(${inlineArg(item.cartKey)}, ${item.qty - 1})">−</button>
                 <span class="qty-num-fk">${item.qty}</span>
-                <button class="qty-btn-fk" onclick="updateQty('${item.id}', ${item.qty + 1})">+</button>
+                <button class="qty-btn-fk" onclick="updateQty(${inlineArg(item.cartKey)}, ${item.qty + 1})">+</button>
               </div>
-              <button class="remove-fk" onclick="removeItem('${item.id}')">🗑️ Remove</button>
+              <button class="remove-fk" onclick="removeItem(${inlineArg(item.cartKey)})">🗑️ Remove</button>
             </div>
           </div>
         </div>`;
@@ -191,7 +193,7 @@
     const savings = items.reduce((s, i) => s + ((i.originalPrice || i.price) - i.price) * i.qty, 0) + discount;
 
     document.getElementById('subtotal').textContent = formatNaira(subtotal);
-    
+
     const discRow = document.getElementById('discountRow');
     const discVal = document.getElementById('discountVal');
     if (promoApplied && discount > 0) {
@@ -238,8 +240,10 @@
 
   renderCart();
 
-  // Listen for Supabase live data sync
-  window.addEventListener('db_synced', renderCart);
+  window.addEventListener('db_synced', () => {
+    Cart.saveItems(Cart.getItems().map(i => {const p=getProductById(i.id);return p ? {...i,...p,selectedSize:i.selectedSize,cartKey:i.cartKey} : i;}));
+    renderCart();
+  });
 </script>
 </body>
 </html>

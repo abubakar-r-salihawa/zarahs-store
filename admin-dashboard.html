@@ -317,6 +317,7 @@
       display: none;
     }
   </style>
+  <link rel="stylesheet" href="css/improvements.css">
 </head>
 <body>
 
@@ -335,7 +336,7 @@
 
   <!-- CONTENT GRID -->
   <div class="admin-grid">
-    
+
     <!-- LEFT: VENDORS LIST -->
     <div class="admin-card">
       <h2 class="card-title">Manage Boutiques</h2>
@@ -347,7 +348,7 @@
           <thead>
             <tr>
               <th>Boutique</th>
-              <th>Login Details</th>
+              <th>Account</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -364,7 +365,7 @@
       <div class="admin-card">
         <h2 class="card-title">Register New Boutique</h2>
         <div class="error-banner" id="addError"></div>
-        <form class="admin-form" id="addVendorForm" onsubmit="event.preventDefault(); handleAddVendor();">
+        <form class="admin-form" id="addVendorForm" onsubmit="event.preventDefault(); runAction(this.querySelector('button[type=submit]'), () => handleAddVendor());">
           <div class="form-group">
             <label class="form-label">Unique Vendor ID (URL friendly)</label>
             <input type="text" class="form-input" id="addVendorId" placeholder="e.g. fashion" required pattern="^[a-zA-Z0-9\-]+$">
@@ -393,7 +394,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">Password</label>
-            <input type="text" class="form-input" id="addVendorPassword" placeholder="e.g. Fashion2026!" required minlength="6">
+            <input type="password" class="form-input" id="addVendorPassword" placeholder="e.g. Fashion2026!" required minlength="8">
           </div>
           <button type="submit" class="btn-form-submit">Register Boutique</button>
         </form>
@@ -405,24 +406,24 @@
 
         <!-- Current saved credentials display -->
         <div style="background:rgba(181,142,76,0.1);border:1px solid rgba(181,142,76,0.3);border-radius:6px;padding:14px;margin-bottom:18px">
-          <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:8px;font-weight:700">📋 Current Saved Credentials</div>
+          <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:8px;font-weight:700">📋 Account Security</div>
           <div style="font-size:0.82rem;color:var(--text-light);margin-bottom:4px">Email: <span id="currentAdminEmail" style="color:var(--gold);font-weight:600"></span></div>
           <div style="font-size:0.82rem;color:var(--text-light)">Password: <span id="currentAdminPassword" style="color:var(--gold);font-weight:600"></span></div>
         </div>
 
         <div class="error-banner" id="adminSettingsError"></div>
-        <form class="admin-form" id="adminSettingsForm" onsubmit="event.preventDefault(); handleUpdateAdminCreds();">
+        <form class="admin-form" id="adminSettingsForm" onsubmit="event.preventDefault(); runAction(this.querySelector('button[type=submit]'), () => handleUpdateAdminCreds());">
           <div class="form-group">
             <label class="form-label">New Admin Email</label>
             <input type="email" class="form-input" id="adminEmail" required>
           </div>
           <div class="form-group">
             <label class="form-label">New Admin Password</label>
-            <input type="text" class="form-input" id="adminPassword" placeholder="Enter new password" required minlength="6">
+            <input type="password" class="form-input" id="adminPassword" placeholder="Enter new password" required minlength="8">
           </div>
           <div style="display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap">
             <button type="submit" class="btn-form-submit" style="margin:0">Update Credentials</button>
-            <button type="button" onclick="resetAdminToDefault()" style="background:transparent;border:1px solid rgba(217,83,79,0.5);color:#ff6b6b;border-radius:4px;padding:8px 14px;font-size:0.8rem;cursor:pointer">Reset to Default</button>
+
             <span id="adminSettingsSuccess" style="color:var(--gold);font-size:0.85rem;display:none">✅ Updated successfully!</span>
           </div>
         </form>
@@ -461,7 +462,7 @@
     <button class="modal-close-btn" onclick="closeEditModal()">×</button>
     <h2 class="card-title">Modify Boutique Settings</h2>
     <div class="error-banner" id="editError"></div>
-    <form class="admin-form" id="editVendorForm" onsubmit="event.preventDefault(); handleUpdateVendor();">
+    <form class="admin-form" id="editVendorForm" onsubmit="event.preventDefault(); runAction(this.querySelector('button[type=submit]'), () => handleUpdateVendor());">
       <input type="hidden" id="editVendorId">
       <div class="form-group">
         <label class="form-label">Boutique Name</label>
@@ -487,7 +488,7 @@
       </div>
       <div class="form-group">
         <label class="form-label">Password (Leave blank to keep current)</label>
-        <input type="text" class="form-input" id="editVendorPassword" placeholder="Enter new password if changing">
+        <input type="password" class="form-input" id="editVendorPassword" placeholder="Enter new password if changing">
       </div>
       <div class="form-group">
         <label class="form-label">WhatsApp Number for Orders (digits only, e.g. 2348147923724)</label>
@@ -500,12 +501,15 @@
 
 <!-- Supabase Integration Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/common.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/vendor-store.js"></script>
-<script>
+<script src="js/staff.js"></script>
+<script type="module">
   // Restrict access
-  AdminAuth.requireAuth();
+  if (!await AdminAuth.requireAuth()) { await new Promise(() => {}); }
+  await initVendorProducts();
 
   // Copy text to clipboard helper
   function copyText(text, btn) {
@@ -527,44 +531,48 @@
     });
   }
 
+  let vendorAccounts = {};
+  async function loadAccounts() {
+    const {data,error}=await window.supabaseClient.functions.invoke('manage-vendor',{body:{action:'list'}});
+    if(error || data?.error) {document.getElementById('addError').textContent='Account management unavailable. Deploy the manage-vendor function and refresh.';document.getElementById('addError').style.display='block';return;}
+    vendorAccounts=Object.fromEntries(data.accounts.map(a=>[a.vendorId,{email:a.email}]));
+    renderVendors();
+  }
+  await loadAccounts();
   // Populate page
   function renderVendors() {
     const tbody = document.getElementById('vendorTableBody');
     tbody.innerHTML = '';
 
     const vendors = JSON.parse(localStorage.getItem('vendors_registry') || '{}');
-    const credsMap = JSON.parse(localStorage.getItem('vendor_credentials_registry') || '{}');
+    const credsMap = vendorAccounts;
 
     Object.keys(vendors).forEach(id => {
       const v = vendors[id];
       const creds = credsMap[id] || { email: '', password: '' };
-      
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>
           <div class="vendor-row-info">
-            <span class="vendor-row-logo">${v.logo}</span>
+            <span class="vendor-row-logo">${escapeHTML(v.logo)}</span>
             <div>
-              <span class="vendor-row-name">${v.name}</span><br>
-              <span class="vendor-row-tagline">${v.tagline}</span>
+              <span class="vendor-row-name">${escapeHTML(v.name)}</span><br>
+              <span class="vendor-row-tagline">${escapeHTML(v.tagline)}</span>
             </div>
           </div>
         </td>
         <td>
           <div style="margin-bottom:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
             <span class="form-label" style="font-size:0.6rem;flex-shrink:0">Email:</span>
-            <span class="vendor-creds-box" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">${creds.email}</span>
-            <button onclick="copyText('${creds.email}', this)" style="background:rgba(181,142,76,0.2);border:1px solid rgba(181,142,76,0.4);color:var(--gold);border-radius:3px;padding:2px 7px;font-size:0.7rem;cursor:pointer;flex-shrink:0">📋</button>
+            <span class="vendor-creds-box" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">${escapeHTML(creds.email)}</span>
+            <button onclick="copyText(${inlineArg(creds.email)}, this)" style="background:rgba(181,142,76,0.2);border:1px solid rgba(181,142,76,0.4);color:var(--gold);border-radius:3px;padding:2px 7px;font-size:0.7rem;cursor:pointer;flex-shrink:0">📋</button>
           </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-            <span class="form-label" style="font-size:0.6rem;flex-shrink:0">Pass:</span>
-            <span class="vendor-creds-box" style="flex:1">${creds.password}</span>
-            <button onclick="copyText('${creds.password}', this)" style="background:rgba(181,142,76,0.2);border:1px solid rgba(181,142,76,0.4);color:var(--gold);border-radius:3px;padding:2px 7px;font-size:0.7rem;cursor:pointer;flex-shrink:0">📋</button>
-          </div>
+          <span>Supabase Auth account</span>
         </td>
         <td>
-          <button class="btn-row-action edit" onclick="openEditModal('${id}')">Edit</button>
-          <button class="btn-row-action delete" onclick="handleDeleteVendor('${id}')">Delete</button>
+          <button class="btn-row-action edit" onclick="openEditModal(${inlineArg(id)})">Edit</button>
+          <button class="btn-row-action delete" onclick="handleDeleteVendor(${inlineArg(id)})">Delete</button>
         </td>
       `;
       tbody.appendChild(tr);
@@ -572,7 +580,7 @@
   }
 
   // Add Vendor Action
-  function handleAddVendor() {
+  async function handleAddVendor() {
     const id = document.getElementById('addVendorId').value.trim().toLowerCase();
     const name = document.getElementById('addVendorName').value.trim();
     const emoji = document.getElementById('addVendorEmoji').value.trim();
@@ -590,10 +598,11 @@
       gradient: `linear-gradient(135deg, #090909, ${color})`
     };
 
-    const res = AdminVendors.create(id, info, email, password);
+    const res = await AdminVendors.create(id, info, email, password);
     if (res.success) {
       errEl.style.display = 'none';
       document.getElementById('addVendorForm').reset();
+      await loadAccounts();
       renderVendors();
     } else {
       errEl.textContent = '⚠️ ' + res.error;
@@ -604,7 +613,7 @@
   // Edit Modal Toggles
   function openEditModal(vendorId) {
     const vendors = JSON.parse(localStorage.getItem('vendors_registry') || '{}');
-    const credsMap = JSON.parse(localStorage.getItem('vendor_credentials_registry') || '{}');
+    const credsMap = vendorAccounts;
     const v = vendors[vendorId];
     const creds = credsMap[vendorId] || { email: '', password: '' };
 
@@ -629,7 +638,7 @@
   }
 
   // Update Vendor Action
-  function handleUpdateVendor() {
+  async function handleUpdateVendor() {
     const id = document.getElementById('editVendorId').value;
     const name = document.getElementById('editVendorName').value.trim();
     const emoji = document.getElementById('editVendorEmoji').value.trim();
@@ -650,9 +659,10 @@
       whatsapp: whatsapp || null
     };
 
-    const res = AdminVendors.update(id, info, email, password);
+    const res = await AdminVendors.update(id, info, email, password);
     if (res.success) {
       closeEditModal();
+      await loadAccounts();
       renderVendors();
     } else {
       errEl.textContent = '⚠️ ' + res.error;
@@ -661,82 +671,40 @@
   }
 
   // Delete Vendor Action
-  function handleDeleteVendor(vendorId) {
+  async function handleDeleteVendor(vendorId) {
     if (vendorId === 'perfume' || vendorId === 'kitchen' || vendorId === 'variety') {
       alert("⚠️ Core system boutiques (Perfume, Kitchen, Variety) cannot be deleted to ensure platform stability.");
       return;
     }
 
     if (confirm(`❌ Are you sure you want to delete this boutique? This will permanently erase the boutique settings and all its products!`)) {
-      const res = AdminVendors.delete(vendorId);
+      const res = await AdminVendors.delete(vendorId);
       if (res.success) {
         renderVendors();
-      }
+      } else alert(res.error);
     }
   }
 
   // Admin Settings Operations
   function populateAdminSettings() {
-    const adminCreds = JSON.parse(localStorage.getItem('admin_credentials') || JSON.stringify({
-      email: 'admin@zarahsstore.com',
-      password: 'AdminPassword2026!'
-    }));
-    document.getElementById('adminEmail').value = adminCreds.email;
-    document.getElementById('adminPassword').value = adminCreds.password;
-    // Show current credentials in the display panel
-    document.getElementById('currentAdminEmail').textContent = adminCreds.email;
-    document.getElementById('currentAdminPassword').textContent = adminCreds.password;
+    document.getElementById('adminEmail').value=AdminAuth.getSession()?.email || '';
+    document.getElementById('adminPassword').value='';
+    document.getElementById('currentAdminEmail').textContent=AdminAuth.getSession()?.email || '';
+    document.getElementById('currentAdminPassword').textContent='Protected by Supabase Auth';
   }
-
-  function handleUpdateAdminCreds() {
-    const email = document.getElementById('adminEmail').value.trim();
-    const password = document.getElementById('adminPassword').value;
-    const errEl = document.getElementById('adminSettingsError');
-    const sucEl = document.getElementById('adminSettingsSuccess');
-
-    if (!email || !password) {
-      errEl.textContent = '⚠️ Please fill in all fields.';
-      errEl.style.display = 'block';
-      return;
-    }
-
-    AdminAuth.updateCredentials(email, password);
-    
-    // Update active admin session as well
-    const session = AdminAuth.getSession();
-    if (session) {
-      session.email = email;
-      localStorage.setItem('adminSession', JSON.stringify(session));
-    }
-
-    // Refresh current credentials display
-    document.getElementById('currentAdminEmail').textContent = email;
-    document.getElementById('currentAdminPassword').textContent = password;
-
-    errEl.style.display = 'none';
-    sucEl.style.display = 'inline';
-    setTimeout(() => {
-      sucEl.style.display = 'none';
-    }, 3000);
-  }
-
-  function resetAdminToDefault() {
-    if (!confirm('⚠️ This will reset the admin login to the default credentials:\n\nEmail: admin@zarahsstore.com\nPassword: AdminPassword2026!\n\nAre you sure?')) return;
-    const defaults = { email: 'admin@zarahsstore.com', password: 'AdminPassword2026!' };
-    AdminAuth.updateCredentials(defaults.email, defaults.password);
-    document.getElementById('adminEmail').value = defaults.email;
-    document.getElementById('adminPassword').value = defaults.password;
-    document.getElementById('currentAdminEmail').textContent = defaults.email;
-    document.getElementById('currentAdminPassword').textContent = defaults.password;
-    document.getElementById('adminSettingsSuccess').textContent = '✅ Reset to default!';
-    document.getElementById('adminSettingsSuccess').style.display = 'inline';
-    setTimeout(() => { document.getElementById('adminSettingsSuccess').style.display = 'none'; }, 3000);
+  async function handleUpdateAdminCreds() {
+    const error=document.getElementById('adminSettingsError');
+    try {
+      await AdminAuth.updateCredentials(document.getElementById('adminEmail').value.trim(),document.getElementById('adminPassword').value);
+      error.style.display='none'; document.getElementById('adminPassword').value='';
+      const success=document.getElementById('adminSettingsSuccess'); success.textContent='Saved. Check your email to confirm any email change.';success.style.display='block';
+    } catch(e) {error.textContent=e.message;error.style.display='block';}
   }
 
   async function renderOrders() {
     const tbody = document.getElementById('ordersTableBody');
     if (!tbody) return;
-    
+
     let orders = [];
 
     if (window.supabaseClient) {
@@ -745,26 +713,14 @@
           .from('orders')
           .select('*')
           .order('created_at', { ascending: false });
-          
+
         if (!error && Array.isArray(data) && data.length > 0) {
           orders = data;
         } else if (error) {
-          console.warn("Supabase orders query error:", error);
+          tbody.innerHTML='<tr><td colspan="5">Unable to load orders. Refresh to retry.</td></tr>'; return;
         }
       } catch (e) {
-        console.warn("Error loading orders from Supabase:", e);
-      }
-    }
-
-    // Fallback to local storage orders if Supabase is offline or empty
-    if (!orders || orders.length === 0) {
-      try {
-        const localOrders = JSON.parse(localStorage.getItem('orders_history') || '[]');
-        if (Array.isArray(localOrders) && localOrders.length > 0) {
-          orders = localOrders;
-        }
-      } catch (e) {
-        console.warn("Error loading local orders:", e);
+        tbody.innerHTML='<tr><td colspan="5">Unable to load orders. Refresh to retry.</td></tr>'; return;
       }
     }
 
@@ -778,30 +734,30 @@
         const dateStr = o.created_at ? new Date(o.created_at).toLocaleDateString('en-NG', {
           year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
         }) : 'Recent';
-        
+
         let itemsHtml = '';
         if (Array.isArray(o.items)) {
-          itemsHtml = o.items.map(item => 
-            `<div style="font-size:0.78rem;color:var(--text-light)">• ${item.name || 'Item'} (x${item.qty || 1})</div>`
+          itemsHtml = o.items.map(item =>
+            `<div style="font-size:0.78rem;color:var(--text-light)">• ${escapeHTML(item.name || 'Item')} (x${Number(item.qty) || 1})</div>`
           ).join('');
         }
-        
+
         return `
           <tr>
             <td>
-              <strong style="color:var(--gold)">${o.id}</strong><br>
+              <strong style="color:var(--gold)">${escapeHTML(o.id)}</strong><br>
               <span style="font-size:0.7rem;color:var(--text-muted)">${dateStr}</span>
             </td>
             <td>
-              <div style="font-size:0.82rem;font-weight:600">${o.customer_name || 'Customer'}</div>
-              <div style="font-size:0.75rem;color:var(--text-muted)">📞 ${o.customer_phone || 'N/A'}</div>
-              <div style="font-size:0.75rem;color:var(--text-muted)">📍 ${o.customer_address || 'N/A'}</div>
+              <div style="font-size:0.82rem;font-weight:600">${escapeHTML(o.customer_name || 'Customer')}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted)">📞 ${escapeHTML(o.customer_phone || 'N/A')}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted)">📍 ${escapeHTML(o.customer_address || 'N/A')}</div>
             </td>
             <td>${itemsHtml}</td>
             <td><strong style="color:var(--gold)">${formatNaira(o.total || 0)}</strong></td>
             <td>
               <span style="padding:4px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;background:rgba(255,193,7,0.15);color:#ffe082">
-                ${o.status || 'Pending'}
+                ${escapeHTML(o.status || 'Pending')}
               </span>
             </td>
           </tr>
@@ -824,6 +780,8 @@
 
   // Listen for Supabase live data sync
   window.addEventListener('db_synced', initAllAdmin);
+
+  exposeActions({copyText, renderVendors, handleAddVendor, openEditModal, closeEditModal, handleUpdateVendor, handleDeleteVendor, populateAdminSettings, handleUpdateAdminCreds, renderOrders, initAllAdmin});
 </script>
 </body>
 </html>

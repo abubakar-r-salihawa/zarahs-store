@@ -6,11 +6,12 @@
   <title>Teemerh Collection — Zarah's Store</title>
   <meta name="description" content="Shop authentic spices, handcrafted jewelry and quality plastic organizers at Teemerh Collection. Delivered across Nigeria.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Playfair+Display:wght@400;600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <style>
     .store-banner { background: linear-gradient(90deg, #1A3A6B 0%, #0A1F45 100%); }
   </style>
+  <link rel="stylesheet" href="css/improvements.css">
 </head>
 <body>
 
@@ -55,8 +56,8 @@
         <div class="store-banner-name">Teemerh Collection</div>
         <div class="store-banner-tag">Spices, jewels & everyday essentials</div>
         <div class="store-banner-meta">
-          
-          
+
+
           <span class="store-badge">🚚 Delivery: Discuss on WhatsApp</span>
           <span class="store-badge">🌍 Globally Sourced</span>
         </div>
@@ -78,12 +79,12 @@
         </div>
         <div class="filter-section">
           <h4>Category</h4>
-          <label class="filter-option"><input type="checkbox" value="Spices" onchange="filterAndRender()"><label>Spices</label></label>
-          <label class="filter-option"><input type="checkbox" value="Jewelry" onchange="filterAndRender()"><label>Jewelry</label></label>
-          <label class="filter-option"><input type="checkbox" value="Plastics" onchange="filterAndRender()"><label>Plastics</label></label>
-          <label class="filter-option"><input type="checkbox" value="Organizers" onchange="filterAndRender()"><label>Organizers</label></label>
-          <label class="filter-option"><input type="checkbox" value="Necklaces" onchange="filterAndRender()"><label>Necklaces</label></label>
-          <label class="filter-option"><input type="checkbox" value="Rings" onchange="filterAndRender()"><label>Rings</label></label>
+          <label class="filter-option"><input type="checkbox" value="Spices" onchange="filterAndRender()"><span>Spices</span></label>
+          <label class="filter-option"><input type="checkbox" value="Jewelry" onchange="filterAndRender()"><span>Jewelry</span></label>
+          <label class="filter-option"><input type="checkbox" value="Plastics" onchange="filterAndRender()"><span>Plastics</span></label>
+          <label class="filter-option"><input type="checkbox" value="Organizers" onchange="filterAndRender()"><span>Organizers</span></label>
+          <label class="filter-option"><input type="checkbox" value="Necklaces" onchange="filterAndRender()"><span>Necklaces</span></label>
+          <label class="filter-option"><input type="checkbox" value="Rings" onchange="filterAndRender()"><span>Rings</span></label>
         </div>
         <div class="filter-section">
           <h4>Max Price</h4>
@@ -94,7 +95,7 @@
         </div>
         <div class="filter-section">
           <h4>Availability</h4>
-          <label class="filter-option"><input type="checkbox" id="inStockOnly" onchange="filterAndRender()"><label>In Stock Only</label></label>
+          <label class="filter-option"><input type="checkbox" id="inStockOnly" onchange="filterAndRender()"><span>In Stock Only</span></label>
         </div>
 
       </aside>
@@ -107,7 +108,7 @@
             <button class="sort-btn" onclick="setSort('popular',this)">Popularity</button>
             <button class="sort-btn" onclick="setSort('price-asc',this)">Price: Low–High</button>
             <button class="sort-btn" onclick="setSort('price-desc',this)">Price: High–Low</button>
-            
+
             <span class="results-count" id="resultsCount">Loading...</span>
           </div>
           <div class="products-grid" id="productsGrid"></div>
@@ -127,15 +128,16 @@
 <footer class="fk-footer">
   <div class="fk-footer-top">
     <div><div class="fk-logo-footer" style="margin-bottom:12px">🛍️ Zarah's Store</div><p style="font-size:0.8rem;line-height:1.7;color:rgba(255,255,255,0.5)">Zarah's Store — Nigeria's trusted marketplace.</p></div>
-    <div><h4>Teemerh Collection</h4><a href="#">Spices</a><a href="#">Jewelry</a><a href="#">Plastics</a></div>
+    <div><h4>Teemerh Collection</h4><a href="#productsGrid" onclick="document.querySelectorAll('.filter-option input[value]').forEach(c=>c.checked=c.value==='Spices');filterAndRender()">Spices</a><a href="#productsGrid" onclick="document.querySelectorAll('.filter-option input[value]').forEach(c=>c.checked=c.value==='Jewelry');filterAndRender()">Jewelry</a><a href="#productsGrid" onclick="document.querySelectorAll('.filter-option input[value]').forEach(c=>c.checked=c.value==='Plastics');filterAndRender()">Plastics</a></div>
     <div><h4>Other Stores</h4><a href="store-perfume.html">🌸 Zarah's Perfume</a><a href="store-kitchen.html">🍳 Zarah's Kitchen</a><a href="index.html">🏠 Home</a></div>
-    <div><h4>Help</h4><a href="#">Help Center</a></div>
+    <div><h4>Help</h4><a href="https://wa.me/2348147923724" target="_blank" rel="noopener">Contact support</a></div>
   </div>
   <div class="fk-footer-bottom"><p>© 2026 Zarah's Store</p><p>Orders: WhatsApp Direct · Payment: Bank Transfer</p></div>
 </footer>
 
 <!-- Supabase Integration Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/common.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
@@ -153,12 +155,11 @@
     if(document.getElementById('sideSearch').value!==search)document.getElementById('sideSearch').value=search;
     const inStockOnly=document.getElementById('inStockOnly').checked;
     const checkedCats=[...document.querySelectorAll('.filter-section input[type=checkbox][value]:checked')].map(c=>c.value);
-    
+
     let products=getProductsByVendor('variety');
     if(search)products=products.filter(p=>p.name.toLowerCase().includes(search)||p.description.toLowerCase().includes(search)||p.category.toLowerCase().includes(search));
     if(checkedCats.length)products=products.filter(p=>checkedCats.includes(p.category));
     if(inStockOnly)products=products.filter(p=>p.inStock);
-    if(minRating)products=products.filter(p=>p.rating>=minRating);
     products=products.filter(p=>p.price<=maxPrice);
     if(currentSort==='price-asc')products.sort((a,b)=>a.price-b.price);
     else if(currentSort==='price-desc')products.sort((a,b)=>b.price-a.price);
@@ -174,18 +175,18 @@
     const inWish=Wishlist.has(p.id);
     return `<div class="product-card-fk" onclick="window.location.href='product.html?id=${p.id}'">
       <div class="product-img-fk">
-        <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/300/300'">
-        ${p.badge?`<span class="product-badge-fk badge-${p.badge.toLowerCase().replace(' ','-')}">${p.badge}</span>`:''}
-        <button class="wishlist-fk ${inWish?'active':''}" onclick="event.stopPropagation();toggleWishlist('${p.id}',this)">${inWish?'❤️':'🤍'}</button>
+        <img src="${escapeHTML(safeURL(p.image))}" alt="${escapeHTML(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='https://picsum.photos/seed/${p.id}/300/300'">
+        ${p.badge?`<span class="product-badge-fk badge-${badgeClass(p.badge)}">${escapeHTML(p.badge)}</span>`:''}
+        <button class="wishlist-fk ${inWish?'active':''}" onclick="event.stopPropagation();toggleWishlist(${inlineArg(p.id)},this)">${inWish?'❤️':'🤍'}</button>
         ${!p.inStock?'<div class="oos-overlay"><span>Out of Stock</span></div>':''}
       </div>
       <div class="product-info-fk">
-        <div class="product-name-fk">${p.name}</div>
-        <div class="product-rating-fk"><span class="assured-badge" style="margin-left:0">✔ Zarah's Store Assured</span></div>
+        <div class="product-name-fk">${escapeHTML(p.name)}</div>
+        <div class="product-rating-fk"><span class="assured-badge" style="margin-left:0">Direct from boutique</span></div>
         <div class="product-price-fk">${formatNaira(p.price)}</div>
         <div class="product-btns" onclick="event.stopPropagation()">
-          <button class="btn-addcart-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`addToCart('${p.id}')`:''}" ${!p.inStock?'disabled':''}>🛒 Add to Cart</button>
-          <button class="btn-buynow-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`buyNowDirect('${p.id}')`:''}" ${!p.inStock?'disabled':''}>Buy Now</button>
+          <button class="btn-addcart-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`addToCart(${inlineArg(p.id)})`:''}" ${!p.inStock?'disabled':''}>🛒 Add to Cart</button>
+          <button class="btn-buynow-fk ${!p.inStock?'oos':''}" onclick="${p.inStock?`buyNowDirect(${inlineArg(p.id)})`:''}" ${!p.inStock?'disabled':''}>Buy Now</button>
         </div>
       </div>
     </div>`;

@@ -1,41 +1,22 @@
 {
   "cleanUrls": true,
-  "routes": [
+  "headers": [
     {
-      "src": "/store-perfume",
-      "dest": "/store-perfume.html"
-    },
-    {
-      "src": "/store-kitchen",
-      "dest": "/store-kitchen.html"
-    },
-    {
-      "src": "/store-variety",
-      "dest": "/store-variety.html"
-    },
-    {
-      "src": "/product",
-      "dest": "/product.html"
-    },
-    {
-      "src": "/cart",
-      "dest": "/cart.html"
-    },
-    {
-      "src": "/checkout",
-      "dest": "/checkout.html"
-    },
-    {
-      "src": "/auth",
-      "dest": "/auth.html"
-    },
-    {
-      "src": "/vendor-login",
-      "dest": "/vendor-login.html"
-    },
-    {
-      "src": "/vendor-dashboard",
-      "dest": "/vendor-dashboard.html"
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        }
+      ]
     }
   ]
 }
