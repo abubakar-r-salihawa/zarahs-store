@@ -1,0 +1,29 @@
+{
+  "name": "zarahs-store",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node tests/check.cjs && node tests/edge-function.cjs",
+    "mobile:build": "node scripts/build-mobile.cjs",
+    "mobile:sync": "npm run mobile:build && cap sync",
+    "android:open": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/browser": "8.0.5",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/ios": "8.5.3",
+    "@supabase/supabase-js": "2.118.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3",
+    "esbuild": "0.28.2",
+    "sharp": "0.35.5"
+  },
+  "overrides": {
+    "xcode": {
+      "uuid": "11.1.1"
+    }
+  }
+}

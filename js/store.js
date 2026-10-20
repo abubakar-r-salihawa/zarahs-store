@@ -153,6 +153,10 @@ const Auth = {
   async loginWithGoogle() {
     if (!window.supabaseClient) return { success: false, error: 'Supabase not initialized.' };
     try {
+      if (window.StoreMobile?.native) {
+        await window.StoreMobile.signInWithGoogle('auth.html');
+        return { success: true };
+      }
       const { error } = await window.supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {

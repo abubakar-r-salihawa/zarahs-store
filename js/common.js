@@ -18,7 +18,11 @@ function escapeHTML(value) {
 function safeURL(value, fallback = 'index.html') {
   const s = String(value || '').trim();
   if (/^data:image\/(png|jpeg|webp|gif);base64,[a-z0-9+/=]+$/i.test(s)) return s;
-  try { const u = new URL(s, location.href); return ['http:', 'https:'].includes(u.protocol) ? u.href : fallback; }
+  try {
+    const u = new URL(s, location.href);
+    const localNative = window.StoreMobile?.native && u.protocol === 'capacitor:' && u.hostname === 'localhost';
+    return ['http:', 'https:'].includes(u.protocol) || localNative ? u.href : fallback;
+  }
   catch { return fallback; }
 }
 function inlineArg(value) { return escapeHTML(JSON.stringify(String(value ?? ''))); }
@@ -48,6 +52,21 @@ async function runAction(button, action) {
   finally { if (button) { button.disabled = false; button.textContent = label; } }
 }
 document.addEventListener('DOMContentLoaded', () => {
+  const support = document.createElement('footer');
+  support.className = 'support-links';
+  support.setAttribute('aria-label', 'Support and privacy');
+  support.innerHTML = '<a href="privacy.html">Privacy & support</a><a href="account.html">Account & deletion</a>';
+  document.body.append(support);
+  const connection = document.createElement('div');
+  connection.className = 'connection-notice';
+  connection.setAttribute('role', 'status');
+  connection.setAttribute('aria-live', 'polite');
+  connection.textContent = 'You are offline. Saved cart items remain on this device; sign-in, prices and orders need a connection.';
+  document.body.append(connection);
+  const updateConnection = () => { connection.hidden = navigator.onLine; };
+  window.addEventListener('online', updateConnection);
+  window.addEventListener('offline', updateConnection);
+  updateConnection();
   const nav = document.querySelector('.navbar');
   if (nav) new ResizeObserver(() => {
     document.documentElement.style.setProperty('--nav-offset', `${nav.offsetHeight + 20}px`);

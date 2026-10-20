@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deletion requests — Zarah's Store</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/improvements.css">
+  <link rel="stylesheet" href="css/account.css">
+</head>
+<body>
+  <nav class="account-nav" aria-label="Admin navigation"><a href="admin-dashboard.html">Admin dashboard</a><a href="index.html">Storefront</a></nav>
+  <main class="account-page">
+    <h1>Account deletion requests</h1>
+    <p>Review requests here. Marking a request as reviewing does not delete the account. Fulfil verified requests using the documented owner procedure, including order-record retention and session revocation.</p>
+    <div id="privacyQueue" role="status">Verifying administrator access…</div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/privacy-requests.js"></script>
+</body>
+</html>

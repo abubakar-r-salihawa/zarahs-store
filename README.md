@@ -2,6 +2,10 @@
 
 A static HTML, CSS and JavaScript marketplace backed by Supabase Auth, PostgreSQL and Edge Functions. Hosting is on Vercel. There is no frontend build step.
 
+Android and iOS beta projects now reuse this storefront through Capacitor. Run `npm ci` and `npm run mobile:sync`; see [MOBILE_RELEASE.md](MOBILE_RELEASE.md) for building, signing, testing and remaining submission requirements. Website hosting continues to use the existing static files.
+
+Account deletion requests are available at `account.html`, with an owner review queue at `privacy-requests.html`. Apply `supabase/migrations/202610200001_account_deletion_requests.sql` after the existing schema on new environments. The live project already has this upgrade. Requests require manual fulfilment; they do not immediately erase accounts or orders.
+
 ## Deployment targets
 
 - GitHub: https://github.com/abubakar-r-salihawa/zarahs-store

@@ -1,0 +1,11 @@
+{
+  "appId": "app.zarahs.store",
+  "appName": "Zarah's Store",
+  "webDir": "dist-mobile",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

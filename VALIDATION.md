@@ -14,4 +14,16 @@ Live Supabase was resumed and the compatible migration applied. A hosted rollbac
 
 Vercel production deployment succeeded for `2844886`. HTTP checks verified all 13 HTML pages against the tested source, sampled shared scripts and the responsive stylesheet, security headers, and exclusion of SQL setup, tests and local deployment artifacts. See DEPLOYMENT_STATUS.md.
 
-Before commercial launch, resolve the existing expired boutique subscriptions and verify catalog content, vendor WhatsApp numbers, store policies and real sign-in/order flows. No live payment or WhatsApp message was sent during testing.
+The owner subsequently authorized 30-day free boutique extensions, now active through 19 November 2026. No payment was recorded.
+
+## Mobile beta preparation — 20 October 2026
+
+- The original 39 browser checks still pass; nine additional privacy/account viewport checks pass.
+- Account request tests cover sign-in return routing, network failure/retry, duplicate submission and offline feedback.
+- Local SQL tests verify request ownership, anonymous denial, customer isolation and owner-only review updates. A hosted rollback test also passes, leaving zero live requests.
+- Native login tests cover external browser handoff, strict callback validation, target allowlisting and safe iOS local links.
+- Android debug APK builds successfully with the existing Android Studio Java 21 runtime and SDK 36. It installed and launched in the temporary Android 15 Pixel Fold emulator; the rendered storefront was visually inspected.
+- The app's Android instrumentation test passed for local SDK/assets, disabled backups and callback intent registration.
+- `npm audit` reported zero vulnerabilities after a compatible UUID override for the native CLI's Xcode dependency.
+
+The APK is a debug beta, not a store-signed release. iOS compilation/signing and real Google/email/WhatsApp flows remain unverified. Deletion requests require owner review and a retention-aware fulfilment process; no account deletion was performed or falsely reported as complete. See MOBILE_RELEASE.md for remaining launch requirements.

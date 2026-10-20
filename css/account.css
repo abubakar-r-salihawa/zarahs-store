@@ -1,0 +1,15 @@
+.account-nav{display:flex;justify-content:space-between;gap:20px;padding:24px max(20px,calc((100% - 900px)/2));border-bottom:1px solid var(--border);flex-wrap:wrap}
+.account-nav a,.account-page a{text-decoration:underline;text-underline-offset:4px}
+.account-page{max-width:800px;margin:0 auto;padding:48px 20px 80px;line-height:1.75;overflow-wrap:anywhere}
+.account-page h1{font-size:clamp(2rem,6vw,3rem);line-height:1.15;margin:12px 0 22px}
+.account-page h2{font-size:1.4rem;margin-bottom:16px}
+.account-page p{margin:12px 0}
+.account-eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.8rem}
+.account-card{border:1px solid var(--border);border-radius:12px;padding:clamp(20px,4vw,32px);margin:28px 0;background:var(--bg-2)}
+.account-confirm{display:flex;align-items:flex-start;gap:12px;margin:24px 0;cursor:pointer}
+.account-confirm input{width:22px;height:22px;flex-shrink:0;margin-top:4px}
+.account-page button{min-height:48px;padding:12px 22px;border:1px solid currentColor;border-radius:6px;background:#c39b62;color:#18130e;font:inherit;font-weight:700;cursor:pointer}
+.account-page button:disabled{opacity:.6;cursor:wait}
+#deletionError{color:#b91c1c}
+.account-page [hidden]{display:none!important}
+.privacy-request{padding:20px 0;border-bottom:1px solid var(--border)}

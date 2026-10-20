@@ -236,6 +236,12 @@ const StaffAuth = {
   async loginWithGoogle() {
     if (!window.supabaseClient) return { success: false, error: 'Secure sign-in is unavailable.' };
     sessionStorage.setItem('staffOAuthPending', '1');
+    if (window.StoreMobile?.native) {
+      try {
+        await window.StoreMobile.signInWithGoogle('vendor-login.html');
+        return { success: true };
+      } catch (error) { return { success: false, error: error.message }; }
+    }
     const { error } = await window.supabaseClient.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin + '/vendor-login.html' }

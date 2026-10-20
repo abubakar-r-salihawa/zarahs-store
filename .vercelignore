@@ -6,3 +6,9 @@ supabase
 supabase_setup.sql
 *.md
 .git
+android
+ios
+mobile
+dist-mobile
+scripts
+capacitor.config.json

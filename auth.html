@@ -277,7 +277,7 @@
   function completeAuthRedirect() {
     const next = sessionStorage.getItem('returnAfterAuth') || 'index.html';
     sessionStorage.removeItem('returnAfterAuth');
-    window.location.href = ['checkout.html','my-orders.html','index.html'].includes(next) ? next : 'index.html';
+    window.location.href = ['checkout.html','my-orders.html','index.html','account.html'].includes(next) ? next : 'index.html';
   }
 
   async function redirectExistingSession() {

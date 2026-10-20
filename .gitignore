@@ -9,3 +9,7 @@ test-results/*.html
 .env
 .env.*
 supabase/.temp/
+dist-mobile/
+*.jks
+*.keystore
+android/local.properties

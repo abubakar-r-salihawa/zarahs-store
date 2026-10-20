@@ -23,6 +23,8 @@ The existing confirmed owner account now has a linked private staff identity and
 
 Vercel reported successful production deployment: https://vercel.com/kang9/zarahs-store/D9HRU1dwWtAJEk28bfrXjpX6u98y. All 13 production HTML pages returned HTTP 200 and exactly matched the tested source, as did the sampled shared scripts and responsive stylesheet. Security headers were present. Database setup scripts, tests and local deployment artifacts returned HTTP 404.
 
-All three vendor trial subscriptions expired on 12 September 2026. They remain unchanged: the store's subscription rules hide expired boutiques and reject their checkout. The owner must renew access or explicitly grant days before those boutiques can trade. No payments were fabricated or subscriptions extended.
+On 20 October 2026 the owner authorized free extensions. All three existing boutique trials were extended by 30 days, through 19 November 2026 at 14:17 UTC. No payment records were created. The hosted database confirms three active boutiques, 38 products and three existing orders.
+
+The account-deletion request migration is applied. Its hosted rollback test passed without leaving any request behind. The vendor-management Edge Function is now version 2 with exact native application origins added and JWT verification retained. Native and production staff-login callback URLs were added to the existing Auth allowlist.
 
 Real email delivery, Google OAuth sign-in, live staff-session refresh and WhatsApp delivery still require owner acceptance testing. Supabase's security adviser also reports that leaked-password protection is disabled; enable it where supported before commercial launch.

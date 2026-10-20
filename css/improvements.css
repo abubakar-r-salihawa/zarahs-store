@@ -96,6 +96,13 @@ input,select,textarea { min-width:0; }
 }
 
 #productModal:not(.open) { visibility:hidden; }
+.support-links{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;padding:24px 20px calc(24px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--border);font-size:.85rem}
+.support-links a{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline;text-underline-offset:4px}
+.connection-notice{position:fixed;bottom:env(safe-area-inset-bottom,0px);left:12px;right:12px;z-index:10000;background:#32291c;color:#fff;padding:14px 18px;border-radius:8px;box-shadow:0 4px 20px #0003;font-size:.9rem;line-height:1.5}
+.connection-notice[hidden]{display:none}
+.native-app body{padding-top:env(safe-area-inset-top,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.native-app .navbar{top:env(safe-area-inset-top,0px)}
+.native-app input,.native-app select,.native-app textarea{font-size:16px}
 .dashboard .form-input,.modal .form-input { width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; background:#fff; color:var(--text); }
 .dashboard .form-label,.modal .form-label { display:block; margin-bottom:6px; color:var(--text-2); font-weight:600; }
 .dashboard .error-message,.modal .error-message { display:none; color:#b42318; }

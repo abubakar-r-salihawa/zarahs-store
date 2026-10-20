@@ -2,6 +2,8 @@ const allowedOrigins = new Set([
   "https://zarahs-store.vercel.app",
   "http://localhost:3000",
   "http://127.0.0.1:3000",
+  "https://localhost",
+  "capacitor://localhost",
 ]);
 
 function corsHeaders(req: Request) {

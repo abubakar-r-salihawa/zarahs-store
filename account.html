@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account & privacy — Zarah's Store</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/improvements.css">
+  <link rel="stylesheet" href="css/account.css">
+</head>
+<body>
+  <nav class="account-nav" aria-label="Account navigation"><a href="index.html">Zarah's Store</a><a href="my-orders.html">My orders</a></nav>
+  <main class="account-page">
+    <p class="account-eyebrow">Your information</p>
+    <h1>Account & privacy</h1>
+    <p>Manage your account and request deletion of your personal information.</p>
+    <section class="account-card" aria-labelledby="deleteHeading">
+      <h2 id="deleteHeading">Request account deletion</h2>
+      <p>This sends a request to the store owner to delete your account and associated personal data. It does not immediately delete your account or cancel an order.</p>
+      <p>The owner will review outstanding orders and any required record retention before completing deletion. Contact your boutique separately about an order cancellation or refund.</p>
+      <p id="accountStatus" role="status" aria-live="polite">Checking your account…</p>
+      <a id="accountLogin" href="auth.html?redirect=account.html" hidden>Sign in to verify your account</a>
+      <form id="deletionForm" hidden>
+        <label class="account-confirm"><input type="checkbox" id="deleteConfirm" required> I want to request deletion of my account and associated personal data.</label>
+        <button type="submit" id="requestDeletion">Request deletion</button>
+      </form>
+      <p id="deletionError" role="alert"></p>
+    </section>
+    <p><a href="privacy.html">Privacy & support</a></p>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/account.js"></script>
+</body>
+</html>
