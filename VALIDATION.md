@@ -24,6 +24,7 @@ The owner subsequently authorized 30-day free boutique extensions, now active th
 - Native login tests cover external browser handoff, strict callback validation, target allowlisting and safe iOS local links.
 - Android debug APK builds successfully with the existing Android Studio Java 21 runtime and SDK 36. It installed and launched in the temporary Android 15 Pixel Fold emulator; the rendered storefront was visually inspected.
 - The app's Android instrumentation test passed for local SDK/assets, disabled backups and callback intent registration.
+- The broader root Android device-test command hit conflicting Kotlin versions in upstream plugin test dependencies. Store tests are explicitly scoped to `:app:connectedDebugAndroidTest`; that limitation is documented rather than reported as a successful full upstream suite.
 - `npm audit` reported zero vulnerabilities after a compatible UUID override for the native CLI's Xcode dependency.
 
 The APK is a debug beta, not a store-signed release. iOS compilation/signing and real Google/email/WhatsApp flows remain unverified. Deletion requests require owner review and a retention-aware fulfilment process; no account deletion was performed or falsely reported as complete. See MOBILE_RELEASE.md for remaining launch requirements.

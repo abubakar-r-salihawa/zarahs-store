@@ -15,12 +15,15 @@ npm ci
 node scripts/mobile-icons.cjs
 npm run mobile:sync
 cd android
-./gradlew assembleDebug
+./gradlew :app:assembleDebug
+./gradlew :app:connectedDebugAndroidTest
 ```
 
 On Windows use `gradlew.bat`. Set `JAVA_HOME` to the Android Studio `jbr` directory and `ANDROID_HOME` to the installed SDK if they are not already configured. The debug APK is `android/app/build/outputs/apk/debug/app-debug.apk`; it is for testing, not store submission. No signing credentials are stored in Git. For iOS open `ios/App/App.xcodeproj` on a Mac, select the Apple development team, resolve Swift packages and test on a device.
 
 The icon and splash assets are generated from `assets/app-icon.svg`. The UUID override patches a vulnerable transitive Xcode-tooling dependency while preserving its `uuid.v4()` API. Recheck this override when updating Capacitor.
+
+Scope Android device tests to `:app`. The root `connectedDebugAndroidTest` task also attempts upstream Capacitor/plugin test projects; that broader run encountered conflicting Kotlin 1.8.22/1.6.21 test dependencies after the store's own device test passed. This does not affect the store APK build, but remains an upstream test-tooling limitation.
 
 ## Owner tasks before submission
 
