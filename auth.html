@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login / Sign Up — Zarah's Store</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Playfair+Display:wght@400;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <style>
     /* Google Sign In button styles */
@@ -118,7 +118,7 @@
       box-shadow: 0 0 10px rgba(255,185,0,0.25);
     }
   </style>
-  <link rel="stylesheet" href="css/improvements.css">
+<link rel="stylesheet" href="css/improvements.css">
 </head>
 <body style="background:var(--bg)">
 
@@ -129,8 +129,8 @@
       <div>
         <div style="font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:6px">🛍️ Zarah's Store</div>
         <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);margin-bottom:24px">Nigeria's Premium Marketplace</div>
-        <h2>Thoughtful finds.<br>Your favorite boutiques.</h2>
-        <p style="margin-top:12px">Shop directly from Zarah's Perfume, Zarah's Kitchen, and Teemerh Collection.</p>
+        <h2>Millions of products.<br>Three trusted vendors.</h2>
+        <p style="margin-top:12px">Join thousands of Nigerians shopping smart from Zarah's Perfume, Zarah's Kitchen, and Teemerh Collection.</p>
       </div>
       <div>
         <div class="auth-left-img">🛍️</div>
@@ -198,16 +198,33 @@
         </div>
         <div class="form-group-fk">
           <label class="form-label-fk">Email Address</label>
-          <input type="email" class="form-input-fk" id="regEmail" placeholder="your@email.com">
+          <input type="email" class="form-input-fk" id="regEmail" placeholder="your@email.com" autocomplete="email">
+        </div>
+        <div class="form-group-fk">
+          <label class="form-label-fk">WhatsApp / Phone Number</label>
+          <input type="tel" class="form-input-fk" id="regPhone" placeholder="e.g. 08012345678" inputmode="tel" autocomplete="tel">
+          <div style="font-size:.72rem;color:var(--text-3);margin-top:6px">Used for delivery and order updates. No SMS verification charge.</div>
         </div>
         <div class="form-group-fk">
           <label class="form-label-fk">Password</label>
-          <input type="password" class="form-input-fk" id="regPassword" autocomplete="new-password" placeholder="Create a password (min. 8 chars)">
+          <input type="password" class="form-input-fk" id="regPassword" placeholder="Create a password (min. 6 chars)">
         </div>
         <div id="regErr" class="form-err-fk"></div>
         <div id="regOk" class="form-ok-fk"></div>
 
         <button class="form-submit-fk" onclick="doRegister()">Create Account →</button>
+
+        <div class="divider-fk">Or sign up with</div>
+
+        <button type="button" class="google-btn-fk" onclick="doGoogleLogin()" aria-label="Sign up with Google">
+          <svg class="google-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.69c-.29 1.5-.1.14-.9 1.15-.84 1.34-2 2.4-3.5 3.08l5.42 4.2c3.18-2.93 5.025-7.25 5.025-12.28z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-5.42-4.2c-1.5.1-3.13-.23-4.51-1.04-1.38-.81-2.46-2.04-3.07-3.53l-5.64 4.36C5.07 20.3 8.32 24 12 24z"/>
+            <path fill="#FBBC05" d="M6.93 12.32c-.15-.45-.23-.93-.23-1.42s.08-.97.23-1.42L1.29 5.12C-.48 8.68-.48 12.92 1.29 16.48l5.64-4.16z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77-.03 3.47.65 4.75 1.88l3.5-3.5C18.06 1.13 15.1.04 12 0 8.32 0 5.07 3.7 1.29 7.52l5.64 4.36c.61-1.49 1.69-2.72 3.07-3.53 1.38-.81 3.01-1.14 4.51-1.04H12z"/>
+          </svg>
+          Sign up with Google
+        </button>
 
         <div class="form-alt-fk">
           Already have an account? <a href="#" onclick="switchTab('login')">Login</a>
@@ -215,7 +232,7 @@
       </div>
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
-        <p style="font-size:0.72rem;color:var(--text-3);text-align:center">Your account is used to sign in. Delivery details are shared with the sellers fulfilling your order.</p>
+        <p style="font-size:0.72rem;color:var(--text-3);text-align:center">By continuing, you agree to Zarah's Store's Terms of Use and Privacy Policy.</p>
       </div>
     </div>
   </div>
@@ -232,12 +249,12 @@
     </p>
 
     <div class="otp-input-wrap">
-      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" class="otp-digit" id="otp1" oninput="moveFocus(this, 'otp2')" onkeydown="handleBackspace(this, event, null)">
-      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" class="otp-digit" id="otp2" oninput="moveFocus(this, 'otp3')" onkeydown="handleBackspace(this, event, 'otp1')">
-      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" class="otp-digit" id="otp3" oninput="moveFocus(this, 'otp4')" onkeydown="handleBackspace(this, event, 'otp2')">
-      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" class="otp-digit" id="otp4" oninput="moveFocus(this, 'otp5')" onkeydown="handleBackspace(this, event, 'otp3')">
-      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" class="otp-digit" id="otp5" oninput="moveFocus(this, 'otp6')" onkeydown="handleBackspace(this, event, 'otp4')">
-      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" class="otp-digit" id="otp6" oninput="submitOtpVerification()" onkeydown="handleBackspace(this, event, 'otp5')">
+      <input type="text" maxlength="1" class="otp-digit" id="otp1" oninput="moveFocus(this, 'otp2')" onkeydown="handleBackspace(this, event, null)">
+      <input type="text" maxlength="1" class="otp-digit" id="otp2" oninput="moveFocus(this, 'otp3')" onkeydown="handleBackspace(this, event, 'otp1')">
+      <input type="text" maxlength="1" class="otp-digit" id="otp3" oninput="moveFocus(this, 'otp4')" onkeydown="handleBackspace(this, event, 'otp2')">
+      <input type="text" maxlength="1" class="otp-digit" id="otp4" oninput="moveFocus(this, 'otp5')" onkeydown="handleBackspace(this, event, 'otp3')">
+      <input type="text" maxlength="1" class="otp-digit" id="otp5" oninput="moveFocus(this, 'otp6')" onkeydown="handleBackspace(this, event, 'otp4')">
+      <input type="text" maxlength="1" class="otp-digit" id="otp6" oninput="submitOtpVerification()" onkeydown="handleBackspace(this, event, 'otp5')">
     </div>
 
     <div id="otpErr" class="form-err-fk" style="margin-bottom:14px"></div>
@@ -252,18 +269,28 @@
 
 <!-- Supabase Integration Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/common.js"></script>
 <script src="js/supabase.js"></script>
+<script src="js/common.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
 <script>
-  // Redirect if already logged in
-  if(Auth.isLoggedIn()) location.href='index.html';
-  window.addEventListener('auth_ready',()=>{if(Auth.isLoggedIn()) location.href='index.html';});
+  function completeAuthRedirect() {
+    const next = sessionStorage.getItem('returnAfterAuth') || 'index.html';
+    sessionStorage.removeItem('returnAfterAuth');
+    window.location.href = ['checkout.html','my-orders.html','index.html'].includes(next) ? next : 'index.html';
+  }
+
+  async function redirectExistingSession() {
+    if (!window.supabaseClient) return;
+    const { data: { session } } = await window.supabaseClient.auth.getSession();
+    if (session) completeAuthRedirect();
+  }
+
+  redirectExistingSession();
 
   let isOtpLogin = false;
   let activeEmail = '';
-  let activeVerificationType = 'email'; // 'signup' or 'magiclink'
+  let activeVerificationType = 'signup'; // 'signup' or 'email'
 
   function switchTab(tab) {
     document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
@@ -293,16 +320,9 @@
 
   // Google Login Action
   async function doGoogleLogin() {
-    const err = document.getElementById('loginErr');
-    err.classList.remove('show');
     const res = await Auth.loginWithGoogle();
     if (!res.success) {
-      if (res.error && (res.error.includes('provider is not enabled') || res.error.includes('Unsupported provider'))) {
-        err.textContent = 'ℹ️ Google Sign-In is not yet activated in your Supabase dashboard. Please sign in with your email or password.';
-      } else {
-        err.textContent = '⚠️ Google sign-in note: ' + res.error;
-      }
-      err.classList.add('show');
+      alert("Google login error: " + res.error);
     }
   }
 
@@ -337,16 +357,9 @@
         return;
       }
 
-      const submitBtn = document.getElementById('loginSubmitBtn');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Verifying...';
-
       const result = await Auth.login(email, password);
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Login →';
-
       if (result.success) {
-        window.location.href = 'index.html';
+        completeAuthRedirect();
       } else {
         err.textContent = '❌ ' + result.error;
         err.classList.add('show');
@@ -357,45 +370,27 @@
   async function doRegister() {
     const name = document.getElementById('regName').value.trim();
     const email = document.getElementById('regEmail').value.trim();
+    const phoneInput = document.getElementById('regPhone').value.trim();
+    const phone = Auth.normalizePhone(phoneInput);
     const password = document.getElementById('regPassword').value;
     const err = document.getElementById('regErr');
     const ok = document.getElementById('regOk');
     err.classList.remove('show'); ok.classList.remove('show');
 
-    if (!name || !email || !password) { err.textContent = '⚠️ Please fill in all fields.'; err.classList.add('show'); return; }
+    if (!name || !email || !phoneInput || !password) { err.textContent = '⚠️ Please fill in all fields, including your phone number.'; err.classList.add('show'); return; }
+    if (!phone) { err.textContent = '⚠️ Enter a valid phone number, such as 08012345678.'; err.classList.add('show'); return; }
     if (password.length < 8) { err.textContent = '⚠️ Password must be at least 8 characters.'; err.classList.add('show'); return; }
 
-    const result = await Auth.register(name, email, password);
+    const result = await Auth.register(name, email, password, phone);
     if (result.success) {
-      // If session exists or local account was created, no OTP prompt required
-      if (result.localOnly || (result.data && result.data.session)) {
-        ok.textContent = `✅ Account created! Welcome, ${name.split(' ')[0]}! Redirecting...`;
-        ok.classList.add('show');
-        setTimeout(() => window.location.href = 'index.html', 1200);
-        return;
-      }
-      // If email confirmation is required by Supabase
       activeEmail = email;
-      activeVerificationType = 'email';
+      activeVerificationType = 'signup';
       openOtpModal(email);
     } else {
       err.textContent = '❌ ' + result.error;
       err.classList.add('show');
     }
   }
-
-  // Handle Enter key in input fields
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.form-input-fk').forEach(input => {
-      input.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-          const form = input.closest('#loginForm, #registerForm');
-          if (form && form.id === 'loginForm') doLogin();
-          else if (form && form.id === 'registerForm') doRegister();
-        }
-      });
-    });
-  });
 
   // --- OTP MODAL FLOWS ---
   function openOtpModal(email) {
@@ -417,7 +412,6 @@
   }
 
   function moveFocus(current, nextId) {
-    current.value=current.value.replace(/\D/g,'');
     if (current.value.length === current.maxLength) {
       document.getElementById(nextId).focus();
     }
@@ -443,7 +437,7 @@
     err.classList.remove('show');
     ok.classList.remove('show');
 
-    if (!/^\d{6}$/.test(code)) {
+    if (code.length < 6) {
       err.textContent = '⚠️ Please enter the full 6-digit code.';
       err.classList.add('show');
       return;
@@ -456,21 +450,13 @@
       ok.classList.add('show');
       setTimeout(() => {
         closeOtpModal();
-        window.location.href = 'index.html';
+        completeAuthRedirect();
       }, 1500);
     } else {
       err.textContent = '❌ Verification failed: ' + result.error;
       err.classList.add('show');
     }
   }
-  exposeActions({doLogin,doRegister,doGoogleLogin,submitOtpVerification});
-  document.querySelector('.otp-input-wrap').addEventListener('paste',e=>{
-    const digits=e.clipboardData.getData('text').replace(/\D/g,'').slice(0,6);
-    if(!digits) return;
-    e.preventDefault();
-    for(let i=1;i<=6;i++) document.getElementById('otp'+i).value=digits[i-1] || '';
-    document.getElementById('otp'+Math.min(digits.length+1,6)).focus();
-  });
 </script>
 </body>
 </html>

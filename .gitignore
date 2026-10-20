@@ -2,3 +2,10 @@
 test-results/*.png
 test-results/*.json
 node_modules/
+test-results/*.txt
+test-results/*.html
+
+.vercel/
+.env
+.env.*
+supabase/.temp/

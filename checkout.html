@@ -6,7 +6,7 @@
   <title>Checkout — Zarah's Store</title>
   <meta name="description" content="Complete your purchase securely at Zarah's Store.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Playfair+Display:wght@400;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <style>
     /* ---- STEP TRACKER ---- */
@@ -97,7 +97,7 @@
       .fk-step-label { display: none; }
     }
   </style>
-  <link rel="stylesheet" href="css/improvements.css">
+<link rel="stylesheet" href="css/improvements.css">
 </head>
 <body>
 
@@ -112,13 +112,6 @@
       </div>
       <a href="cart.html" class="nav-btn cart">🛒 Cart<span class="nav-cart-count cart-count">0</span></a>
     </div>
-    <div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
-  </div>
-  <div class="mobile-menu" id="mobileMenu">
-    <a href="index.html" class="mobile-link">🏠 Home</a>
-    <div id="mobileNavLinks"></div>
-    <a href="cart.html" class="mobile-link">🛒 Cart</a>
-    <a href="vendor-login.html" class="mobile-link">🏪 Vendor Portal</a>
   </div>
 </nav>
 
@@ -243,8 +236,7 @@
 
               <div class="step-actions">
                 <button class="btn-back-fk" onclick="goToStep1()">← Back</button>
-                <p id="orderError" role="alert" class="order-error"></p>
-<button class="btn-whatsapp" onclick="placeOrder()">
+                <button class="btn-whatsapp" id="placeOrderBtn" onclick="placeOrder()">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.985-1.414A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18c-1.74 0-3.358-.473-4.742-1.297l-.34-.202-3.527.999.945-3.643-.22-.353A7.955 7.955 0 014 12c0-4.418 3.582-8 8-8s8 3.582 8 8-3.582 8-8 8z"/></svg>
                   Order via WhatsApp
                 </button>
@@ -286,19 +278,19 @@
     <div class="success-page">
       <div class="success-card">
         <div class="success-check">✓</div>
-        <div class="success-title">Order Sent to WhatsApp!</div>
+        <div class="success-title">Order Saved — Contact Your Seller</div>
         <div class="success-orderno" id="orderNum">Order #000000</div>
         <p class="success-msg">
           Thank you for shopping with Zarah's Store! 🎉<br>
-          Your order details have been sent to <strong id="successVendorName">the seller</strong> on WhatsApp.<br>
-          The seller will contact you shortly with the bank account number for payment.<br>
-          <strong>Check your WhatsApp now!</strong>
+          We opened WhatsApp for the first boutique in your order.<br>
+          If you bought from more than one boutique, use every seller button below to send each part of the order.<br>
+          Each seller will reply with delivery cost and payment details.
         </p>
-        <div id="vendorOrderLinks"></div>
+        <div id="vendorWhatsAppLinks" style="display:flex;flex-direction:column;gap:10px;margin:18px 0"></div>
         <div class="success-steps">
           <div class="success-step">
             <div class="success-step-icon">✅</div>
-            <div class="success-step-label">Send via WhatsApp</div>
+            <div class="success-step-label">Order Sent to Seller</div>
           </div>
           <div class="success-step">
             <div class="success-step-icon">💳</div>
@@ -310,7 +302,8 @@
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:10px">
-          <a href="index.html" style="display:block;padding:13px;background:var(--fk-yellow);color:#333;font-weight:700;border-radius:4px;text-align:center;font-size:0.88rem">Continue Shopping →</a>
+          <a href="store-perfume.html" style="display:block;padding:13px;background:var(--fk-yellow);color:#333;font-weight:700;border-radius:4px;text-align:center;font-size:0.88rem">Continue Shopping →</a>
+          <a href="my-orders.html" style="display:block;padding:11px;border:1.5px solid var(--fk-yellow);color:var(--fk-yellow);font-weight:700;border-radius:4px;text-align:center;font-size:0.84rem">Track My Order</a>
           <a href="index.html" style="display:block;padding:11px;border:1.5px solid var(--border);color:var(--text-2);font-weight:600;border-radius:4px;text-align:center;font-size:0.84rem">Back to Home</a>
         </div>
       </div>
@@ -320,12 +313,10 @@
 
 <!-- Supabase Integration Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/common.js"></script>
 <script src="js/supabase.js"></script>
+<script src="js/common.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
-<script src="js/vendor-store.js"></script>
-<script src="js/orders.js"></script>
 <script>
   function setStep(n) {
     [1, 2].forEach(i => {
@@ -366,9 +357,6 @@
       return;
     }
 
-    if (!/^\+?[0-9 ()-]{7,25}$/.test(ph)) { alert('Enter a valid phone number.'); return; }
-    const emailField=document.getElementById('email');
-    if (!emailField.checkValidity()) { emailField.reportValidity(); return; }
     setStep(2);
     document.getElementById('formStep1').style.display = 'none';
     document.getElementById('formStep2').style.display = 'block';
@@ -384,43 +372,123 @@
 
     const lm = document.getElementById('landmark').value.trim();
     const addr = `${fn} ${ln}\n📞 ${ph}${document.getElementById('email').value.trim() ? '\n✉️ ' + document.getElementById('email').value.trim() : ''}\n📍 ${ad}, ${ct}, ${st}, Nigeria${lm ? '\nLandmark: ' + lm : ''}`;
-    document.getElementById('deliveryAddr').textContent = addr;
-    document.getElementById('deliveryAddr').style.whiteSpace = 'pre-line';
+    document.getElementById('deliveryAddr').innerHTML = escapeHTML(addr).replace(/\n/g, '<br>');
   }
 
+  let placingOrder = false;
   async function placeOrder() {
-    if (Orders.pending) return;
-    const items=Cart.getItems();
-    if(!items.length) { location.href='cart.html'; return; }
-    const get=id=>document.getElementById(id).value.trim();
-    const customer={name:get('firstName')+' '+get('lastName'),phone:get('phone'),email:get('email'),address:[get('address'),get('city'),get('state'),'Nigeria',get('landmark')].filter(Boolean).join(', ')};
-    const button=document.querySelector('[onclick="placeOrder()"]');
-    const error=document.getElementById('orderError');
-    Orders.pending=true; button.disabled=true; button.textContent='Saving your order…'; error.textContent='';
+    if (placingOrder) return;
+    placingOrder = true;
+    try { await submitOrder(); } finally { placingOrder = false; }
+  }
+  async function submitOrder() {
+    const items = Cart.getItems();
+    if (!items.length) { alert('Your cart is empty!'); return; }
+
+    if (!window.supabaseClient) {
+      alert('Secure checkout is temporarily unavailable. Please try again.');
+      return;
+    }
+
+    const { data: { user }, error: authError } = await window.supabaseClient.auth.getUser();
+    if (authError || !user) {
+      sessionStorage.setItem('returnAfterAuth', 'checkout.html');
+      alert('Please sign in before placing your order. Your cart will be kept.');
+      window.location.href = 'auth.html';
+      return;
+    }
+
+    const orderButton = document.getElementById('placeOrderBtn');
+    orderButton.disabled = true;
+    orderButton.style.opacity = '0.7';
+    orderButton.textContent = 'Saving order…';
+
+    const fn = document.getElementById('firstName').value.trim();
+    const ln = document.getElementById('lastName').value.trim();
+    const ph = document.getElementById('phone').value.trim();
+    const em = document.getElementById('email').value.trim();
+    const ad = document.getElementById('address').value.trim();
+    const ct = document.getElementById('city').value.trim();
+    const st = document.getElementById('state').value;
+    const lm = document.getElementById('landmark').value.trim();
+
+    const subtotal = Cart.getTotal();
+
+    const customerInfo = {
+      name: `${fn} ${ln}`,
+      phone: ph,
+      email: em || user.email || 'Not provided',
+      address: `${ad}, ${ct}, ${st}, Nigeria${lm ? ' (Landmark: ' + lm + ')' : ''}`
+    };
+
+    let savedOrder;
+    const requestItems = items.map(item => ({id:item.id, qty:item.qty, price:item.price, selectedSize:item.selectedSize || null}));
+    const promo = sessionStorage.getItem('zarah_promo_applied') === 'true' ? 'SAVE10' : '';
+    const fingerprint = JSON.stringify({customerInfo, requestItems, promo});
+    let attempt;
+    try { attempt = JSON.parse(sessionStorage.getItem('checkout_attempt')); } catch {}
+    if (!attempt || attempt.fingerprint !== fingerprint) {
+      attempt = {id:crypto.randomUUID(),fingerprint};
+      sessionStorage.setItem('checkout_attempt',JSON.stringify(attempt));
+    }
+
     try {
-      const orders=await Orders.submit(customer,items,sessionStorage.getItem('zarah_promo_applied')==='true'?'SAVE10':'');
-      const links=document.getElementById('vendorOrderLinks'); links.replaceChildren();
-      orders.forEach(order=>{
-        const a=document.createElement('a'); a.className='vendor-order-link'; a.href=Orders.whatsappURL(order,customer);
-        a.target='_blank'; a.rel='noopener'; a.textContent=`Message ${order.name} — ${formatNaira(order.total)}`; links.appendChild(a);
+      const { data, error } = await window.supabaseClient.rpc('place_whatsapp_order_v2', {
+        p_customer_name: customerInfo.name,
+        p_customer_email: customerInfo.email,
+        p_customer_phone: customerInfo.phone,
+        p_customer_address: customerInfo.address,
+        p_items: requestItems, p_request_id: attempt.id, p_promo: promo
       });
-      Cart.clearCart(); sessionStorage.removeItem('zarah_promo_applied'); sessionStorage.removeItem('checkout_attempt');
-      document.getElementById('checkoutPage').style.display='none';
-      document.getElementById('orderSuccess').style.display='block';
-      document.getElementById('orderNum').textContent=orders.length===1 ? orders[0].id : orders.length+' vendor orders saved';
-      document.querySelector('.success-title').textContent='Order saved';
-      document.querySelector('.success-msg').textContent='Send each seller their order using the links below. Confirm delivery and payment details in WhatsApp. Payment is not yet collected.';
-      document.querySelector('.success-title').tabIndex=-1; document.querySelector('.success-title').focus();
-    } catch(e) {error.textContent=e.message+' Your cart has been kept. Please try again.';}
-    finally {Orders.pending=false;button.disabled=false;button.textContent='Save order & continue to WhatsApp';}
+      if (error) throw error;
+      if (!data?.orderId || !data.vendorOrders?.length) throw new Error('Order confirmation was not received. Your cart is saved.');
+      savedOrder = data;
+    } catch (error) {
+      console.error('Order save failed:', error);
+      alert(error.message || 'We could not save your order securely. Please try again.');
+      orderButton.disabled = false;
+      orderButton.style.opacity = '1';
+      orderButton.textContent = 'Order via WhatsApp';
+      return;
+    }
+
+    const vendorRoutes = (savedOrder.vendorOrders || []).map(vendorOrder =>
+      buildWhatsAppOrderUrl(
+        vendorOrder.items,
+        Number(vendorOrder.total),
+        customerInfo,
+        vendorOrder.vendorId
+      )
+    );
+
+    // Clear cart and show every vendor's WhatsApp payment route.
+    Cart.clearCart();
+    document.getElementById('checkoutPage').style.display = 'none';
+    document.getElementById('orderSuccess').style.display = 'block';
+    document.getElementById('orderNum').textContent = 'Order ' + savedOrder.orderId;
+    renderVendorWhatsAppLinks(vendorRoutes);
+    sessionStorage.removeItem('zarah_promo_applied');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function renderVendorWhatsAppLinks(routes) {
+    const container = document.getElementById('vendorWhatsAppLinks');
+    if (!routes.length) {
+      container.innerHTML = '<div style="color:var(--text-3);font-size:.84rem">No seller route was found.</div>';
+      return;
+    }
+
+    container.innerHTML = routes.map(route => `
+      <a href="${route.url}" target="_blank" rel="noopener"
+         style="display:block;padding:13px;background:#25D366;color:#062d16;font-weight:800;border-radius:4px;text-align:center;font-size:.88rem">
+        Send order to ${escapeHTML(route.vendorName)} on WhatsApp — ${formatNaira(route.total)}
+      </a>`).join('');
   }
 
   function initSummary() {
     const items = Cart.getItems();
     const subtotal = Cart.getTotal();
-    const promoApplied = sessionStorage.getItem('zarah_promo_applied') === 'true';
-    const discount = promoApplied ? Math.round(subtotal * 0.10) : 0;
-    const total = Math.max(0, subtotal - discount);
+    const total = subtotal - (sessionStorage.getItem('zarah_promo_applied') === 'true' ? Math.round(subtotal * 0.10) : 0);
 
     document.getElementById('sumSubtotal').textContent = formatNaira(subtotal);
     document.getElementById('sumShipping').textContent = 'Discuss on WhatsApp';
@@ -434,22 +502,16 @@
       </div>`).join('');
   }
 
-  function toggleMenu() {
-    const m = document.getElementById('mobileMenu');
-    if (m) m.classList.toggle('open');
-  }
-
   // Pre-fill if logged in
   const user = Auth.getUser();
   if (user) {
     document.getElementById('email').value = user.email || '';
+    document.getElementById('phone').value = user.phone || '';
     const parts = (user.name || '').split(' ');
     document.getElementById('firstName').value = parts[0] || '';
     document.getElementById('lastName').value = parts.slice(1).join(' ') || '';
   }
 
-  if (!Cart.getItems().length) location.replace('cart.html');
-  initVendorProducts();
   initSummary();
 </script>
 </body>

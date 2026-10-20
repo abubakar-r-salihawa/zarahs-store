@@ -7,9 +7,9 @@
   <meta name="description" content="Zarah's Store — Nigeria's trusted multi-vendor marketplace. Shop from Zarah's Perfume, Zarah's Kitchen, and Teemerh Collection. Fast nationwide delivery.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Playfair+Display:wght@400;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/improvements.css">
+<link rel="stylesheet" href="css/improvements.css">
 </head>
 <body>
 
@@ -72,6 +72,15 @@
         <img class="collage-img collage-img-3" src="images/perfume/zahra-amber-spray.jpg" alt="Amber Spray Bottle" onerror="this.onerror=null;this.src='https://picsum.photos/seed/zarah3/200/300'">
       </div>
     </div>
+
+    <!-- PAID ADVERTISING BANNERS -->
+    <section class="sponsored-banner-section" id="sponsoredBannerSection" hidden aria-label="Sponsored offers">
+      <div class="sponsored-banner-header">
+        <span class="sponsored-disclosure">Paid placement</span>
+        <span style="font-size:.72rem;color:rgba(255,255,255,.68)">Promoted offers from marketplace businesses</span>
+      </div>
+      <div class="sponsored-banner-track" id="sponsoredBannerSlot"></div>
+    </section>
 
     <!-- CATEGORY STRIP -->
     <div class="cat-strip-wrap">
@@ -210,11 +219,11 @@
     </div>
     <div>
       <h4>Help</h4>
-      <a href="https://wa.me/2348147923724" target="_blank" rel="noopener">Contact support</a>
+      <a href="#">Help Center</a>
     </div>
     <div>
       <h4>Payments & Orders</h4>
-      <a href="cart.html">Order via WhatsApp</a>
+      <a href="#">Order via WhatsApp</a>
     </div>
   </div>
   <div class="fk-footer-bottom">
@@ -225,13 +234,71 @@
 
 <!-- Supabase Integration Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/common.js"></script>
 <script src="js/supabase.js"></script>
+<script src="js/common.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
 <script src="js/vendor-store.js"></script>
 <script>
   initVendorProducts();
+
+
+  function escapePromotionText(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
+  }
+
+  function safePromotionUrl(value, fallback = 'index.html') {
+    const url = String(value || '').trim();
+    if (!url) return fallback;
+    if (/^(https?:\/\/|[a-z0-9][a-z0-9._/-]*(?:\?[^\s]*)?$)/i.test(url)) return url;
+    return fallback;
+  }
+
+  function activePromotions(type) {
+    return (window.PROMOTIONS || [])
+      .filter(item => item.promotion_type === type)
+      .sort((a, b) => Number(b.placement_level || 1) - Number(a.placement_level || 1));
+  }
+
+  function getHomepageVendorIds() {
+    const promoted = activePromotions('boutique').map(item => item.vendor_id);
+    return [...new Set([...promoted, ...Object.keys(VENDORS)])].filter(id => VENDORS[id]);
+  }
+
+  function getSponsoredProductIds() {
+    return new Set(activePromotions('product').map(item => item.product_id));
+  }
+
+  function renderSponsoredBanners() {
+    const section = document.getElementById('sponsoredBannerSection');
+    const slot = document.getElementById('sponsoredBannerSlot');
+    if (!section || !slot) return;
+    const banners = activePromotions('banner');
+    section.hidden = banners.length === 0;
+    if (!banners.length) {
+      slot.innerHTML = '';
+      return;
+    }
+
+    slot.innerHTML = banners.map(banner => {
+      const vendor = banner.vendor_id ? VENDORS[banner.vendor_id] : null;
+      const fallbackLink = vendor?.page || (banner.vendor_id ? `store.html?vendor=${banner.vendor_id}` : 'index.html#stores-section');
+      const link = safePromotionUrl(banner.link_url, fallbackLink);
+      const image = safePromotionUrl(banner.image_url, 'images/perfume/zahra-collection-oils.jpg');
+      return `<a class="sponsored-banner" href="${escapePromotionText(link)}">
+        <div class="sponsored-banner-copy">
+          <span class="sponsored-disclosure">Sponsored advertisement</span>
+          <h3>${escapePromotionText(banner.title)}</h3>
+          <p>${escapePromotionText(banner.subtitle || 'Discover this promoted offer on Zarah\'s Store.')}</p>
+          <span class="sponsored-banner-cta">View offer →</span>
+        </div>
+        <img class="sponsored-banner-image" src="${escapePromotionText(image)}" alt="${escapePromotionText(banner.title)}" loading="lazy">
+      </a>`;
+    }).join('');
+  }
+
 
   // Render Dynamic Navigation Links
   function renderBoutiquesMenu() {
@@ -244,8 +311,8 @@
     Object.keys(VENDORS).forEach(id => {
       const vendor = VENDORS[id];
       const pageLink = vendor.page || `store.html?vendor=${id}`;
-      subnav.innerHTML += `<a href="${escapeHTML(safeURL(pageLink))}" class="nav-sub-link">${escapeHTML(vendor.logo)} ${escapeHTML(vendor.name)}</a>`;
-      mobileLinks.innerHTML += `<a href="${escapeHTML(safeURL(pageLink))}" class="mobile-link">${escapeHTML(vendor.logo)} ${escapeHTML(vendor.name)}</a>`;
+      subnav.innerHTML += `<a href="${pageLink}" class="nav-sub-link">${vendor.logo} ${escapeHTML(vendor.name)}</a>`;
+      mobileLinks.innerHTML += `<a href="${pageLink}" class="mobile-link">${vendor.logo} ${escapeHTML(vendor.name)}</a>`;
     });
     subnav.innerHTML += '<a href="vendor-login.html" class="nav-sub-link">🏪 Vendor Portal</a>';
   }
@@ -256,7 +323,8 @@
     if (!showcase) return;
     showcase.innerHTML = '';
 
-    Object.keys(VENDORS).forEach(id => {
+    const featuredBoutiques = new Set(activePromotions('boutique').map(item => item.vendor_id));
+    getHomepageVendorIds().forEach(id => {
       const v = VENDORS[id];
       const pageLink = v.page || `store.html?vendor=${id}`;
 
@@ -273,15 +341,16 @@
       }
 
       showcase.innerHTML += `
-      <div class="boutique-card" onclick="window.location.href=${inlineArg(safeURL(pageLink))}">
-        <img src="${escapeHTML(safeURL(imgUrl))}" alt="${escapeHTML(v.name)}" onerror="this.style.background='${v.primaryColor || '#8B5A2B'}'">
+      <div class="boutique-card" onclick="window.location.href='${pageLink}'">
+        ${featuredBoutiques.has(id) ? '<span class="paid-placement-badge">Featured boutique · Paid</span>' : ''}
+        <img src="${imgUrl}" alt="${escapeHTML(v.name)}" onerror="this.style.background='${v.primaryColor || '#8B5A2B'}'">
         <div class="boutique-overlay">
           <div class="boutique-glass-plate">
             <span class="boutique-emoji">${v.logo || '🏪'}</span>
             <h3 class="boutique-title">${escapeHTML(v.name)}</h3>
             <p class="boutique-tagline">${escapeHTML(v.tagline)}</p>
             <div class="boutique-meta">
-              <span>Shop this boutique</span>
+              <span>✔ Verified Boutique</span>
               <span class="boutique-shop-link">Enter Boutique →</span>
             </div>
           </div>
@@ -293,10 +362,26 @@
   function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
   function doSearch() {
     const q = document.getElementById('globalSearch').value.trim();
-    if (q) window.location.href = 'store.html?search=' + encodeURIComponent(q);
+    if (q) window.location.href = 'store.html?vendor=perfume&search=' + encodeURIComponent(q);
   }
 
+  // Buy Now direct from homepage
+  function buyNowDirect(productId) {
+    const product = getProductById(productId);
+    if (product) {
+      Cart.addItem(product, 1);
+      window.location.href = 'checkout.html';
+    }
+  }
 
+  // Add Item to Cart direct from homepage
+  function addToCart(productId) {
+    const product = getProductById(productId);
+    if (product) {
+      Cart.addItem(product, 1);
+      alert(`🛒 ${product.name} added to cart!`);
+    }
+  }
 
   // Luxury minimalist product card renderer
   function renderFkCard(p) {
@@ -310,23 +395,24 @@
     return `
     <div class="minimal-card" onclick="window.location.href='product.html?id=${p.id}'">
       <div class="minimal-card-img-wrap">
-        <img src="${escapeHTML(safeURL(p.image))}" alt="${escapeHTML(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='https://picsum.photos/seed/${p.id}/300/300'">
-        ${p.badge ? `<span class="minimal-card-badge">${escapeHTML(p.badge)}</span>` : ''}
-        <button class="minimal-card-wishlist" onclick="event.stopPropagation();toggleWishlist(${inlineArg(p.id)},this)">${inWish ? '❤️' : '🤍'}</button>
+        <img src="${p.image}" alt="${escapeHTML(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='https://picsum.photos/seed/${p.id}/300/300'">
+        ${p.badge ? `<span class="minimal-card-badge">${p.badge}</span>` : ''}
+        <button class="minimal-card-wishlist" onclick="event.stopPropagation();toggleWishlist('${p.id}',this)">${inWish ? '❤️' : '🤍'}</button>
         ${!p.inStock ? '<div class="oos-overlay"><span>Out of Stock</span></div>' : ''}
       </div>
       <div class="minimal-card-body">
+        ${getSponsoredProductIds().has(p.id) ? '<span class="minimal-card-sponsored">Sponsored product · Paid</span>' : ''}
         <div class="minimal-card-brand">${escapeHTML(v.name)}</div>
         <div class="minimal-card-title">${escapeHTML(p.name)}</div>
         <div class="minimal-card-rating">
-          <span class="assured-badge" style="margin-left:0">Direct from boutique</span>
+          <span class="assured-badge" style="margin-left:0">✔ Zarah's Store Assured</span>
         </div>
         <div class="minimal-card-price-row">
           <span class="minimal-price-current">${formatNaira(p.price)}</span>
         </div>
         <div class="minimal-card-actions" onclick="event.stopPropagation()">
-          <button class="minimal-btn-cart" onclick="${p.inStock ? `addToCart(${inlineArg(p.id)})` : ''}" ${!p.inStock ? 'disabled' : ''}>🛒 Add</button>
-          <button class="minimal-btn-buy" onclick="${p.inStock ? `buyNowDirect(${inlineArg(p.id)})` : ''}" ${!p.inStock ? 'disabled' : ''}>Buy Now</button>
+          <button class="minimal-btn-cart" onclick="${p.inStock ? `addToCart('${p.id}')` : ''}" ${!p.inStock ? 'disabled' : ''}>🛒 Add</button>
+          <button class="minimal-btn-buy" onclick="${p.inStock ? `buyNowDirect('${p.id}')` : ''}" ${!p.inStock ? 'disabled' : ''}>Buy Now</button>
         </div>
       </div>
     </div>`;
@@ -336,23 +422,30 @@
   function renderAll() {
     renderBoutiquesMenu();
     renderBoutiquesShowcase();
+    renderSponsoredBanners();
 
-    const featured = getFeaturedProducts(8);
+    const sponsoredIds = [...getSponsoredProductIds()];
+    const sponsoredProducts = sponsoredIds.map(getProductById).filter(Boolean);
+    const organicFeatured = getFeaturedProducts(8).filter(product => !sponsoredIds.includes(product.id));
+    const featured = [...sponsoredProducts, ...organicFeatured].slice(0, 8);
     const gridF = document.getElementById('featuredGrid');
     if (gridF) gridF.innerHTML = featured.map(renderFkCard).join('');
 
+    if (!VENDORS.perfume) document.getElementById('perfumeGrid')?.replaceChildren();
     if (VENDORS.perfume) {
       const perfumes = getProductsByVendor('perfume').slice(0, 4);
       const gridP = document.getElementById('perfumeGrid');
       if (gridP) gridP.innerHTML = perfumes.map(renderFkCard).join('');
     }
 
+    if (!VENDORS.kitchen) document.getElementById('kitchenGrid')?.replaceChildren();
     if (VENDORS.kitchen) {
       const kitchen = getProductsByVendor('kitchen').slice(0, 4);
       const gridK = document.getElementById('kitchenGrid');
       if (gridK) gridK.innerHTML = kitchen.map(renderFkCard).join('');
     }
 
+    if (!VENDORS.variety) document.getElementById('varietyGrid')?.replaceChildren();
     if (VENDORS.variety) {
       const variety = getProductsByVendor('variety').slice(0, 4);
       const gridV = document.getElementById('varietyGrid');

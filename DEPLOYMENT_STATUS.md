@@ -1,31 +1,24 @@
-# Deployment status — 18 October 2026
+# Deployment status — 20 October 2026
 
-The reviewed local changes are saved on `codex/marketplace-security-responsive`.
-They have **not** been merged into production or applied to Supabase.
+## Saved work
 
-Fetching GitHub revealed that `origin/main` at `6f787e9` contains 35 commits
-absent from the checkout used for the review. Those include customer order
-tracking, paid promotions, vendor subscriptions, and staff access using Auth
-app metadata with the `manage-vendor-access` function.
+The review fixes were committed as `939c624` and pushed to `codex/marketplace-security-responsive`. Reconciliation with all 35 newer commits on production `main` (`6f787e9`) is being saved on `codex/reconcile-production`.
 
-Do not apply this branch's `202610160001_secure_marketplace.sql` migration or
-publish its frontend over production yet. Its staff-members and checkout
-implementation must first be reconciled with the newer implementation and
-the actual hosted schema. Preserve the newer production features and existing
-accounts. Do not run the fresh database setup script on the live database.
+The reconciled implementation preserves paid promotions, vendor subscriptions, customer order tracking, Google staff login, app-metadata roles and `manage-vendor-access`. The superseded alternative staff-members migration/function have been removed.
 
-Verified targets:
+## Verified targets
 
 - GitHub: `abubakar-r-salihawa/zarahs-store`
-- Repository-listed website: `https://zarahs-store.vercel.app`
-- Frontend-configured Supabase project: `hlodwqvkvudhfzbophwg`
+- Vercel: `kang9/zarahs-store`, production `https://zarahs-store.vercel.app`
+- Supabase: `hlodwqvkvudhfzbophwg`, store owner's organization
 
-Vercel and Supabase dashboard access currently requires sign-in. Use the
-accounts belonging to Zarah's Store, which the owner says are separate from
-the AI-Guardina accounts. Verify account ownership and project identity before
-making any deployment changes.
+## Hosted state
 
-Local syntax, SQL fixture and Edge Function fixture checks pass. Those checks
-do not establish compatibility with the newer production schema. Re-run the
-full browser and backend checks after reconciliation, then upgrade and verify
-the backend before updating the production frontend.
+The owner approved resuming the paused Supabase project. Resume succeeded.
+An inventory taken during restoration incorrectly appeared empty. A subsequent transactional initialization attempt stopped on an existing-table error and rolled back. A fresh inventory confirmed 3 vendors, 38 products, 3 orders, 6 Auth users and 3 private staff identities. Do not initialize or reseed this project.
+
+The compatible checkout migration has not yet been applied. Production frontend has not been updated. The existing vendor-management Edge Function is present and includes Auth validation and the vendor-management RPC.
+
+The owner supplied an email for admin access; no corresponding private staff assignment was found and no new role assignment has been made. All three vendor trial subscriptions had expired on 12 September 2026. Deployment must not fabricate payments or silently extend those subscriptions.
+
+On 20 October the browser connection failed before reaching the dashboards. Finish the backend upgrade and owner-access verification once that connection is restored, then publish production and verify the resulting deployment.

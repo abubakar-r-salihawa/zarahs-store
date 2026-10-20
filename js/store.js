@@ -76,27 +76,50 @@ localStorage.removeItem('users');
 // ---- AUTH STORE ----
 const Auth = {
   getUser() {
-    return Auth.user || null;
+    return StoreStorage.read('user', null);
   },
-  async register(name, email, password) {
-    const trimmedEmail = email.trim();
-    const trimmedName = name.trim();
-
-    try {
-      if (!trimmedName || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail) || password.length < 8) throw new Error('Enter your name, a valid email, and a password of at least 8 characters.');
-      if (!window.supabaseClient) throw new Error('Sign-up is unavailable. Check your connection and try again.');
-      const {data,error} = await window.supabaseClient.auth.signUp({email:trimmedEmail,password,options:{data:{display_name:trimmedName}}});
-      if(error) throw error;
-      return {success:true,data};
-    } catch(e) { return {success:false,error:e.message}; }
+  normalizePhone(value) {
+    const input = String(value || '').trim();
+    let digits = input.replace(/\D/g, '');
+    if (digits.startsWith('00')) digits = digits.slice(2);
+    if (digits.startsWith('0') && digits.length === 11) digits = '234' + digits.slice(1);
+    if (digits.startsWith('234') && digits.length === 13) return '+' + digits;
+    if (input.startsWith('+') && digits.length >= 8 && digits.length <= 15) return '+' + digits;
+    return null;
   },
-  async login(email,password) {
+  async register(name, email, password, phone) {
+    if (!window.supabaseClient) return { success: false, error: 'Supabase not initialized.' };
     try {
-      if (!window.supabaseClient) throw new Error('Sign-in is unavailable. Check your connection and try again.');
-      const {data,error}=await window.supabaseClient.auth.signInWithPassword({email:email.trim(),password});
-      if(error) throw error;
-      return {success:true,data};
-    } catch(e) {return {success:false,error:e.message};}
+      const normalizedPhone = Auth.normalizePhone(phone);
+      if (!normalizedPhone) return { success: false, error: 'Enter a valid phone number.' };
+      const { data, error } = await window.supabaseClient.auth.signUp({
+        email: email.trim(),
+        password: password,
+        options: {
+          data: {
+            display_name: name.trim(),
+            phone_number: normalizedPhone
+          }
+        }
+      });
+      if (error) throw error;
+      return { success: true, data };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  },
+  async login(email, password) {
+    if (!window.supabaseClient) return { success: false, error: 'Supabase not initialized.' };
+    try {
+      const { data, error } = await window.supabaseClient.auth.signInWithPassword({
+        email: email.trim(),
+        password: password
+      });
+      if (error) throw error;
+      return { success: true, data };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
   },
   async loginWithOTP(email) {
     if (!window.supabaseClient) return { success: false, error: 'Supabase not initialized.' };
@@ -133,7 +156,7 @@ const Auth = {
       const { error } = await window.supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: new URL('auth.html', window.location.href).href
+          redirectTo: window.location.origin + '/auth.html'
         }
       });
       if (error) throw error;
@@ -155,7 +178,29 @@ const Auth = {
   },
   updateUI() {
     const user = Auth.getUser();
-    document.querySelectorAll('.auth-logged-in').forEach(el => el.style.display = user ? 'flex' : 'none');
+    document.querySelectorAll('.auth-logged-in').forEach(el => {
+      el.style.display = user ? 'flex' : 'none';
+      if (user && !el.querySelector('[data-my-orders-link]')) {
+        const ordersLink = document.createElement('a');
+        ordersLink.href = 'my-orders.html';
+        ordersLink.className = 'nav-btn';
+        ordersLink.dataset.myOrdersLink = 'true';
+        ordersLink.textContent = 'My Orders';
+        ordersLink.style.fontSize = '0.75rem';
+        const logoutButton = el.querySelector('button');
+        el.insertBefore(ordersLink, logoutButton || null);
+      }
+    });
+    document.querySelectorAll('.mobile-menu').forEach(menu => {
+      if (user && !menu.querySelector('[data-my-orders-link]')) {
+        const ordersLink = document.createElement('a');
+        ordersLink.href = 'my-orders.html';
+        ordersLink.className = 'mobile-link';
+        ordersLink.dataset.myOrdersLink = 'true';
+        ordersLink.textContent = '📦 My Orders';
+        menu.appendChild(ordersLink);
+      }
+    });
     document.querySelectorAll('.auth-logged-out').forEach(el => el.style.display = user ? 'none' : 'flex');
     document.querySelectorAll('.user-name').forEach(el => el.textContent = user ? user.name.split(' ')[0] : '');
     document.querySelectorAll('.user-avatar').forEach(el => el.textContent = user ? user.avatar : '');
@@ -168,20 +213,21 @@ if (window.supabaseClient) {
     console.log("Supabase Auth Event:", event);
     if (session && session.user) {
       const metadata = session.user.user_metadata || {};
+      const accountIdentifier = session.user.email || session.user.phone || 'Shopper';
+      const displayName = metadata.display_name || metadata.name || accountIdentifier.split('@')[0];
       const user = {
         id: session.user.id,
-        name: metadata.display_name || metadata.name || session.user.email.split('@')[0],
-        email: session.user.email,
-        avatar: (metadata.display_name || metadata.name || session.user.email)[0].toUpperCase(),
+        name: displayName,
+        email: session.user.email || '',
+        phone: metadata.phone_number || session.user.phone || '',
+        avatar: displayName[0].toUpperCase(),
         joinDate: session.user.created_at
       };
-      Auth.user = user;
-    } else {
-      Auth.user = null;
+      localStorage.setItem('user', JSON.stringify(user));
+    } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
       localStorage.removeItem('user');
     }
     Auth.updateUI();
-    window.dispatchEvent(new Event('auth_ready'));
   });
 }
 

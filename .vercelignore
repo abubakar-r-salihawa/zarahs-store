@@ -1,0 +1,8 @@
+.test-runtime
+node_modules
+tests
+test-results
+supabase
+supabase_setup.sql
+*.md
+.git
