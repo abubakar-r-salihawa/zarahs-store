@@ -1,5 +1,20 @@
 apply plugin: 'com.android.application'
 
+// Upload credentials belong in the process environment, never source control.
+def uploadKey = [path: System.getenv('ZARAHS_UPLOAD_KEYSTORE'), alias: System.getenv('ZARAHS_UPLOAD_ALIAS'), storePassword: System.getenv('ZARAHS_UPLOAD_STORE_PASSWORD'), keyPassword: System.getenv('ZARAHS_UPLOAD_KEY_PASSWORD')]
+def hasUploadKey = uploadKey.values().every { it != null && !it.isEmpty() }
+def verifyUploadKey = tasks.register('verifyUploadKey') {
+    doLast {
+        if (!hasUploadKey || !file(uploadKey.path).isFile()) {
+            throw new GradleException('Release signing requires all four ZARAHS_UPLOAD_* variables and an existing keystore. See MOBILE_RELEASE.md.')
+        }
+    }
+}
+tasks.configureEach { task ->
+    if (task.name == 'preReleaseBuild') task.dependsOn(verifyUploadKey)
+}
+
+
 android {
     namespace = "app.zarahs.store"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,8 +31,19 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (hasUploadKey) {
+            release {
+                storeFile file(uploadKey.path)
+                storePassword uploadKey.storePassword
+                keyAlias uploadKey.alias
+                keyPassword uploadKey.keyPassword
+            }
+        }
+    }
     buildTypes {
         release {
+            if (hasUploadKey) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
